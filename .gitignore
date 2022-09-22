@@ -5,5 +5,5 @@ dist
 bin/*/*server
 .DS_Store
 .vscode
-./.idea
+.idea
 
