@@ -1,0 +1,9 @@
+conf/files/*.json
+dist
+.tags
+.tags_sorted_by_file
+bin/*/*server
+.DS_Store
+.vscode
+./.idea
+
