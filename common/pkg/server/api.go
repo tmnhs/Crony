@@ -7,6 +7,7 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/tmnhs/crony/common/pkg/config"
 	"github.com/tmnhs/crony/common/pkg/dbclient"
+	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"io"
 	"net"
@@ -146,7 +147,7 @@ func (srv *ApiServer) apiRecoveryMiddleware() gin.HandlerFunc {
 func (srv *ApiServer) setupSignal() {
 	go func() {
 		var sigChan = make(chan os.Signal, 1)
-		signal.Notify(sigChan, /*syscall.SIGUSR1,*/ syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM)
+		signal.Notify(sigChan /*syscall.SIGUSR1,*/, syscall.SIGINT, syscall.SIGHUP, syscall.SIGTERM)
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownMaxAge)
 		defer shutdownCancel()
 
@@ -204,17 +205,25 @@ func NewApiServer(serverName string, inits ...func()) (*ApiServer, error) {
 	if configFile == "" {
 		configFile = "main"
 	}
-	defaultConfig, err := config.LoadConfig(env.String(),serverName, configFile)
+	defaultConfig, err := config.LoadConfig(env.String(), serverName, configFile)
 	if err != nil {
-		logger.Errorf("api-server:init config error:%s", err.Error())
+		fmt.Printf("api-server:init config error:%s", err.Error())
 		return nil, err
 	}
 	//todo
 	logger.Init(&defaultConfig.Log, serverName)
 
 	//初始化数据层服务
-	dbclient.Init(defaultConfig.Mysql)
-
+	_, err = dbclient.Init(defaultConfig.Mysql)
+	if err != nil {
+		fmt.Printf("api-server:init mysql error:%s", err.Error())
+		return nil, err
+	}
+	_, err = etcdclient.Init(defaultConfig.Etcd)
+	if err != nil {
+		fmt.Printf("api-server:init etcd error:%s", err.Error())
+		return nil, err
+	}
 	if len(inits) > 0 {
 		for _, init := range inits {
 			init()

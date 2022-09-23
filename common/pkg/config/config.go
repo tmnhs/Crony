@@ -29,12 +29,12 @@ var (
 	}
 )
 
+var _defaultConfig *models.Config
 
-
-func LoadConfig(env ,serverName,configFileName string) (*models.Config, error) {
+func LoadConfig(env, serverName, configFileName string) (*models.Config, error) {
 	var c models.Config
 	var confPath string
-	dir:=fmt.Sprintf("%s/%s/%s",serverName,NameSpace,env)
+	dir := fmt.Sprintf("%s/%s/%s", serverName, NameSpace, env)
 	for _, registerExt := range autoLoadLocalConfigs {
 		confPath = path.Join(dir, configFileName+registerExt)
 		if utils.Exists(confPath) {
@@ -42,7 +42,7 @@ func LoadConfig(env ,serverName,configFileName string) (*models.Config, error) {
 			//return NewConfig(env, namespace, configFileName+registerExt)
 		}
 	}
-	fmt.Println("confPath is :", confPath)
+	fmt.Println("the path to the configuration file you are using is :", confPath)
 	v := viper.New()
 	v.SetConfigFile(confPath)
 	ext := utils.Ext(confPath)
@@ -63,6 +63,10 @@ func LoadConfig(env ,serverName,configFileName string) (*models.Config, error) {
 		fmt.Println(err)
 	}
 	fmt.Printf("config is :%#v", c)
+	_defaultConfig = &c
+	return &c, nil
+}
 
-	return &c,nil
+func GetConfigModels() *models.Config {
+	return _defaultConfig
 }

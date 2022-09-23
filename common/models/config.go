@@ -22,10 +22,11 @@ type (
 		Nickname string `mapstructure:"nickname" json:"nickname" yaml:"nickname"` // 昵称
 	}
 	Etcd struct {
-		Endpoints   []string    `mapstructure:"endpoints" json:"endpoints" yaml:"endpoints"`
-		Username    string `mapstructure:"username" json:"username" yaml:"username"` // 库用户名
-		Password    string `mapstructure:"password" json:"password" yaml:"password"` // 密码
+		Endpoints   []string `mapstructure:"endpoints" json:"endpoints" yaml:"endpoints"`
+		Username    string   `mapstructure:"username" json:"username" yaml:"username"` // 库用户名
+		Password    string   `mapstructure:"password" json:"password" yaml:"password"` // 密码
 		DialTimeout int64    `mapstructure:"dial-timeout" json:"dial-timeout" yaml:"dial-timeout"`
+		ReqTimeout  int64    `mapstructure:"req-timeout" json:"req-timeout" yaml:"req-timeout"`
 	}
 	System struct {
 		Env          string `mapstructure:"env" json:"env" yaml:"env"`    // 环境值
