@@ -7,3 +7,6 @@ bin/*/*server
 .vscode
 .idea
 
+admin/logs
+
+node/logs
