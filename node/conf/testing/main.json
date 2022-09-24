@@ -1,0 +1,48 @@
+{
+  "mysql": {
+    "path": "114.55.178.217",
+    "port": "3307",
+    "config": "charset=utf8mb4&parseTime=True&loc=Local",
+    "db-name": "hust_mall",
+    "username": "root",
+    "password": "root",
+    "max-idle-conns": 100,
+    "max-open-conns": 100,
+    "log-mode": "info",
+    "log-zap": false
+  },
+  "system": {
+    "env": "testing",
+    "addr": 8888,
+    "iplimit-count": 15000,
+    "iplimit-time": 3600,
+    "logclear": 12
+  },
+  "etcd": {
+    "endpoints":[
+      "http://127.0.0.1:2379"
+    ],
+    "username":"",
+    "password":"",
+    "dial-timeout": 2,
+    "req-timeout": 5
+  },
+  "email": {
+    "port": 465,
+    "from": "1685290935@qq.com",
+    "host": "smtp.qq.com",
+    "is-ssl": true,
+    "secret": "otjkvfgiguswciga",
+    "nickname": "test"
+  },
+  "log": {
+    "level": "info",
+    "format": "console",
+    "prefix": "[crony-node]",
+    "director": "logs",
+    "showLine": false,
+    "encode-level": "LowercaseColorLevelEncoder",
+    "stacktrace-key": "stacktrace",
+    "log-in-console": true
+  }
+}
