@@ -216,13 +216,15 @@ func NewApiServer(serverName string, inits ...func()) (*ApiServer, error) {
 	//初始化数据层服务
 	_, err = dbclient.Init(defaultConfig.Mysql)
 	if err != nil {
-		fmt.Printf("api-server:init mysql error:%s", err.Error())
-		return nil, err
+		logger.Errorf("api-server:init mysql failed , error:%s", err.Error())
+	} else {
+		logger.Info("api-server:init mysql success")
 	}
 	_, err = etcdclient.Init(defaultConfig.Etcd)
 	if err != nil {
-		fmt.Printf("api-server:init etcd error:%s", err.Error())
-		return nil, err
+		logger.Errorf("api-server:init etcd failed , error:%s", err.Error())
+	} else {
+		logger.Info("api-server:init etcd success")
 	}
 	if len(inits) > 0 {
 		for _, init := range inits {

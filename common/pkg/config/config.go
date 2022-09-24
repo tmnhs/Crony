@@ -62,7 +62,7 @@ func LoadConfig(env, serverName, configFileName string) (*models.Config, error) 
 	if err := v.Unmarshal(&c); err != nil {
 		fmt.Println(err)
 	}
-	fmt.Printf("config is :%#v", c)
+	fmt.Printf("config is :%#v\n", c)
 	_defaultConfig = &c
 	return &c, nil
 }
