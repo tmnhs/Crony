@@ -1,14 +1,5 @@
 package etcdclient
 
-/*
-   "node": "/crony/node/",
-   "proc": "/crony/proc/",
-   "cmd": "/crony/cmd/",
-   "once": "/crony/once/",
-   "lock": "/crony/lock/",
-   "group": "/crony/group/",
-   "noticer": "/crony/noticer/"
-*/
 const (
 	KeyEtcdProfile = "/crony/"
 	//node节点

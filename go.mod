@@ -10,6 +10,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/gin-gonic/gin v1.8.1
+	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.4.0 // indirect
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/jonboulle/clockwork v0.1.0 // indirect

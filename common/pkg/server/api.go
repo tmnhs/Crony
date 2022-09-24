@@ -175,7 +175,7 @@ func NewApiServer(serverName string, inits ...func()) (*ApiServer, error) {
 	}
 
 	if ApiOptions.Version {
-		fmt.Printf("%s Version:%s\n", Module, Version)
+		fmt.Printf("%s Version:%s\n", ApiModule, Version)
 		os.Exit(0)
 	}
 

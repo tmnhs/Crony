@@ -7,17 +7,21 @@ import (
 	"runtime"
 	"time"
 )
+
 var (
 	dunno     = []byte("???")
 	centerDot = []byte("·")
 	dot       = []byte(".")
 	slash     = []byte("/")
 )
+
 const (
 	// Version ApiServer框架版本号
-	Version = "v1.0.0"
-	Module  = "crony/api-server"
+	Version    = "v1.0.0"
+	ApiModule  = "crony/api-server"
+	NodeModule = "crony/node-server"
 )
+
 func formatTime(t time.Time) string {
 	var timeString = t.Format("2006/01/02 - 15:04:05")
 	return timeString

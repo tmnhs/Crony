@@ -37,19 +37,25 @@ func Init(e models.Etcd) (*Client, error) {
 
 func GetEtcdClient() *Client {
 	if _defalutEtcd == nil {
-		logger.Errorf("mysql database is not initialized")
+		logger.Errorf("etcd is not initialized")
 		return nil
 	}
 	return _defalutEtcd
 }
 
 func Put(key, val string, opts ...clientv3.OpOption) (*clientv3.PutResponse, error) {
+	if _defalutEtcd == nil {
+		return nil, ErrEtcdNotInit
+	}
 	ctx, cancel := NewEtcdTimeoutContext()
 	defer cancel()
 	return _defalutEtcd.Put(ctx, key, val, opts...)
 }
 
 func PutWithModRev(key, val string, rev int64) (*clientv3.PutResponse, error) {
+	if _defalutEtcd == nil {
+		return nil, ErrEtcdNotInit
+	}
 	if rev == 0 {
 		return Put(key, val)
 	}
@@ -73,12 +79,18 @@ func PutWithModRev(key, val string, rev int64) (*clientv3.PutResponse, error) {
 }
 
 func Get(key string, opts ...clientv3.OpOption) (*clientv3.GetResponse, error) {
+	if _defalutEtcd == nil {
+		return nil, ErrEtcdNotInit
+	}
 	ctx, cancel := NewEtcdTimeoutContext()
 	defer cancel()
 	return _defalutEtcd.Get(ctx, key, opts...)
 }
 
 func Delete(key string, opts ...clientv3.OpOption) (*clientv3.DeleteResponse, error) {
+	if _defalutEtcd == nil {
+		return nil, ErrEtcdNotInit
+	}
 	ctx, cancel := NewEtcdTimeoutContext()
 	defer cancel()
 	return _defalutEtcd.Delete(ctx, key, opts...)
@@ -89,24 +101,36 @@ func Watch(key string, opts ...clientv3.OpOption) clientv3.WatchChan {
 }
 
 func Grant(ttl int64) (*clientv3.LeaseGrantResponse, error) {
+	if _defalutEtcd == nil {
+		return nil, ErrEtcdNotInit
+	}
 	ctx, cancel := NewEtcdTimeoutContext()
 	defer cancel()
 	return _defalutEtcd.Grant(ctx, ttl)
 }
 
 func Revoke(id clientv3.LeaseID) (*clientv3.LeaseRevokeResponse, error) {
+	if _defalutEtcd == nil {
+		return nil, ErrEtcdNotInit
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), _defalutEtcd.reqTimeout)
 	defer cancel()
 	return _defalutEtcd.Revoke(ctx, id)
 }
 
 func KeepAliveOnce(id clientv3.LeaseID) (*clientv3.LeaseKeepAliveResponse, error) {
+	if _defalutEtcd == nil {
+		return nil, ErrEtcdNotInit
+	}
 	ctx, cancel := NewEtcdTimeoutContext()
 	defer cancel()
 	return _defalutEtcd.KeepAliveOnce(ctx, id)
 }
 
 func GetLock(key string, id clientv3.LeaseID) (bool, error) {
+	if _defalutEtcd == nil {
+		return false, ErrEtcdNotInit
+	}
 	key = fmt.Sprintf(KeyEtcdLock, key)
 	ctx, cancel := NewEtcdTimeoutContext()
 	resp, err := _defalutEtcd.Txn(ctx).
