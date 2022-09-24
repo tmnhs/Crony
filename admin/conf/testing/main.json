@@ -14,8 +14,8 @@
   "system": {
     "env": "testing",
     "addr": 8088,
-    "iplimit-count": 15000,
-    "iplimit-time": 3600,
+    "#node-timeout": "节点超时时间，单位秒",
+    "node-timeout": 5,
     "logclear": 12
   },
   "etcd": {
@@ -38,7 +38,7 @@
   "log": {
     "level": "info",
     "format": "console",
-    "prefix": "[--hust_mall--]",
+    "prefix": "[crony-admin]",
     "director": "logs",
     "showLine": false,
     "encode-level": "LowercaseColorLevelEncoder",

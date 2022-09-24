@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/jessevdk/go-flags"
+	"github.com/robfig/cron/v3"
+	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/config"
 	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
+	"github.com/tmnhs/crony/common/pkg/utils"
 	"net/http"
 	"os"
-	"time"
+	"strconv"
 )
 
 var (
@@ -25,49 +28,32 @@ var (
 	}
 )
 
-// 执行 cron cmd 的进程
-// 注册到 /cronsun/node/<id>
-type Node struct {
-	ID       string `json:"id"`  // machine id
-	PID      string `json:"pid"` // 进程 pid
-	PIDFile  string `json:"-"`
-	IP       string `json:"ip"` // node ip
-	Hostname string `json:"hostname"`
-
-	Version  string    `json:"version"`
-	UpTime   time.Time `json:"up"`   // 启动时间
-	DownTime time.Time `json:"down"` // 上次关闭时间
-
-	Alived    bool `json:"alived"`   // 是否可用
-	Connected bool `son:"connected"` // 当 Alived 为 true 时有效，表示心跳是否正常
-}
-
+// Node 执行 cron 命令服务的结构体
 type NodeServer struct {
 	*etcdclient.Client
-	*Node
-	//*cron.Cron
+	*models.Node
+	*cron.Cron
 
-	//jobs   Jobs // 和结点相关的任务
-	//groups Groups
-	//cmds   map[string]*cronsun.Cmd
+	jobs   models.Jobs // 和结点相关的任务
+	groups models.Groups
+	cmds   map[string]*models.Cmd
 
-	//link
+	models.Link
 	// 删除的 job id，用于 group 更新
 	delIDs map[string]bool
 
-	ttl  int64
-	lID  clientv3.LeaseID // lease id
-	done chan struct{}
+	timeout int64
+	lID     clientv3.LeaseID // lease id
+	done    chan struct{}
 }
 
-func InitNodeServer(serverName string, inits ...func()) error {
+func NewNodeServer(serverName string, inits ...func()) (*NodeServer, error) {
 	var parser = flags.NewParser(&NodeOptions, flags.Default)
 	if _, err := parser.Parse(); err != nil {
 		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
 			os.Exit(0)
 		}
-
-		return err
+		return nil, err
 	}
 
 	if NodeOptions.Version {
@@ -86,7 +72,7 @@ func InitNodeServer(serverName string, inits ...func()) error {
 		var err error
 		env, err = config.NewGlobalEnvironment()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -97,7 +83,7 @@ func InitNodeServer(serverName string, inits ...func()) error {
 	defaultConfig, err := config.LoadConfig(env.String(), serverName, configFile)
 	if err != nil {
 		fmt.Printf("node-server:init config error:%s", err.Error())
-		return err
+		return nil, err
 	}
 	//todo
 	logger.Init(&defaultConfig.Log, serverName)
@@ -122,5 +108,36 @@ func InitNodeServer(serverName string, inits ...func()) error {
 		}
 	}
 
-	return nil
+	uuid, err := utils.UUID()
+	if err != nil {
+		return nil, err
+	}
+	ip, err := utils.LocalIP()
+	if err != nil {
+		return nil, err
+	}
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = uuid
+		err = nil
+	}
+	return &NodeServer{
+		Client: etcdclient.GetEtcdClient(),
+		Node: &models.Node{
+			ID:       uuid,
+			PID:      strconv.Itoa(os.Getpid()),
+			IP:       ip.String(),
+			Hostname: hostname,
+		},
+		Cron: cron.New(),
+
+		jobs: make(models.Jobs, 8),
+		cmds: make(map[string]*models.Cmd),
+
+		Link:   make(models.Link, 8),
+		delIDs: make(map[string]bool, 8),
+
+		timeout: defaultConfig.System.NodeTimeout,
+		done:    make(chan struct{}),
+	}, nil
 }

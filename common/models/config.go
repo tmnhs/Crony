@@ -1,6 +1,7 @@
 package models
 
 type (
+	//todo add ini
 	Mysql struct {
 		Path         string `mapstructure:"path" json:"path" yaml:"path"`                             // 服务器地址
 		Port         string `mapstructure:"port" json:"port" yaml:"port"`                             // 端口
@@ -29,10 +30,9 @@ type (
 		ReqTimeout  int64    `mapstructure:"req-timeout" json:"req-timeout" yaml:"req-timeout"`
 	}
 	System struct {
-		Env          string `mapstructure:"env" json:"env" yaml:"env"`    // 环境值
-		Addr         int    `mapstructure:"addr" json:"addr" yaml:"addr"` // 端口值
-		LimitCountIP int    `mapstructure:"iplimit-count" json:"iplimitCount" yaml:"iplimit-count"`
-		LimitTimeIP  int    `mapstructure:"iplimit-time" json:"iplimitTime" yaml:"iplimit-time"`
+		Env         string `mapstructure:"env" json:"env" yaml:"env"`                            // 环境值
+		Addr        int    `mapstructure:"addr" json:"addr" yaml:"addr"`                         // 端口值
+		NodeTimeout int64  `mapstructure:"node-timeout" json:"node-timeout" yaml:"node-timeout"` //
 	}
 	Log struct {
 		Level         string `mapstructure:"level" json:"level" yaml:"level"`                           // 级别
