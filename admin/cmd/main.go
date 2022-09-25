@@ -21,7 +21,7 @@ func main() {
 	logger.Infof("hello logger")
 	//注册API路由业务
 	srv.RegisterRouters(handler.RegisterRouters)
-
+	//todo 合并到srv
 	err = service.NewNodeWatcher().Watch()
 	logger.Debugf("resolver  error:%v", err)
 
