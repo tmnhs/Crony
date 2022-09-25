@@ -10,3 +10,6 @@ bin/*/*server
 admin/logs
 
 node/logs
+
+
+bin
