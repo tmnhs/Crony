@@ -118,15 +118,6 @@ func Revoke(id clientv3.LeaseID) (*clientv3.LeaseRevokeResponse, error) {
 	return _defalutEtcd.Revoke(ctx, id)
 }
 
-func KeepAliveOnce(id clientv3.LeaseID) (*clientv3.LeaseKeepAliveResponse, error) {
-	if _defalutEtcd == nil {
-		return nil, ErrEtcdNotInit
-	}
-	ctx, cancel := NewEtcdTimeoutContext()
-	defer cancel()
-	return _defalutEtcd.KeepAliveOnce(ctx, id)
-}
-
 func GetLock(key string, id clientv3.LeaseID) (bool, error) {
 	if _defalutEtcd == nil {
 		return false, ErrEtcdNotInit

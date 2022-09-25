@@ -19,3 +19,7 @@ type Node struct {
 	Alived    bool `bson:"alived" json:"alived"` // 是否可用
 	Connected bool `bson:"-" json:"connected"`   // 当 Alived 为 true 时有效，表示心跳是否正常
 }
+
+func (n *Node) String() string {
+	return "node[" + n.ID + "] pid[" + n.PID + "]"
+}

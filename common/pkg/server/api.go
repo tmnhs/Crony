@@ -226,6 +226,7 @@ func NewApiServer(serverName string, inits ...func()) (*ApiServer, error) {
 	} else {
 		logger.Info("api-server:init etcd success")
 	}
+
 	if len(inits) > 0 {
 		for _, init := range inits {
 			init()

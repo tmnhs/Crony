@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"github.com/tmnhs/crony/common/pkg/server"
+	"github.com/tmnhs/crony/common/pkg/utils/event"
 	"os"
 )
 
@@ -16,4 +17,20 @@ func main() {
 		os.Exit(1)
 	}
 	logger.Debugf("nodeServer:%#v", *nodeServer)
+	logger.Debugf("node:%#v", *nodeServer.Node)
+	//todo registet to etcd
+	if err = nodeServer.Register(); err != nil {
+		fmt.Println("register node into etcd error:", err.Error())
+		os.Exit(1)
+	}
+	//todo run
+
+	logger.Infof("crony node %s service started, Ctrl+C or send kill sign to exit", nodeServer.String())
+	// 注册退出事件
+	event.OnEvent(event.EXIT, nodeServer.Stop /*,stopwatcher()*/)
+	// 监听退出信号
+	event.WaitEvent()
+	// 处理退出事件
+	event.EmitEvent(event.EXIT, nil)
+	logger.Infof("exit success")
 }

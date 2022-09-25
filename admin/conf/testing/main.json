@@ -15,7 +15,7 @@
     "env": "testing",
     "addr": 8088,
     "#node-timeout": "节点超时时间，单位秒",
-    "node-timeout": 5,
+    "node-ttl": 5,
     "logclear": 12
   },
   "etcd": {
