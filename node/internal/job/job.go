@@ -19,12 +19,6 @@ type Job struct {
 }
 type Jobs map[string]*Job
 
-func Run() {
-	c := cron.New()
-	c.Start()
-	select {}
-}
-
 func JobKey(nodeId string, group, id string) string {
 	return etcdclient.KeyEtcdJob + nodeId + "/" + group + "/" + id
 }
