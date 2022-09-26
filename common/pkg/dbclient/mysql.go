@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/logger"
+	"github.com/tmnhs/crony/common/pkg/utils/errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -12,7 +13,7 @@ var _defaultDB *gorm.DB
 
 func Init(m models.Mysql) (*gorm.DB, error) {
 	if m.Dbname == "" {
-		return nil, ErrClientDbNameNull
+		return nil, errors.ErrClientDbNameNull
 	}
 	mysqlConfig := mysql.Config{
 		DSN:                       m.Dsn(), // DSN data source name
@@ -40,14 +41,14 @@ func GetMysqlDB() *gorm.DB {
 
 func Insert(table string, val interface{}) error {
 	if _defaultDB == nil {
-		return ErrClientNotFound
+		return errors.ErrClientNotFound
 	}
 	return _defaultDB.Table(table).Create(val).Error
 }
 
 func DeleteById(table string, id int64) error {
 	if _defaultDB == nil {
-		return ErrClientNotFound
+		return errors.ErrClientNotFound
 	}
 	return _defaultDB.Exec(fmt.Sprintf("DELETE FROM %s WHERE id = ?", table), id).Error
 }

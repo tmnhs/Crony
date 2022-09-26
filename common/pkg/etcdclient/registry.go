@@ -26,7 +26,7 @@ func NewServerReg(ttl int64) *ServerReg {
 	}
 }
 
-func (s *ServerReg) Register(key, value string) error {
+func (s *ServerReg) Register(key string, value string) error {
 	if err := s.setLease(s.Ttl); err != nil {
 		return err
 	}

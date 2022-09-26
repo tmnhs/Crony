@@ -5,20 +5,25 @@ import (
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"github.com/tmnhs/crony/common/pkg/server"
 	"github.com/tmnhs/crony/common/pkg/utils/event"
+	"github.com/tmnhs/crony/node/internal/service"
 	"os"
 )
 
 const ServerName = "node"
 
 func main() {
-	nodeServer, err := server.NewNodeServer(ServerName)
+	if _, err := server.InitNodeServer(ServerName); err != nil {
+		fmt.Println("init node server error:", err.Error())
+		os.Exit(1)
+	}
+	nodeServer, err := service.NewNodeServer()
 	if err != nil {
 		fmt.Println("init node server error:", err.Error())
 		os.Exit(1)
 	}
 	logger.Debugf("nodeServer:%#v", *nodeServer)
 	logger.Debugf("node:%#v", *nodeServer.Node)
-	//todo registet to etcd
+	//todo register to etcd
 	if err = nodeServer.Register(); err != nil {
 		fmt.Println("register node into etcd error:", err.Error())
 		os.Exit(1)

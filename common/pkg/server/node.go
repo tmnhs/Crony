@@ -3,17 +3,13 @@ package server
 import (
 	"fmt"
 	"github.com/jessevdk/go-flags"
-	"github.com/robfig/cron/v3"
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/config"
 	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
-	"github.com/tmnhs/crony/common/pkg/utils"
 	"net/http"
 	"os"
-	"strconv"
-	"syscall"
 )
 
 var (
@@ -28,22 +24,7 @@ var (
 	}
 )
 
-// Node 执行 cron 命令服务的结构体
-type NodeServer struct {
-	*etcdclient.ServerReg
-	*models.Node
-	*cron.Cron
-
-	jobs   models.Jobs // 和结点相关的任务
-	groups models.Groups
-	cmds   map[string]*models.Cmd
-
-	models.Link
-	// 删除的 job id，用于 group 更新
-	delIDs map[string]bool
-}
-
-func NewNodeServer(serverName string, inits ...func()) (*NodeServer, error) {
+func InitNodeServer(serverName string, inits ...func()) (*models.Config, error) {
 	var parser = flags.NewParser(&NodeOptions, flags.Default)
 	if _, err := parser.Parse(); err != nil {
 		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
@@ -103,89 +84,5 @@ func NewNodeServer(serverName string, inits ...func()) (*NodeServer, error) {
 			init()
 		}
 	}
-
-	uuid, err := utils.UUID()
-	if err != nil {
-		return nil, err
-	}
-	ip, err := utils.LocalIP()
-	if err != nil {
-		return nil, err
-	}
-	hostname, err := os.Hostname()
-	if err != nil {
-		hostname = uuid
-		err = nil
-	}
-	return &NodeServer{
-		Node: &models.Node{
-			ID:       uuid,
-			PID:      strconv.Itoa(os.Getpid()),
-			IP:       ip.String(),
-			Hostname: hostname,
-		},
-		Cron: cron.New(),
-
-		jobs: make(models.Jobs, 8),
-		cmds: make(map[string]*models.Cmd),
-
-		Link:   make(models.Link, 8),
-		delIDs: make(map[string]bool, 8),
-
-		ServerReg: etcdclient.NewServerReg(defaultConfig.System.NodeTtl),
-	}, nil
-}
-
-// Check whether the node is registered with ETCD
-// If yes, PID is returned. If no, -1 is returned
-func (n *NodeServer) exist(nodeId string) (pid int, err error) {
-	resp, err := etcdclient.Get(etcdclient.KeyEtcdNode + nodeId)
-	if err != nil {
-		return
-	}
-
-	if len(resp.Kvs) == 0 {
-		return -1, nil
-	}
-
-	if pid, err = strconv.Atoi(string(resp.Kvs[0].Value)); err != nil {
-		if _, err = etcdclient.Delete(etcdclient.KeyEtcdNode + nodeId); err != nil {
-			return
-		}
-		return -1, nil
-	}
-
-	p, err := os.FindProcess(pid)
-	if err != nil {
-		return -1, nil
-	}
-
-	// TODO: 暂时不考虑 linux/unix 以外的系统
-	if p != nil && p.Signal(syscall.Signal(0)) == nil {
-		return
-	}
-	return -1, nil
-}
-
-// Register into ETCD with /crony/node/<node_id>
-func (n *NodeServer) Register() error {
-	pid, err := n.exist(n.ID)
-	if err != nil {
-		return err
-	}
-	if pid != -1 {
-		return fmt.Errorf("node[%s] with pid[%d] exist", n.ID, pid)
-	}
-	//creates a new lease
-	if err := n.ServerReg.Register(etcdclient.KeyEtcdNode+n.ID, n.PID); err != nil {
-		return err
-	}
-	return nil
-}
-
-// 停止服务
-func (n *NodeServer) Stop(i interface{}) {
-	//n.Node.Down()
-	n.Client.Close()
-	n.Cron.Stop()
+	return defaultConfig, nil
 }

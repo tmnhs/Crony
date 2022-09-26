@@ -5,7 +5,8 @@ const (
 	//node节点
 	KeyEtcdNode    = KeyEtcdProfile + "node/"
 	KeyEtcdProc    = KeyEtcdProfile + "proc/"
-	KeyEtcdCmd     = KeyEtcdProfile + "cmd/"
+	KeyEtcdJob     = KeyEtcdProfile + "job/"
+	KeyEtcdGroup   = KeyEtcdProfile + "group/"
 	KeyEtcdOnce    = KeyEtcdProfile + "once/"
 	KeyEtcdLock    = KeyEtcdProfile + "lock/"
 	KeyEtcdNoticer = KeyEtcdProfile + "noticer/"

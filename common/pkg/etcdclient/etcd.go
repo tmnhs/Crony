@@ -7,6 +7,7 @@ import (
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/config"
 	"github.com/tmnhs/crony/common/pkg/logger"
+	"github.com/tmnhs/crony/common/pkg/utils/errors"
 	"strings"
 	"time"
 )
@@ -45,7 +46,7 @@ func GetEtcdClient() *Client {
 
 func Put(key, val string, opts ...clientv3.OpOption) (*clientv3.PutResponse, error) {
 	if _defalutEtcd == nil {
-		return nil, ErrEtcdNotInit
+		return nil, errors.ErrEtcdNotInit
 	}
 	ctx, cancel := NewEtcdTimeoutContext()
 	defer cancel()
@@ -54,7 +55,7 @@ func Put(key, val string, opts ...clientv3.OpOption) (*clientv3.PutResponse, err
 
 func PutWithModRev(key, val string, rev int64) (*clientv3.PutResponse, error) {
 	if _defalutEtcd == nil {
-		return nil, ErrEtcdNotInit
+		return nil, errors.ErrEtcdNotInit
 	}
 	if rev == 0 {
 		return Put(key, val)
@@ -71,7 +72,7 @@ func PutWithModRev(key, val string, rev int64) (*clientv3.PutResponse, error) {
 	}
 
 	if !tresp.Succeeded {
-		return nil, ErrValueMayChanged
+		return nil, errors.ErrValueMayChanged
 	}
 
 	resp := clientv3.PutResponse(*tresp.Responses[0].GetResponsePut())
@@ -80,7 +81,7 @@ func PutWithModRev(key, val string, rev int64) (*clientv3.PutResponse, error) {
 
 func Get(key string, opts ...clientv3.OpOption) (*clientv3.GetResponse, error) {
 	if _defalutEtcd == nil {
-		return nil, ErrEtcdNotInit
+		return nil, errors.ErrEtcdNotInit
 	}
 	ctx, cancel := NewEtcdTimeoutContext()
 	defer cancel()
@@ -89,7 +90,7 @@ func Get(key string, opts ...clientv3.OpOption) (*clientv3.GetResponse, error) {
 
 func Delete(key string, opts ...clientv3.OpOption) (*clientv3.DeleteResponse, error) {
 	if _defalutEtcd == nil {
-		return nil, ErrEtcdNotInit
+		return nil, errors.ErrEtcdNotInit
 	}
 	ctx, cancel := NewEtcdTimeoutContext()
 	defer cancel()
@@ -102,7 +103,7 @@ func Watch(key string, opts ...clientv3.OpOption) clientv3.WatchChan {
 
 func Grant(ttl int64) (*clientv3.LeaseGrantResponse, error) {
 	if _defalutEtcd == nil {
-		return nil, ErrEtcdNotInit
+		return nil, errors.ErrEtcdNotInit
 	}
 	ctx, cancel := NewEtcdTimeoutContext()
 	defer cancel()
@@ -111,7 +112,7 @@ func Grant(ttl int64) (*clientv3.LeaseGrantResponse, error) {
 
 func Revoke(id clientv3.LeaseID) (*clientv3.LeaseRevokeResponse, error) {
 	if _defalutEtcd == nil {
-		return nil, ErrEtcdNotInit
+		return nil, errors.ErrEtcdNotInit
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), _defalutEtcd.reqTimeout)
 	defer cancel()
@@ -120,7 +121,7 @@ func Revoke(id clientv3.LeaseID) (*clientv3.LeaseRevokeResponse, error) {
 
 func GetLock(key string, id clientv3.LeaseID) (bool, error) {
 	if _defalutEtcd == nil {
-		return false, ErrEtcdNotInit
+		return false, errors.ErrEtcdNotInit
 	}
 	key = fmt.Sprintf(KeyEtcdLock, key)
 	ctx, cancel := NewEtcdTimeoutContext()

@@ -8,5 +8,3 @@ type Group struct {
 
 	NodeIDs []string `json:"nids"`
 }
-
-type Groups map[string]*Group
