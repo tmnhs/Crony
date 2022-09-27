@@ -3,7 +3,7 @@
     "path": "114.55.178.217",
     "port": "3307",
     "config": "charset=utf8mb4&parseTime=True&loc=Local",
-    "db-name": "hust_mall",
+    "db-name": "crony",
     "username": "root",
     "password": "root",
     "max-idle-conns": 100,
@@ -38,7 +38,7 @@
   "log": {
     "level": "info",
     "format": "console",
-    "prefix": "[crony-admin]",
+    "prefix": "[crony-node]",
     "director": "logs",
     "showLine": false,
     "encode-level": "LowercaseColorLevelEncoder",

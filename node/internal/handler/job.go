@@ -156,6 +156,7 @@ func CreateJob(j *Job) cron.FuncJob {
 
 func (j *Job) Check() error {
 	j.ID = strings.TrimSpace(j.ID)
+	//todo
 	if !IsValidAsKeyPath(j.ID) {
 		return errors.ErrIllegalJobId
 	}
@@ -179,13 +180,6 @@ func (j *Job) Check() error {
 	}
 
 	j.User = strings.TrimSpace(j.User)
-	//todo
-	//for i := range j.Rules {
-	//	id := strings.TrimSpace(j.Rules[i].ID)
-	//	if id == "" || strings.HasPrefix(id, "NEW") {
-	//		j.Rules[i].ID = NextID()
-	//	}
-	//}
 
 	// 不修改 Command 的内容，简单判断是否为空
 	if len(strings.TrimSpace(j.Command)) == 0 {
@@ -269,4 +263,10 @@ func GetJobIDFromKey(key string) string {
 		return ""
 	}
 	return key[index+1:]
+}
+
+//todo db
+
+func (j *Job) Insert2Db() {
+	//dbclient.GetMysqlDB()
 }
