@@ -17,7 +17,7 @@ import (
 type Job struct {
 	*models.Job
 }
-type Jobs map[string]*Job
+type Jobs map[int]*Job
 
 func JobKey(nodeId string, group, id string) string {
 	return etcdclient.KeyEtcdJob + nodeId + "/" + group + "/" + id
@@ -79,14 +79,14 @@ func DeleteJob(nodeId, group, id string) (resp *clientv3.DeleteResponse, err err
 	return etcdclient.Delete(JobKey(nodeId, group, id))
 }
 
-func GetJobs(nodeId string) (jobs map[string]*Job, err error) {
+func GetJobs(nodeId string) (jobs map[int]*Job, err error) {
 	resp, err := etcdclient.Get(etcdclient.KeyEtcdJob+nodeId, clientv3.WithPrefix())
 	if err != nil {
 		return
 	}
 
 	count := len(resp.Kvs)
-	jobs = make(map[string]*Job, count)
+	jobs = make(map[int]*Job, count)
 	if count == 0 {
 		return
 	}
@@ -155,11 +155,11 @@ func CreateJob(j *Job) cron.FuncJob {
 }
 
 func (j *Job) Check() error {
-	j.ID = strings.TrimSpace(j.ID)
+	//j.ID = strings.TrimSpace(j.ID)
 	//todo
-	if !IsValidAsKeyPath(j.ID) {
-		return errors.ErrIllegalJobId
-	}
+	//if !IsValidAsKeyPath(j.ID) {
+	//	return errors.ErrIllegalJobId
+	//}
 
 	j.Name = strings.TrimSpace(j.Name)
 	if len(j.Name) == 0 {
@@ -171,15 +171,15 @@ func (j *Job) Check() error {
 	//	j.Group = DefaultJobGroup
 	//}
 
-	if !IsValidAsKeyPath(j.Group) {
-		return errors.ErrIllegalJobGroupName
-	}
+	//if !IsValidAsKeyPath(j.Group) {
+	//	return errors.ErrIllegalJobGroupName
+	//}
 
 	if j.LogExpiration < 0 {
 		j.LogExpiration = 0
 	}
 
-	j.User = strings.TrimSpace(j.User)
+	j.CmdUser = strings.TrimSpace(j.CmdUser)
 
 	// 不修改 Command 的内容，简单判断是否为空
 	if len(strings.TrimSpace(j.Command)) == 0 {

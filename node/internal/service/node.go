@@ -45,7 +45,7 @@ func NewNodeServer() (*NodeServer, error) {
 	}
 	return &NodeServer{
 		Node: &models.Node{
-			ID:       uuid,
+			UUID:     uuid,
 			PID:      strconv.Itoa(os.Getpid()),
 			IP:       ip.String(),
 			Hostname: hostname,
@@ -95,7 +95,7 @@ func (srv *NodeServer) exist(nodeId string) (pid int, err error) {
 
 // Register into ETCD with /crony/node/<node_id>
 func (srv *NodeServer) Register() error {
-	pid, err := srv.exist(srv.ID)
+	pid, err := srv.exist(srv.UUID)
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (srv *NodeServer) Register() error {
 		return fmt.Errorf("node[%s] with pid[%d] exist", srv.ID, pid)
 	}
 	//creates a new lease
-	if err := srv.ServerReg.Register(etcdclient.KeyEtcdNode+srv.ID, srv.PID); err != nil {
+	if err := srv.ServerReg.Register(fmt.Sprintf(etcdclient.KeyEtcdNode+"%d", srv.ID), srv.PID); err != nil {
 		return err
 	}
 	return nil
@@ -144,7 +144,7 @@ func (srv *NodeServer) loadJobs() (err error) {
 		return
 	}
 	//再获取本机分配的定时任务
-	jobs, err := handler.GetJobs(srv.ID)
+	jobs, err := handler.GetJobs(srv.UUID)
 	if err != nil {
 		return
 	}
@@ -155,7 +155,7 @@ func (srv *NodeServer) loadJobs() (err error) {
 	srv.jobs = jobs
 
 	for _, j := range jobs {
-		j.InitNodeInfo(srv.ID, srv.Hostname, srv.IP)
+		j.InitNodeInfo(srv.UUID, srv.Hostname, srv.IP)
 		srv.addJob(j, false)
 	}
 
@@ -166,7 +166,7 @@ func (srv *NodeServer) loadJobs() (err error) {
 func (srv *NodeServer) addJob(j *handler.Job, notice bool) {
 	taskFunc := handler.CreateJob(j)
 	if taskFunc == nil {
-		logger.Errorf("创建任务处理Job失败,不支持的任务协议#%s", j.JobType)
+		logger.Errorf("创建任务处理Job失败,不支持的任务协议#%s", j.Type)
 		return
 	}
 	err := goutil.PanicToError(func() {
@@ -178,8 +178,8 @@ func (srv *NodeServer) addJob(j *handler.Job, notice bool) {
 
 	return
 }
-func (srv *NodeServer) jobCronName(jobId string) string {
-	return srv.ID + "/" + jobId
+func (srv *NodeServer) jobCronName(jobId int) string {
+	return fmt.Sprintf(srv.UUID+"/%d", jobId)
 }
 
 func (srv *NodeServer) modifyJob(j *handler.Job) {
@@ -197,7 +197,7 @@ func (srv *NodeServer) modifyJob(j *handler.Job) {
 }
 
 //todo error
-func (srv *NodeServer) deleteJob(jobId string) {
+func (srv *NodeServer) deleteJob(jobId int) {
 	if _, ok := srv.jobs[jobId]; ok {
 		//存在则删除并且删除任务
 		//todo into db

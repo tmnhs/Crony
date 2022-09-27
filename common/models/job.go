@@ -120,7 +120,7 @@ type JobProc struct {
 	Wg     sync.WaitGroup
 }
 
-func (j *Job) InitNodeInfo(nodeID, hostname, ip string) {
+func (j *Job) InitNodeInfo(nodeUUID, hostname, ip string) {
 	var c int64
-	j.Count, j.RunOn, j.Hostname, j.Ip = &c, nodeID, hostname, ip
+	j.Count, j.RunOn, j.Hostname, j.Ip = &c, nodeUUID, hostname, ip
 }

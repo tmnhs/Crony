@@ -11,7 +11,7 @@ func TestHttpCall(t *testing.T) {
 		{
 			Job: &models.Job{
 				Name:       "get",
-				HttpUrl:    "https://www.baidu.com",
+				Command:    "https://www.baidu.com",
 				HttpMethod: models.HTTPMethodGet,
 				Timeout:    3000,
 			},
