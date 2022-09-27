@@ -1,18 +1,20 @@
-package job_test
+package handler_test
 
 import (
 	"github.com/tmnhs/crony/common/models"
-	"github.com/tmnhs/crony/node/internal/job"
+	"github.com/tmnhs/crony/node/internal/handler"
 	"testing"
 )
 
 func TestHttpCall(t *testing.T) {
-	jobs := []models.Job{
+	jobs := []handler.Job{
 		{
-			Name:       "get",
-			HttpUrl:    "https://www.baidu.com",
-			HttpMethod: models.HTTPMethodGet,
-			Timeout:    3000,
+			Job: &models.Job{
+				Name:       "get",
+				HttpUrl:    "https://www.baidu.com",
+				HttpMethod: models.HTTPMethodGet,
+				Timeout:    3000,
+			},
 		},
 		// TODO
 		//{
@@ -22,7 +24,7 @@ func TestHttpCall(t *testing.T) {
 		//	Timeout:       3000,
 		//},
 	}
-	var http job.HTTPHandler
+	var http handler.HTTPHandler
 	for i := 0; i < len(jobs); i++ {
 		rsp, err := http.Run(&jobs[i])
 		if err != nil {

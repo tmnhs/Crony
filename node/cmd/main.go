@@ -23,12 +23,14 @@ func main() {
 	}
 	logger.Debugf("nodeServer:%#v", *nodeServer)
 	logger.Debugf("node:%#v", *nodeServer.Node)
-	//todo register to etcd
 	if err = nodeServer.Register(); err != nil {
-		fmt.Println("register node into etcd error:", err.Error())
+		logger.Errorf("register node into etcd error:%s", err.Error())
 		os.Exit(1)
 	}
-	//todo run
+	if err = nodeServer.Run(); err != nil {
+		logger.Errorf("node run error:", err.Error())
+		os.Exit(1)
+	}
 
 	logger.Infof("crony node %s service started, Ctrl+C or send kill sign to exit", nodeServer.String())
 	// 注册退出事件

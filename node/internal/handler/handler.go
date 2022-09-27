@@ -1,7 +1,7 @@
-package job
+package handler
 
 import (
-	"github.com/robfig/cron/v3"
+	"github.com/jakecoffman/cron"
 	"github.com/tmnhs/crony/common/models"
 	"sync"
 )
@@ -56,10 +56,10 @@ func (tc *TaskCount) Wait() {
 }
 
 type Handler interface {
-	Run(taskModel *Job) (string, error)
+	Run(job *Job) (string, error)
 }
 
-func (j *Job) CreateHandler() Handler {
+func CreateHandler(j *Job) Handler {
 	var handler Handler = nil
 	switch j.JobType {
 	case models.JobTypeCmd:

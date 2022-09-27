@@ -2,15 +2,14 @@ package service
 
 import (
 	"fmt"
+	"github.com/jakecoffman/cron"
 	"github.com/ouqiang/goutil"
-	"github.com/robfig/cron/v3"
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/config"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"github.com/tmnhs/crony/common/pkg/utils"
-	"github.com/tmnhs/crony/node/internal/group"
-	"github.com/tmnhs/crony/node/internal/job"
+	"github.com/tmnhs/crony/node/internal/handler"
 	"os"
 	"strconv"
 	"syscall"
@@ -22,8 +21,8 @@ type NodeServer struct {
 	*models.Node
 	*cron.Cron
 
-	jobs   job.Jobs // 和结点相关的任务
-	Groups group.Groups
+	jobs   handler.Jobs // 和结点相关的任务
+	Groups handler.Groups
 
 	models.Link
 	// 删除的 job id，用于 group 更新
@@ -53,7 +52,7 @@ func NewNodeServer() (*NodeServer, error) {
 		},
 		Cron: cron.New(),
 
-		jobs: make(job.Jobs, 8),
+		jobs: make(handler.Jobs, 8),
 
 		Link:   make(models.Link, 8),
 		delIDs: make(map[string]bool, 8),
@@ -112,7 +111,7 @@ func (srv *NodeServer) Register() error {
 
 // 停止服务
 func (srv *NodeServer) Stop(i interface{}) {
-	//n.Node.Down()
+	//todo n.Node.Down()
 	//todo 删除key值
 	srv.Client.Close()
 	srv.Cron.Stop()
@@ -141,11 +140,11 @@ func (srv *NodeServer) Run() (err error) {
 
 func (srv *NodeServer) loadJobs() (err error) {
 	//先获取所有的分组
-	if srv.Groups, err = group.GetGroups(""); err != nil {
+	if srv.Groups, err = handler.GetGroups(""); err != nil {
 		return
 	}
 	//再获取本机分配的定时任务
-	jobs, err := job.GetJobs(srv.ID)
+	jobs, err := handler.GetJobs(srv.ID)
 	if err != nil {
 		return
 	}
@@ -164,18 +163,48 @@ func (srv *NodeServer) loadJobs() (err error) {
 }
 
 //todo notice
-func (srv *NodeServer) addJob(j *job.Job, notice bool) {
-	taskFunc := job.CreateJob(j)
+func (srv *NodeServer) addJob(j *handler.Job, notice bool) {
+	taskFunc := handler.CreateJob(j)
 	if taskFunc == nil {
 		logger.Errorf("创建任务处理Job失败,不支持的任务协议#%s", j.JobType)
 		return
 	}
 	err := goutil.PanicToError(func() {
-		srv.Cron.AddFunc(j.Spec, taskFunc)
+		srv.Cron.AddFunc(j.Spec, taskFunc, srv.jobCronName(j.ID))
 	})
 	if err != nil {
 		logger.Errorf("添加任务到调度器失败#%v", err.Error())
 	}
 
+	return
+}
+func (srv *NodeServer) jobCronName(jobId string) string {
+	return srv.ID + "/" + jobId
+}
+
+func (srv *NodeServer) modifyJob(j *handler.Job) {
+	oldJob, ok := srv.jobs[j.ID]
+	// 之前此任务没有在当前结点执行，直接增加任务
+	if !ok {
+		srv.addJob(j, true)
+		return
+	}
+	//先删除
+	srv.deleteJob(oldJob.ID)
+	//再
+	srv.addJob(j, true)
+	return
+}
+
+//todo error
+func (srv *NodeServer) deleteJob(jobId string) {
+	if _, ok := srv.jobs[jobId]; ok {
+		//存在则删除并且删除任务
+		//todo into db
+		srv.Cron.RemoveJob(srv.jobCronName(jobId))
+		delete(srv.jobs, jobId)
+		return
+	}
+	//删除
 	return
 }

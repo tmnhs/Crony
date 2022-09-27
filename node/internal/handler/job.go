@@ -1,10 +1,10 @@
-package job
+package handler
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
-	"github.com/robfig/cron/v3"
+	"github.com/jakecoffman/cron"
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
@@ -110,17 +110,17 @@ func GetJobs(nodeId string) (jobs map[string]*Job, err error) {
 }
 
 func CreateJob(j *Job) cron.FuncJob {
-	handler := j.CreateHandler()
-	if handler == nil {
+	h := CreateHandler(j)
+	if h == nil {
 		//logger and error
 		return nil
 	}
 	taskFunc := func() {
-		taskCount.Add()
-		defer taskCount.Done()
+		/*handler.taskCount.Add()
+		defer handler.taskCount.Done()
 
-		concurrencyQueue.Add()
-		defer concurrencyQueue.Done()
+		handler.concurrencyQueue.Add()
+		defer handler.concurrencyQueue.Done()*/
 		logger.Infof("开始执行任务#%s#命令-%s", j.Name, j.Command)
 		// 默认只运行任务一次
 		var execTimes int = 1
@@ -131,7 +131,7 @@ func CreateJob(j *Job) cron.FuncJob {
 		var output string
 		var err error
 		for i < execTimes {
-			output, err = handler.Run(j)
+			output, err = h.Run(j)
 			if err == nil {
 				//执行成功
 				//todo insert into db
@@ -209,9 +209,10 @@ func GetJobFromKv(key, value []byte) (job *Job, err error) {
 	//job.alone()
 	return
 }
-func IsValidAsKeyPath(s string) bool {
+
+/*func IsValidAsKeyPath(s string) bool {
 	return strings.IndexAny(s, "/\\") == -1
-}
+}*/
 
 // 安全选项验证
 func (j *Job) Valid() error {
@@ -237,4 +238,35 @@ func (j *Job) Valid() error {
 	//}
 
 	return nil
+}
+
+func ModifyJob(job *Job) {
+	//todo into db
+
+	/*	n.link.delJob(oJob)
+		prevCmds := oJob.Cmds(n.ID, n.groups)
+
+		job.Count = oJob.Count
+		*oJob = *job
+		cmds := oJob.Cmds(n.ID, n.groups)
+
+		for id, cmd := range cmds {
+			n.modCmd(cmd, true)
+			delete(prevCmds, id)
+		}
+
+		for _, cmd := range prevCmds {
+			n.delCmd(cmd)
+		}
+
+		n.link.addJob(oJob)*/
+}
+
+// 从 job etcd 的 key 中取 id
+func GetJobIDFromKey(key string) string {
+	index := strings.LastIndex(key, "/")
+	if index < 0 {
+		return ""
+	}
+	return key[index+1:]
 }
