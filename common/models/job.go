@@ -108,10 +108,10 @@ type JobProcVal struct {
 // key 会自动过期，防止进程意外退出后没有清除相关 key，过期时间可配置
 type JobProc struct {
 	// parse from key path
-	ID     string `json:"id"` // pid
-	JobID  string `json:"jobId"`
-	Group  string `json:"group"`
-	NodeID string `json:"nodeId"`
+	ID       int    `json:"id"` // pid
+	JobID    int    `json:"jobId"`
+	GroupId  int    `json:"group"`
+	NodeUUID string `json:"node_uuid"`
 	// parse from value
 	JobProcVal
 

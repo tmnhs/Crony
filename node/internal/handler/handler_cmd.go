@@ -7,7 +7,6 @@ import (
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"os/exec"
-	"strconv"
 	"syscall"
 	"time"
 )
@@ -53,10 +52,10 @@ func (c *CMDHandler) Run(job *Job) (result string, err error) {
 
 	proc = &JobProc{
 		JobProc: &models.JobProc{
-			ID:     strconv.Itoa(cmd.Process.Pid),
-			JobID:  job.ID,
-			Group:  job.Group,
-			NodeID: job.RunOn,
+			ID:      cmd.Process.Pid,
+			JobID:   job.ID,
+			GroupId: job.GroupId,
+			NodeID:  job.RunOn,
 			JobProcVal: models.JobProcVal{
 				Time: time.Now(),
 			},

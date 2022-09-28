@@ -6,10 +6,12 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/jakecoffman/cron"
 	"github.com/tmnhs/crony/common/models"
+	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"github.com/tmnhs/crony/common/pkg/utils"
 	"github.com/tmnhs/crony/common/pkg/utils/errors"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -19,13 +21,13 @@ type Job struct {
 }
 type Jobs map[int]*Job
 
-func JobKey(nodeId string, group, id string) string {
-	return etcdclient.KeyEtcdJob + nodeId + "/" + group + "/" + id
+func JobKey(nodeUUID string, groupId, jobId int) string {
+	return fmt.Sprintf(etcdclient.KeyEtcdJob, nodeUUID, groupId, jobId)
 }
 
 // Note: this function did't check the job.
-func GetJob(nodeId, group, id string) (job *Job, err error) {
-	job, _, err = GetJobAndRev(nodeId, group, id)
+func GetJob(nodeUUID string, groupId, jobId int) (job *Job, err error) {
+	job, _, err = GetJobAndRev(nodeUUID, groupId, jobId)
 	return
 }
 
@@ -55,8 +57,8 @@ func (j *Job) String() string {
 	return string(data)
 }
 
-func GetJobAndRev(nodeId, group, id string) (job *Job, rev int64, err error) {
-	resp, err := etcdclient.Get(JobKey(nodeId, group, id))
+func GetJobAndRev(nodeUUID string, groupId, jobId int) (job *Job, rev int64, err error) {
+	resp, err := etcdclient.Get(JobKey(nodeUUID, groupId, jobId))
 	if err != nil {
 		return
 	}
@@ -75,18 +77,18 @@ func GetJobAndRev(nodeId, group, id string) (job *Job, rev int64, err error) {
 	return
 }
 
-func DeleteJob(nodeId, group, id string) (resp *clientv3.DeleteResponse, err error) {
-	return etcdclient.Delete(JobKey(nodeId, group, id))
+func DeleteJob(nodeUUID string, groupId, jobId int) (resp *clientv3.DeleteResponse, err error) {
+	return etcdclient.Delete(JobKey(nodeUUID, groupId, jobId))
 }
 
-func GetJobs(nodeId string) (jobs map[int]*Job, err error) {
-	resp, err := etcdclient.Get(etcdclient.KeyEtcdJob+nodeId, clientv3.WithPrefix())
+func GetJobs(nodeUUID string) (jobs Jobs, err error) {
+	resp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
 	if err != nil {
 		return
 	}
 
 	count := len(resp.Kvs)
-	jobs = make(map[int]*Job, count)
+	jobs = make(Jobs, count)
 	if count == 0 {
 		return
 	}
@@ -188,8 +190,8 @@ func (j *Job) Check() error {
 
 	return j.Valid()
 }
-func WatchJobs(nodeId string) clientv3.WatchChan {
-	return etcdclient.Watch(etcdclient.KeyEtcdJob+nodeId, clientv3.WithPrefix())
+func WatchJobs(nodeUUID string) clientv3.WatchChan {
+	return etcdclient.Watch(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
 }
 
 func GetJobFromKv(key, value []byte) (job *Job, err error) {
@@ -257,16 +259,19 @@ func ModifyJob(job *Job) {
 }
 
 // 从 job etcd 的 key 中取 id
-func GetJobIDFromKey(key string) string {
+func GetJobIDFromKey(key string) int {
 	index := strings.LastIndex(key, "/")
 	if index < 0 {
-		return ""
+		return 0
 	}
-	return key[index+1:]
+	jobId, err := strconv.Atoi(key[index+1:])
+	if err != nil {
+		return 0
+	}
+	return jobId
 }
 
-//todo db
-
-func (j *Job) Insert2Db() {
-	//dbclient.GetMysqlDB()
+//todo 转移至crony admin
+func (j *Job) Insert2Db() error {
+	return dbclient.Insert(models.CronyJobTableName, j)
 }

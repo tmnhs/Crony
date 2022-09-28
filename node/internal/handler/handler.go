@@ -61,7 +61,7 @@ type Handler interface {
 
 func CreateHandler(j *Job) Handler {
 	var handler Handler = nil
-	switch j.JobType {
+	switch j.Type {
 	case models.JobTypeCmd:
 		handler = new(CMDHandler)
 	case models.JobTypeHttp:

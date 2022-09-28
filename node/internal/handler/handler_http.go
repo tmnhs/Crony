@@ -20,15 +20,15 @@ func (h *HTTPHandler) Run(job *Job) (result string, err error) {
 	}
 	var resp httpclient.ResponseWrapper
 	if job.HttpMethod == models.HTTPMethodGet {
-		resp = httpclient.Get(job.HttpUrl, job.Timeout)
+		resp = httpclient.Get(job.Command, job.Timeout)
 	} else if job.HttpMethod == models.HTTPMethodPost {
-		urlFields := strings.Split(job.HttpUrl, "?")
-		job.HttpUrl = urlFields[0]
+		urlFields := strings.Split(job.Command, "?")
+		job.Command = urlFields[0]
 		var params string
 		if len(urlFields) >= 2 {
 			params = urlFields[1]
 		}
-		resp = httpclient.PostParams(job.HttpUrl, params, job.Timeout)
+		resp = httpclient.PostParams(job.Command, params, job.Timeout)
 	}
 	// 返回状态码非200，均为失败
 	if resp.StatusCode != http.StatusOK {

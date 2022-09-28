@@ -1,5 +1,15 @@
 package models
 
+const (
+	CronyNodeTableName      = "node"
+	CronyGroupTableName     = "group"
+	CronyNodeGroupTableName = "node_group"
+	CronyUserGroupTableName = "user_group"
+	CronyJobTableName       = "job"
+	CronyJobLogTableName    = "job_log"
+	CronyUserTableName      = "user"
+)
+
 type (
 	//todo add ini
 	Mysql struct {

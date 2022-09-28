@@ -7,6 +7,7 @@ import (
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
+	"strconv"
 	"strings"
 	"sync/atomic"
 )
@@ -28,19 +29,31 @@ func GetProcFromKey(key string) (proc *JobProc, err error) {
 		err = fmt.Errorf("invalid proc key [%s]", key)
 		return
 	}
+	id, err := strconv.Atoi(ss[sslen-1])
+	if err != nil {
+		return
+	}
+	jobId, err := strconv.Atoi(ss[sslen-2])
+	if err != nil {
+		return
+	}
+	groupId, err := strconv.Atoi(ss[sslen-3])
+	if err != nil {
+		return
+	}
 	proc = &JobProc{
 		JobProc: &models.JobProc{
-			ID:     ss[sslen-1],
-			JobID:  ss[sslen-2],
-			Group:  ss[sslen-3],
-			NodeID: ss[sslen-4],
+			ID:       id,
+			JobID:    jobId,
+			GroupId:  groupId,
+			NodeUUID: ss[sslen-4],
 		},
 	}
 	return
 }
 
 func (p *JobProc) Key() string {
-	return etcdclient.KeyEtcdProc + p.NodeID + "/" + p.Group + "/" + p.JobID + "/" + p.ID
+	return fmt.Sprintf(etcdclient.KeyEtcdProc, p.NodeUUID, p.GroupId, p.JobID, p.ID)
 }
 
 func (p *JobProc) Val() (string, error) {
@@ -51,15 +64,15 @@ func (p *JobProc) Val() (string, error) {
 	return string(b), nil
 }
 
-// 获取节点正在执行任务的数量
-func (j *Job) CountRunning() (int64, error) {
-	resp, err := etcdclient.Get(etcdclient.KeyEtcdProc+j.RunOn+"/"+j.Group+"/"+j.ID, clientv3.WithPrefix(), clientv3.WithCountOnly())
+//todo 获取节点正在执行任务的数量
+/*func (j *Job) CountRunning() (int64, error) {
+	resp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdProc+j.RunOn+"/"+"%s"+"/"+"%s", j.GroupId, j.ID), clientv3.WithPrefix(), clientv3.WithCountOnly())
 	if err != nil {
 		return 0, err
 	}
 
 	return resp.Count, nil
-}
+}*/
 func (p *JobProc) del() error {
 	if atomic.LoadInt32(&p.HasPut) != 1 {
 		return nil
@@ -83,8 +96,8 @@ func (p *JobProc) Stop() {
 	}
 }
 
-func WatchProc(nid string) clientv3.WatchChan {
-	return etcdclient.Watch(etcdclient.KeyEtcdProc+nid, clientv3.WithPrefix())
+func WatchProc(nodeUUID string) clientv3.WatchChan {
+	return etcdclient.Watch(fmt.Sprintf(etcdclient.KeyEtcdProcProfile, nodeUUID), clientv3.WithPrefix())
 }
 
 //todo 注册

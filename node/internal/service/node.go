@@ -64,8 +64,8 @@ func NewNodeServer() (*NodeServer, error) {
 
 // Check whether the node is registered with ETCD
 // If yes, PID is returned. If no, -1 is returned
-func (srv *NodeServer) exist(nodeId string) (pid int, err error) {
-	resp, err := etcdclient.Get(etcdclient.KeyEtcdNode + nodeId)
+func (srv *NodeServer) exist(nodeUUID string) (pid int, err error) {
+	resp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdNode, nodeUUID))
 	if err != nil {
 		return
 	}
@@ -75,7 +75,7 @@ func (srv *NodeServer) exist(nodeId string) (pid int, err error) {
 	}
 
 	if pid, err = strconv.Atoi(string(resp.Kvs[0].Value)); err != nil {
-		if _, err = etcdclient.Delete(etcdclient.KeyEtcdNode + nodeId); err != nil {
+		if _, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdNode, nodeUUID)); err != nil {
 			return
 		}
 		return -1, nil
@@ -100,10 +100,10 @@ func (srv *NodeServer) Register() error {
 		return err
 	}
 	if pid != -1 {
-		return fmt.Errorf("node[%s] with pid[%d] exist", srv.ID, pid)
+		return fmt.Errorf("node[%s] with pid[%d] exist", srv.UUID, pid)
 	}
 	//creates a new lease
-	if err := srv.ServerReg.Register(fmt.Sprintf(etcdclient.KeyEtcdNode+"%d", srv.ID), srv.PID); err != nil {
+	if err := srv.ServerReg.Register(fmt.Sprintf(etcdclient.KeyEtcdNode, srv.UUID), srv.PID); err != nil {
 		return err
 	}
 	return nil
@@ -126,13 +126,11 @@ func (srv *NodeServer) Run() (err error) {
 	//start cron
 	srv.Cron.Start()
 	//todo watchJobs
-	//go n.watchJobs()
-	//todo watchExcutingProc
-	//go n.watchExcutingProc()
-	//todo watchGroups
-	//go n.watchGroups()
+	go srv.watchJobs()
+	//todo watchKilledProc
+	go srv.watchKilledProc()
 	//todo watchOnce
-	//go n.watchOnce()
+	go srv.watchOnce()
 	// todo node into mysql
 	//n.Node.On()
 	return
@@ -200,7 +198,6 @@ func (srv *NodeServer) modifyJob(j *handler.Job) {
 func (srv *NodeServer) deleteJob(jobId int) {
 	if _, ok := srv.jobs[jobId]; ok {
 		//存在则删除并且删除任务
-		//todo into db
 		srv.Cron.RemoveJob(srv.jobCronName(jobId))
 		delete(srv.jobs, jobId)
 		return
