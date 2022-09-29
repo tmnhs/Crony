@@ -92,7 +92,7 @@ func (p *JobProc) Stop() {
 	p.Wg.Wait()
 
 	if err := p.del(); err != nil {
-		logger.Warnf("proc del[%s] err: %s", p.Key(), err.Error())
+		logger.GetLogger().Warn(fmt.Sprintf("proc del[%s] err: %s", p.Key(), err.Error()))
 	}
 }
 

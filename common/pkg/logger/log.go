@@ -14,16 +14,6 @@ import (
 //默认logger处理器
 var _defaultLogger *zap.Logger
 
-/*
-Level         string `mapstructure:"level" json:"level" yaml:"level"`                           // 级别
-		Format        string `mapstructure:"format" json:"format" yaml:"format"`                        // 输出
-		Prefix        string `mapstructure:"prefix" json:"prefix" yaml:"prefix"`                        // 日志前缀
-		Director      string `mapstructure:"director" json:"director"  yaml:"director"`                 // 日志文件夹
-		ShowLine      bool   `mapstructure:"show-line" json:"showLine" yaml:"showLine"`                 // 显示行
-		EncodeLevel   string `mapstructure:"encode-level" json:"encodeLevel" yaml:"encode-level"`       // 编码级
-		StacktraceKey string `mapstructure:"stacktrace-key" json:"stacktraceKey" yaml:"stacktrace-key"` // 栈名
-		LogInConsole  bool   `mapstructure:"log-in-console" json:"logInConsole" yaml:"log-in-console"`  // 输出控制台
-*/
 func Init(projectName string, level string, format, prefix, director string, showLine bool, encodeLevel string, stacktraceKey string, logInConsole bool) (logger *zap.Logger) {
 	if ok := utils.Exists(fmt.Sprintf("%s/%s", projectName, director)); !ok { // 判断是否有Director文件夹
 		fmt.Printf("create %v directory\n", director)
@@ -45,13 +35,8 @@ func Init(projectName string, level string, format, prefix, director string, sho
 	errorPriority := zap.LevelEnablerFunc(func(lev zapcore.Level) bool {
 		return lev >= zap.ErrorLevel
 	})
-	cores := make([]zapcore.Core, 4)
+	cores := make([]zapcore.Core, 0)
 	switch level {
-	case "debug":
-		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_debug.log", projectName, director), debugPriority))
-		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_info.log", projectName, director), infoPriority))
-		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_warn.log", projectName, director), warnPriority))
-		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_debug.log", projectName, director), errorPriority))
 	case "info":
 		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_info.log", projectName, director), infoPriority))
 		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_warn.log", projectName, director), warnPriority))
@@ -60,6 +45,11 @@ func Init(projectName string, level string, format, prefix, director string, sho
 		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_warn.log", projectName, director), warnPriority))
 		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_debug.log", projectName, director), errorPriority))
 	case "error":
+		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_debug.log", projectName, director), errorPriority))
+	default:
+		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_debug.log", projectName, director), debugPriority))
+		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_info.log", projectName, director), infoPriority))
+		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_warn.log", projectName, director), warnPriority))
 		cores = append(cores, getEncoderCore(logInConsole, prefix, format, encodeLevel, stacktraceKey, fmt.Sprintf("%s/%s/server_debug.log", projectName, director), errorPriority))
 	}
 	logger = zap.New(zapcore.NewTee(cores[:]...), zap.AddCaller())
@@ -114,11 +104,11 @@ func getEncoder(prefix, format, encodeLevel, stacktraceKey string) zapcore.Encod
 
 // getEncoderCore 获取Encoder的zapcore.Core
 func getEncoderCore(logInConsole bool, prefix, format, encodeLevel, stacktraceKey string, fileName string, level zapcore.LevelEnabler) (core zapcore.Core) {
-	writer := GetWriteSyncer(logInConsole, fileName) // 使用file-rotatelogs进行日志分割
+	writer := getWriteSyncer(logInConsole, fileName) // 使用file-rotatelogs进行日志分割
 	return zapcore.NewCore(getEncoder(prefix, format, encodeLevel, stacktraceKey), writer, level)
 }
 
-func GetWriteSyncer(logInConsole bool, file string) zapcore.WriteSyncer {
+func getWriteSyncer(logInConsole bool, file string) zapcore.WriteSyncer {
 	lumberJackLogger := &lumberjack.Logger{
 		Filename:   file, // 日志文件的位置
 		MaxSize:    10,   // 在进行切割之前，日志文件的最大大小（以MB为单位）
@@ -133,7 +123,7 @@ func GetWriteSyncer(logInConsole bool, file string) zapcore.WriteSyncer {
 	return zapcore.AddSync(lumberJackLogger)
 }
 
-func Infof(msg string, fields ...interface{}) {
+/*func Infof(msg string, fields ...interface{}) {
 	if len(fields) == 0 {
 		_defaultLogger.Info(msg)
 		return
@@ -191,7 +181,7 @@ func Fatalf(msg string, fields ...interface{}) {
 		return
 	}
 	_defaultLogger.Fatal(fmt.Sprintf(msg, fields))
-}
+}*/
 
 func Sync() error {
 	return _defaultLogger.Sync()
@@ -200,4 +190,7 @@ func Sync() error {
 //Shutdown 全局关闭
 func Shutdown() {
 	_defaultLogger.Sync()
+}
+func GetLogger() *zap.Logger {
+	return _defaultLogger
 }
