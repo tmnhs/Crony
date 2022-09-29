@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
-	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/config"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"github.com/tmnhs/crony/common/pkg/utils/errors"
@@ -19,10 +18,10 @@ type Client struct {
 	reqTimeout time.Duration
 }
 
-func Init(e models.Etcd) (*Client, error) {
+func Init(endpoints []string, dialTimeout, reqTimeout int64) (*Client, error) {
 	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   e.Endpoints,
-		DialTimeout: time.Duration(e.DialTimeout) * time.Second,
+		Endpoints:   endpoints,
+		DialTimeout: time.Duration(dialTimeout) * time.Second,
 	})
 	if err != nil {
 		// handle error!
@@ -31,14 +30,14 @@ func Init(e models.Etcd) (*Client, error) {
 	}
 	_defalutEtcd = &Client{
 		Client:     cli,
-		reqTimeout: time.Duration(e.ReqTimeout) * time.Second,
+		reqTimeout: time.Duration(reqTimeout) * time.Second,
 	}
 	return _defalutEtcd, nil
 }
 
 func GetEtcdClient() *Client {
 	if _defalutEtcd == nil {
-		logger.Errorf("etcd is not initialized")
+		logger.GetLogger().Error("etcd is not initialized")
 		return nil
 	}
 	return _defalutEtcd

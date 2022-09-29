@@ -126,10 +126,10 @@ func (srv *ApiServer) apiRecoveryMiddleware() gin.HandlerFunc {
 				}
 
 				if brokenPipe {
-					logger.Errorf("%s\n%s%s", err, string(httpRequest), reset)
+					logger.GetLogger().Error(fmt.Sprintf("%s\n%s%s", err, string(httpRequest), reset))
 				} else {
-					logger.Errorf("[Recovery] %s panic recovered:\n%s\n%s%s",
-						formatTime(time.Now()), err, stack, reset)
+					logger.GetLogger().Error(fmt.Sprintf("[Recovery] %s panic recovered:\n%s\n%s%s",
+						formatTime(time.Now()), err, stack, reset))
 				}
 
 				if brokenPipe {
@@ -153,10 +153,10 @@ func (srv *ApiServer) setupSignal() {
 
 		for sig := range sigChan {
 			if sig == syscall.SIGINT || sig == syscall.SIGHUP || sig == syscall.SIGTERM {
-				logger.Infof("Graceful shutdown:signal %v to stop api-server ", sig)
+				logger.GetLogger().Error(fmt.Sprintf("Graceful shutdown:signal %v to stop api-server ", sig))
 				srv.Shutdown(shutdownCtx)
 			} else {
-				logger.Infof("Caught signal %v", sig)
+				logger.GetLogger().Info(fmt.Sprintf("Caught signal %v", sig))
 			}
 		}
 		logger.Shutdown()
@@ -210,21 +210,24 @@ func NewApiServer(serverName string, inits ...func()) (*ApiServer, error) {
 		fmt.Printf("api-server:init config error:%s", err.Error())
 		return nil, err
 	}
-	//todo
-	logger.Init(&defaultConfig.Log, serverName)
+	logConfig := defaultConfig.Log
+	mysqlConfig := defaultConfig.Mysql
+	etcdConfig := defaultConfig.Etcd
+
+	logger.Init(serverName, logConfig.Level, logConfig.Format, logConfig.Prefix, logConfig.Director, logConfig.ShowLine, logConfig.EncodeLevel, logConfig.StacktraceKey, logConfig.LogInConsole)
 
 	//初始化数据层服务
-	_, err = dbclient.Init(defaultConfig.Mysql)
+	_, err = dbclient.Init(mysqlConfig.Dsn(), mysqlConfig.LogMode, mysqlConfig.MaxIdleConns, mysqlConfig.MaxOpenConns)
 	if err != nil {
-		logger.Errorf("api-server:init mysql failed , error:%s", err.Error())
+		logger.GetLogger().Error(fmt.Sprintf("api-server:init mysql failed , error:%s", err.Error()))
 	} else {
-		logger.Info("api-server:init mysql success")
+		logger.GetLogger().Info("api-server:init mysql success")
 	}
-	_, err = etcdclient.Init(defaultConfig.Etcd)
+	_, err = etcdclient.Init(etcdConfig.Endpoints, etcdConfig.DialTimeout, etcdConfig.ReqTimeout)
 	if err != nil {
-		logger.Errorf("api-server:init etcd failed , error:%s", err.Error())
+		logger.GetLogger().Error(fmt.Sprintf("api-server:init etcd failed , error:%s", err.Error()))
 	} else {
-		logger.Info("api-server:init etcd success")
+		logger.GetLogger().Info("api-server:init etcd success")
 	}
 
 	if len(inits) > 0 {

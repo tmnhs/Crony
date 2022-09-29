@@ -45,17 +45,15 @@ func (c *CMDHandler) Run(job *Job) (result string, err error) {
 	err = cmd.Start()
 	result = b.String()
 	if err != nil {
-		logger.Fatal(fmt.Sprintf("%s\n%s", b.String(), err.Error()))
+		logger.GetLogger().Error(fmt.Sprintf("%s\n%s", b.String(), err.Error()))
 		return
 	}
-	//todo 正在运行的任务
-
 	proc = &JobProc{
 		JobProc: &models.JobProc{
-			ID:      cmd.Process.Pid,
-			JobID:   job.ID,
-			GroupId: job.GroupId,
-			NodeID:  job.RunOn,
+			ID:       cmd.Process.Pid,
+			JobID:    job.ID,
+			GroupId:  job.GroupId,
+			NodeUUID: job.RunOn,
 			JobProcVal: models.JobProcVal{
 				Time: time.Now(),
 			},
@@ -68,11 +66,10 @@ func (c *CMDHandler) Run(job *Job) (result string, err error) {
 	}
 	defer proc.Stop()
 
-	if err := cmd.Wait(); err != nil {
-		logger.Fatal(fmt.Sprintf("%s\n%s", b.String(), err.Error()))
+	if err = cmd.Wait(); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("%s\n%s", b.String(), err.Error()))
 		return
 	}
-	// todo 将结果写入数据库
 	//j.Success(t, b.String())
 	return b.String(), nil
 }

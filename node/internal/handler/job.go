@@ -11,6 +11,7 @@ import (
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"github.com/tmnhs/crony/common/pkg/utils"
 	"github.com/tmnhs/crony/common/pkg/utils/errors"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -96,12 +97,12 @@ func GetJobs(nodeUUID string) (jobs Jobs, err error) {
 	for _, j := range resp.Kvs {
 		job := new(Job)
 		if e := json.Unmarshal(j.Value, job); e != nil {
-			logger.Warnf("job[%s] umarshal err: %s", string(j.Key), e.Error())
+			logger.GetLogger().Warn(fmt.Sprintf("job[%s] umarshal err: %s", string(j.Key), e.Error()))
 			continue
 		}
 		//todo
 		if err := job.Valid(); err != nil {
-			logger.Warnf("job[%s] is invalid: %s", string(j.Key), err.Error())
+			logger.GetLogger().Warn(fmt.Sprintf("job[%s] is invalid: %s", string(j.Key), err.Error()))
 			continue
 		}
 		//todo 执行类型
@@ -109,6 +110,39 @@ func GetJobs(nodeUUID string) (jobs Jobs, err error) {
 		jobs[job.ID] = job
 	}
 	return
+}
+
+func (j *Job) RunWithRecovery() {
+	defer func() {
+		if r := recover(); r != nil {
+			const size = 64 << 10
+			buf := make([]byte, size)
+			buf = buf[:runtime.Stack(buf, false)]
+			logger.GetLogger().Warn(fmt.Sprintf("panic running job: %v\n%s", r, buf))
+		}
+	}()
+	t := time.Now()
+	jobLogId, err := j.CreateJobLog()
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
+	}
+	h := CreateHandler(j)
+	if h == nil {
+		//logger and error
+		return
+	}
+	result, err := h.Run(j)
+	if err != nil {
+		err = j.Fail(jobLogId, t, err.Error(), 0)
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
+		}
+	} else {
+		err = j.Success(jobLogId, t, result, 0)
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
+		}
+	}
 }
 
 func CreateJob(j *Job) cron.FuncJob {
@@ -123,25 +157,34 @@ func CreateJob(j *Job) cron.FuncJob {
 
 		handler.concurrencyQueue.Add()
 		defer handler.concurrencyQueue.Done()*/
-		logger.Infof("开始执行任务#%s#命令-%s", j.Name, j.Command)
+		logger.GetLogger().Info(fmt.Sprintf("开始执行任务#%s#命令-%s", j.Name, j.Command))
 		// 默认只运行任务一次
 		var execTimes int = 1
 		if j.RetryTimes > 0 {
 			execTimes += j.RetryTimes
 		}
-		var i int = 0
+		var i = 0
 		var output string
 		var err error
+		var jobLogId int
+		t := time.Now()
+		jobLogId, err = j.CreateJobLog()
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
+		}
 		for i < execTimes {
 			output, err = h.Run(j)
 			if err == nil {
 				//执行成功
-				//todo insert into db
+				err = j.Success(jobLogId, t, output, i)
+				if err != nil {
+					logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
+				}
 				return
 			}
 			i++
 			if i < execTimes {
-				logger.Warnf("任务执行失败#任务id-%d#重试第%d次#输出-%s#错误-%s", j.ID, i, output, err.Error())
+				logger.GetLogger().Warn(fmt.Sprintf("任务执行失败#任务id-%d#重试第%d次#输出-%s#错误-%s", j.ID, i, output, err.Error()))
 				if j.RetryInterval > 0 {
 					time.Sleep(time.Duration(j.RetryInterval) * time.Second)
 				} else {
@@ -150,8 +193,13 @@ func CreateJob(j *Job) cron.FuncJob {
 				}
 			}
 		}
+		//执行全部失败
+		err = j.Fail(jobLogId, t, err.Error(), execTimes)
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
+		}
 		// todo 任务执行后置操作 发邮件等
-		logger.Infof("任务完成#%s#命令-%s", j.Name, j.Command)
+		logger.GetLogger().Info(fmt.Sprintf("任务完成#%s#命令-%s", j.Name, j.Command))
 	}
 	return taskFunc
 }
@@ -258,7 +306,7 @@ func ModifyJob(job *Job) {
 		n.link.addJob(oJob)*/
 }
 
-// 从 job etcd 的 key 中取 id
+// 从 etcd 的 key 中取 job_id
 func GetJobIDFromKey(key string) int {
 	index := strings.LastIndex(key, "/")
 	if index < 0 {
@@ -274,4 +322,42 @@ func GetJobIDFromKey(key string) int {
 //todo 转移至crony admin
 func (j *Job) Insert2Db() error {
 	return dbclient.Insert(models.CronyJobTableName, j)
+}
+
+//将每次执行任务的结果写入日志
+func (j *Job) CreateJobLog() (int, error) {
+	start := time.Now()
+	jobLog := &models.JobLog{
+		Name:      j.Name,
+		GroupId:   j.GroupId,
+		JobId:     j.ID,
+		Command:   j.Command,
+		IP:        j.Ip,
+		Hostname:  j.Hostname,
+		NodeUUID:  j.RunOn,
+		Spec:      j.Spec,
+		StartTime: start.Unix(),
+	}
+	return jobLog.Insert()
+}
+
+func UpdateJobLog(jobLogId int, start time.Time, output string, retry int, success bool) error {
+	end := time.Now()
+	jobLog := &models.JobLog{
+		ID:         jobLogId,
+		StartTime:  start.Unix(),
+		RetryTimes: retry,
+		Success:    success,
+		Output:     output,
+		EndTime:    end.Unix(),
+	}
+	return jobLog.Update()
+}
+func (j *Job) Success(jobLogId int, start time.Time, output string, retry int) error {
+	return UpdateJobLog(jobLogId, start, output, retry, true)
+}
+
+func (j *Job) Fail(jobLogId int, start time.Time, errMsg string, retry int) error {
+	//todo notify
+	return UpdateJobLog(jobLogId, start, errMsg, retry, false)
 }

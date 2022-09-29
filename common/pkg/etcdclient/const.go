@@ -12,13 +12,17 @@ const (
 	KeyEtcdProcProfile = keyEtcdProfile + "proc/%s/"
 	KeyEtcdProc        = KeyEtcdProcProfile + "%d/%d/%d"
 
-	//key /cronsun/job/<node_uuid>/<group_id>/<job_id>
+	//key /crony/job/<node_uuid>/<group_id>/<job_id>
 	KeyEtcdJobProfile = keyEtcdProfile + "job/%s/"
 	KeyEtcdJob        = KeyEtcdJobProfile + "%d/%d"
 
-	// key /cronsun/once/group/<jobID>
+	// key /crony/once/group/<jobID>
 	KeyEtcdOnceProfile = keyEtcdProfile + "once/"
 	KeyEtcdOnce        = KeyEtcdOnceProfile + "%d/%d"
+
+	// key /crony/group/<group_id>
+	KeyEtcdGroupProfile = keyEtcdProfile + "group/"
+	KeyEtcdGroup        = KeyEtcdGroupProfile + "%d"
 
 	KeyEtcdLock    = keyEtcdProfile + "lock/"
 	KeyEtcdNoticer = keyEtcdProfile + "noticer/"

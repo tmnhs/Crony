@@ -21,8 +21,9 @@ type NodeServer struct {
 	*models.Node
 	*cron.Cron
 
-	jobs   handler.Jobs // 和结点相关的任务
-	Groups handler.Groups
+	jobs handler.Jobs // 和结点相关的任务
+	//fixme
+	//Groups handler.Groups
 
 	models.Link
 	// 删除的 job id，用于 group 更新
@@ -111,36 +112,39 @@ func (srv *NodeServer) Register() error {
 
 // 停止服务
 func (srv *NodeServer) Stop(i interface{}) {
-	//todo n.Node.Down()
-	//todo 删除key值
+	etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdNode, srv.UUID))
+	srv.Down()
+
 	srv.Client.Close()
 	srv.Cron.Stop()
 }
 
-func (srv *NodeServer) Run() (err error) {
-	//todo defer
+//todo On 结点实例停用后，在 mongoDB 中去掉存活信息
+func (srv *NodeServer) Down() {
+	/*	n.Alived, n.DownTime = false, time.Now()
+		n.SyncToMgo()*/
+}
 
+func (srv *NodeServer) Run() (err error) {
+
+	defer func() {
+		if err != nil {
+			srv.Stop(err)
+		}
+	}()
 	if err = srv.loadJobs(); err != nil {
 		return
 	}
 	//start cron
 	srv.Cron.Start()
-	//todo watchJobs
 	go srv.watchJobs()
-	//todo watchKilledProc
 	go srv.watchKilledProc()
-	//todo watchOnce
 	go srv.watchOnce()
-	// todo node into mysql
 	//n.Node.On()
 	return
 }
 
 func (srv *NodeServer) loadJobs() (err error) {
-	//先获取所有的分组
-	if srv.Groups, err = handler.GetGroups(""); err != nil {
-		return
-	}
 	//再获取本机分配的定时任务
 	jobs, err := handler.GetJobs(srv.UUID)
 	if err != nil {
@@ -164,14 +168,14 @@ func (srv *NodeServer) loadJobs() (err error) {
 func (srv *NodeServer) addJob(j *handler.Job, notice bool) {
 	taskFunc := handler.CreateJob(j)
 	if taskFunc == nil {
-		logger.Errorf("创建任务处理Job失败,不支持的任务协议#%s", j.Type)
+		logger.GetLogger().Error(fmt.Sprintf("创建任务处理Job失败,不支持的任务协议#%s", j.Type))
 		return
 	}
 	err := goutil.PanicToError(func() {
 		srv.Cron.AddFunc(j.Spec, taskFunc, srv.jobCronName(j.ID))
 	})
 	if err != nil {
-		logger.Errorf("添加任务到调度器失败#%v", err.Error())
+		logger.GetLogger().Error(fmt.Sprintf("添加任务到调度器失败#%v", err.Error()))
 	}
 
 	return
@@ -194,14 +198,12 @@ func (srv *NodeServer) modifyJob(j *handler.Job) {
 	return
 }
 
-//todo error
 func (srv *NodeServer) deleteJob(jobId int) {
 	if _, ok := srv.jobs[jobId]; ok {
-		//存在则删除并且删除任务
+		//存在则删除并且移除任务
 		srv.Cron.RemoveJob(srv.jobCronName(jobId))
 		delete(srv.jobs, jobId)
 		return
 	}
-	//删除
 	return
 }

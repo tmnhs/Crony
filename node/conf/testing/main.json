@@ -36,7 +36,7 @@
     "nickname": "test"
   },
   "log": {
-    "level": "info",
+    "level": "debug",
     "format": "console",
     "prefix": "[crony-node]",
     "director": "logs",

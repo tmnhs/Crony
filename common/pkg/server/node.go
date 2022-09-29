@@ -62,22 +62,23 @@ func InitNodeServer(serverName string, inits ...func()) (*models.Config, error) 
 		fmt.Printf("node-server:init config error:%s", err.Error())
 		return nil, err
 	}
-	//todo
-	logger.Init(&defaultConfig.Log, serverName)
-
+	logConfig := defaultConfig.Log
+	mysqlConfig := defaultConfig.Mysql
+	etcdConfig := defaultConfig.Etcd
+	logger.Init(serverName, logConfig.Level, logConfig.Format, logConfig.Prefix, logConfig.Director, logConfig.ShowLine, logConfig.EncodeLevel, logConfig.StacktraceKey, logConfig.LogInConsole)
 	//初始化数据层服务
-	_, err = dbclient.Init(defaultConfig.Mysql)
+	_, err = dbclient.Init(mysqlConfig.Dsn(), mysqlConfig.LogMode, mysqlConfig.MaxIdleConns, mysqlConfig.MaxOpenConns)
 	if err != nil {
-		logger.Errorf("node-server:init mysql failed , error:%s", err.Error())
+		logger.GetLogger().Error(fmt.Sprintf("node-server:init mysql failed , error:%s", err.Error()))
 	} else {
-		logger.Info("node-server:init mysql success")
+		logger.GetLogger().Info("node-server:init mysql success")
 	}
 	//初始化etcd
-	_, err = etcdclient.Init(defaultConfig.Etcd)
+	_, err = etcdclient.Init(etcdConfig.Endpoints, etcdConfig.DialTimeout, etcdConfig.ReqTimeout)
 	if err != nil {
-		logger.Errorf("node-server:init etcd failed , error:%s", err.Error())
+		logger.GetLogger().Error(fmt.Sprintf("node-server:init etcd failed , error:%s", err.Error()))
 	} else {
-		logger.Info("node-server:init etcd success")
+		logger.GetLogger().Info("node-server:init etcd success")
 	}
 	if len(inits) > 0 {
 		for _, init := range inits {

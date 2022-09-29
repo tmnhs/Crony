@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"sync"
 	"time"
 )
@@ -15,6 +17,11 @@ const (
 	HTTPMethodPost = 2
 
 	KindAlone = 1
+
+	//job log  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT "1->成功 2->正在运行 3->失败",
+	JobLogStatusSuccess = 1
+	JobLogStatusProcess = 2
+	JobLogStatusFail    = 3
 )
 
 // 需要执行的 cron cmd 命令
@@ -45,7 +52,7 @@ type Job struct {
 	HttpMethod int     `json:"http_method" gorm:"http_method"`
 	// 执行失败是否发送通知
 	NotifyStatus bool `json:"notify_status" gorm:"notify_status"`
-	NotifyType   bool `json:"notify_type" gorm:"notify_type"`
+	NotifyType   int  `json:"notify_type" gorm:"notify_type"`
 	Status       int  `json:"status" gorm:"status"`
 	// 发送通知地址
 	NotifyTo     []byte `json:"notify_to" gorm:"-"`
@@ -79,9 +86,10 @@ type JobLog struct {
 	IP       string `json:"ip" gorm:"ip"` // node ip
 	Hostname string `json:"hostname" gorm:"hostname"`
 	NodeUUID string `json:"uuid" gorm:"node_uuid"`
-	Status   int    `json:"status" gorm:"status"`
-	Output   int    `json:"output" gorm:"output"`
-	Spec     string `json:"spec" gorm:"spec"`
+	Success  bool   `json:"success" gorm:"success"`
+
+	Output string `json:"output" gorm:"output"`
+	Spec   string `json:"spec" gorm:"spec"`
 
 	// 执行任务失败重试次数
 	// 默认为 0，不重试
@@ -123,4 +131,39 @@ type JobProc struct {
 func (j *Job) InitNodeInfo(nodeUUID, hostname, ip string) {
 	var c int64
 	j.Count, j.RunOn, j.Hostname, j.Ip = &c, nodeUUID, hostname, ip
+}
+
+func (j *Job) Insert() (insertId int, err error) {
+	err = dbclient.GetMysqlDB().Table(CronyJobTableName).Create(j).Error
+	if err == nil {
+		insertId = j.ID
+	}
+	return
+}
+
+// 更新
+func (j *Job) Update() error {
+	return dbclient.GetMysqlDB().Table(CronyJobTableName).Updates(j).Error
+}
+
+func (j *Job) Delete() error {
+	return dbclient.GetMysqlDB().Exec(fmt.Sprintf("delete from %s where id = ?", CronyJobTableName), j.ID).Error
+}
+
+func (jb *JobLog) Insert() (insertId int, err error) {
+	err = dbclient.GetMysqlDB().Table(CronyJobLogTableName).Create(jb).Error
+	if err == nil {
+		insertId = jb.ID
+	}
+	return
+}
+
+// 更新
+func (jb *JobLog) Update() error {
+	//只会更新非零字段
+	return dbclient.GetMysqlDB().Table(CronyJobLogTableName).Updates(jb).Error
+}
+
+func (jb *JobLog) Delete() error {
+	return dbclient.GetMysqlDB().Exec(fmt.Sprintf("delete from %s where id = ?", CronyJobLogTableName), jb.ID).Error
 }
