@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/tmnhs/crony/common/models"
+	"github.com/tmnhs/crony/common/pkg/config"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"strconv"
@@ -16,10 +17,9 @@ import (
 // 当前执行中的任务信息
 // key: /cronsun/proc/node/group/jobId/pid
 // value: 开始执行时间
-//todo key 会自动过期，防止进程意外退出后没有清除相关 key，过期时间可配置
+//key 会自动过期，防止进程意外退出后没有清除相关 key，过期时间可配置
 type JobProc struct {
 	*models.JobProc
-	*etcdclient.ServerReg
 }
 
 func GetProcFromKey(key string) (proc *JobProc, err error) {
@@ -117,7 +117,8 @@ func (p *JobProc) Start() error {
 	if err != nil {
 		return err
 	}
-	if err := p.ServerReg.Register(p.Key(), string(val)); err != nil {
+	_, err = etcdclient.PutWithTtl(p.Key(), string(val), config.GetConfigModels().System.JobProcTtl)
+	if err != nil {
 		return err
 	}
 	p.Wg.Done()

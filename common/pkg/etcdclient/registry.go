@@ -2,8 +2,8 @@ package etcdclient
 
 import (
 	"context"
-	"fmt"
 	"github.com/coreos/etcd/clientv3"
+	"github.com/tmnhs/crony/common/pkg/logger"
 	"time"
 )
 
@@ -69,10 +69,10 @@ func (s *ServerReg) keepAlive() {
 			return
 		case leaseKeepResp := <-s.keepAliveChan:
 			if leaseKeepResp == nil {
-				fmt.Printf("the lease renewal function has been turned off\n")
+				logger.GetLogger().Info("the lease renewal function has been turned off\n")
 				return
 			} else {
-				fmt.Printf("renew the lease successfully.\n")
+				//fmt.Printf("renew the lease successfully.\n")
 			}
 		}
 	}

@@ -25,7 +25,6 @@ type NodeServer struct {
 	//fixme
 	//Groups handler.Groups
 
-	models.Link
 	// 删除的 job id，用于 group 更新
 	delIDs map[string]bool
 }
@@ -55,7 +54,6 @@ func NewNodeServer() (*NodeServer, error) {
 
 		jobs: make(handler.Jobs, 8),
 
-		Link:   make(models.Link, 8),
 		delIDs: make(map[string]bool, 8),
 
 		ServerReg: etcdclient.NewServerReg(config.GetConfigModels().System.NodeTtl),
@@ -126,10 +124,17 @@ func (srv *NodeServer) Down() {
 }
 
 func (srv *NodeServer) Run() (err error) {
-
 	defer func() {
 		if err != nil {
 			srv.Stop(err)
+		}
+	}()
+
+	// 延迟处理的函数
+	defer func() {
+		// 发生宕机时，获取panic传递的上下文并打印
+		if r := recover(); r != nil {
+
 		}
 	}()
 	if err = srv.loadJobs(); err != nil {
@@ -145,6 +150,12 @@ func (srv *NodeServer) Run() (err error) {
 }
 
 func (srv *NodeServer) loadJobs() (err error) {
+	defer func() {
+		// 发生宕机时，获取panic传递的上下文并打印
+		if r := recover(); r != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("load jobs panic:%v", r))
+		}
+	}()
 	//再获取本机分配的定时任务
 	jobs, err := handler.GetJobs(srv.UUID)
 	if err != nil {
@@ -166,6 +177,10 @@ func (srv *NodeServer) loadJobs() (err error) {
 
 //todo notice
 func (srv *NodeServer) addJob(j *handler.Job, notice bool) {
+	if err := j.Check(); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("job check error :%s", err.Error()))
+		return
+	}
 	taskFunc := handler.CreateJob(j)
 	if taskFunc == nil {
 		logger.GetLogger().Error(fmt.Sprintf("创建任务处理Job失败,不支持的任务协议#%s", j.Type))

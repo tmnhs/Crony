@@ -3,7 +3,7 @@
     "path": "114.55.178.217",
     "port": "3307",
     "config": "charset=utf8mb4&parseTime=True&loc=Local",
-    "db-name": "hust_mall",
+    "db-name": "crony",
     "username": "root",
     "password": "root",
     "max-idle-conns": 100,
@@ -16,6 +16,7 @@
     "addr": 8088,
     "#node-timeout": "节点超时时间，单位秒",
     "node-ttl": 5,
+    "job-proc-ttl": 300,
     "logclear": 12
   },
   "etcd": {
@@ -36,13 +37,13 @@
     "nickname": "test"
   },
   "log": {
-    "level": "info",
+    "level": "debug",
     "format": "console",
     "prefix": "[crony-admin]",
     "director": "logs",
     "showLine": false,
-    "encode-level": "LowercaseColorLevelEncoder",
+    "encode-level": "LowercaseLevelEncoder",
     "stacktrace-key": "stacktrace",
-    "log-in-console": true
+    "log-in-console": false
   }
 }

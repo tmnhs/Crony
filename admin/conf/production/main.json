@@ -35,7 +35,7 @@
     "nickname": "test"
   },
   "log": {
-    "level": "info",
+    "level": "warn",
     "format": "console",
     "prefix": "[crony-admin]",
     "director": "logs",

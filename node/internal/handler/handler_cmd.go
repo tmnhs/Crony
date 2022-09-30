@@ -27,16 +27,15 @@ func (c *CMDHandler) Run(job *Job) (result string, err error) {
 	//	j.Fail(t, err.Error())
 	//	return false
 	//}
-
 	// 超时控制
 	if job.Timeout > 0 {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(job.Timeout)*time.Second)
 		defer cancel()
+		//cmd = exec.CommandContext(ctx, job.Cmd[0])
 		cmd = exec.CommandContext(ctx, job.Cmd[0], job.Cmd[1:]...)
 	} else {
 		cmd = exec.Command(job.Cmd[0], job.Cmd[1:]...)
 	}
-
 	cmd.SysProcAttr = sysProcAttr
 	var b bytes.Buffer
 	cmd.Stdout = &b
@@ -70,6 +69,5 @@ func (c *CMDHandler) Run(job *Job) (result string, err error) {
 		logger.GetLogger().Error(fmt.Sprintf("%s\n%s", b.String(), err.Error()))
 		return
 	}
-	//j.Success(t, b.String())
 	return b.String(), nil
 }

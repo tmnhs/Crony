@@ -7,8 +7,8 @@ import (
 
 //use export ENVIRONMENT=testing set global environment
 const (
-	EnvTesting     = Environment("testing")
-	EnvProduction  = Environment("production")
+	EnvTesting    = Environment("testing")
+	EnvProduction = Environment("production")
 )
 
 type Environment string
@@ -37,7 +37,7 @@ func NewGlobalEnvironment() (Environment, error) {
 	}
 
 	env := Environment(environment)
-	if  env != EnvTesting && env != EnvProduction {
+	if env != EnvTesting && env != EnvProduction {
 		return "", errors.New("environment not support, must be production, testing, development")
 	}
 

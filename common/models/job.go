@@ -3,8 +3,9 @@ package models
 import (
 	"fmt"
 	"github.com/tmnhs/crony/common/pkg/dbclient"
-	"sync"
-	"time"
+	"github.com/tmnhs/crony/common/pkg/utils"
+	"github.com/tmnhs/crony/common/pkg/utils/errors"
+	"strings"
 )
 
 type JobType int
@@ -29,14 +30,14 @@ const (
 type Job struct {
 	ID      int    `json:"id" gorm:"id"`
 	Name    string `json:"name" gorm:"name"`
-	GroupId int    `json:"group" gorm:"gid"`
+	GroupId int    `json:"group_id" gorm:"-"`
 	Command string `json:"command" gorm:"command"`
 	CmdUser string `json:"user" gorm:"cmd_user"`
-	Pause   bool   `json:"pause"`                  // 可手工控制的状态
-	Timeout int    `json:"timeout" gorm:"timeout"` // 任务执行时间超时设置，大于 0 时有效
+	Pause   bool   `json:"pause" gorm:"-"`         // 可手工控制的状态
+	Timeout int64  `json:"timeout" gorm:"timeout"` // 任务执行时间超时设置，大于 0 时有效
 	// 设置任务在单个节点上可以同时允许多少个
 	// 针对两次任务执行间隔比任务执行时间要长的任务启用
-	Parallels int64 `json:"parallels"`
+	Parallels int64 `json:"parallels" gorm:"-"`
 	// 执行任务失败重试次数
 	// 默认为 0，不重试
 	RetryTimes int `json:"retry_times" gorm:"retry_times"`
@@ -55,9 +56,10 @@ type Job struct {
 	NotifyType   int  `json:"notify_type" gorm:"notify_type"`
 	Status       int  `json:"status" gorm:"status"`
 	// 发送通知地址
-	NotifyTo     []byte `json:"notify_to" gorm:"-"`
-	NotifyToType []byte `json:"notify_to_type" gorm:"-"`
-	Spec         string `json:"spec" gorm:"spec"`
+	NotifyTo      []byte `json:"-" gorm:"notify_to"`
+	NotifyToArray []int  `json:"notify_to" gorm:"-"`
+	NotifyToType  int    `json:"notify_to_type" gorm:"notify_to_type"`
+	Spec          string `json:"spec" gorm:"spec"`
 
 	Created int64 `json:"created" gorm:"created"`
 	Updated int64 `json:"updated" gorm:"updated"`
@@ -73,59 +75,7 @@ type Job struct {
 	// 用于存储分隔后的任务
 	Cmd []string `json:"cmd" gorm:"-"`
 	// 控制同时执行任务数
-	Count *int64 `json:"-"`
-}
-
-//日志输出
-type JobLog struct {
-	ID       int    `json:"id" gorm:"id"`
-	Name     string `json:"name" gorm:"name"`
-	GroupId  int    `json:"group" gorm:"gid"`
-	JobId    int    `json:"jid" gorm:"jid"`
-	Command  string `json:"command" gorm:"command"`
-	IP       string `json:"ip" gorm:"ip"` // node ip
-	Hostname string `json:"hostname" gorm:"hostname"`
-	NodeUUID string `json:"uuid" gorm:"node_uuid"`
-	Success  bool   `json:"success" gorm:"success"`
-
-	Output string `json:"output" gorm:"output"`
-	Spec   string `json:"spec" gorm:"spec"`
-
-	// 执行任务失败重试次数
-	// 默认为 0，不重试
-	RetryTimes int   `json:"retry_times" gorm:"retry_times"`
-	StartTime  int64 `json:"start_time" gorm:"start_time"`
-	EndTime    int64 `json:"end_time" gorm:"end_time"`
-}
-
-type jobLink struct {
-	gname string
-	// rule id
-	rules map[string]bool
-}
-type Link map[string]map[string]*jobLink
-
-type JobProcVal struct {
-	Time   time.Time `json:"time"`   // 开始执行时间
-	Killed bool      `json:"killed"` // 是否强制杀死
-}
-
-// 当前执行中的任务信息
-// key: /cronsun/proc/node/group/jobId/pid
-// value: 开始执行时间
-// key 会自动过期，防止进程意外退出后没有清除相关 key，过期时间可配置
-type JobProc struct {
-	// parse from key path
-	ID       int    `json:"id"` // pid
-	JobID    int    `json:"jobId"`
-	GroupId  int    `json:"group"`
-	NodeUUID string `json:"node_uuid"`
-	// parse from value
-	JobProcVal
-
-	Runnig int32
-	HasPut int32
-	Wg     sync.WaitGroup
+	Count *int64 `json:"-" gorm:"-"`
 }
 
 func (j *Job) InitNodeInfo(nodeUUID, hostname, ip string) {
@@ -150,20 +100,64 @@ func (j *Job) Delete() error {
 	return dbclient.GetMysqlDB().Exec(fmt.Sprintf("delete from %s where id = ?", CronyJobTableName), j.ID).Error
 }
 
-func (jb *JobLog) Insert() (insertId int, err error) {
-	err = dbclient.GetMysqlDB().Table(CronyJobLogTableName).Create(jb).Error
-	if err == nil {
-		insertId = jb.ID
+func FindJobById(jobId int) (*Job, error) {
+	var job Job
+	err := dbclient.GetMysqlDB().Table(CronyJobTableName).Where("id = ? ", jobId).First(&job).Error
+	if err != nil {
+		return nil, err
 	}
-	return
+	return &job, nil
+}
+func (j *Job) Check() error {
+	j.Name = strings.TrimSpace(j.Name)
+	if len(j.Name) == 0 {
+		return errors.ErrEmptyJobName
+	}
+	if j.LogExpiration < 0 {
+		j.LogExpiration = 0
+	}
+
+	j.CmdUser = strings.TrimSpace(j.CmdUser)
+
+	// 不修改 Command 的内容，简单判断是否为空
+	if len(strings.TrimSpace(j.Command)) == 0 {
+		return errors.ErrEmptyJobCommand
+	}
+	if len(j.Cmd) == 0 {
+		j.SplitCmd()
+	}
+	//todo 安全性
+
+	//security := conf.Config.Security
+	//if !security.Open {
+	//	return nil
+	//}
+	//
+	/*if len(conf.Config.Security.Users) == 0 {
+		return true
+	}
+
+	for _, u := range conf.Config.Security.Users {
+		if j.User == u {
+			return true
+		}
+	}*/
+	//
+	//if !j.validCmd() {
+	//	return ErrSecurityInvalidCmd
+	//}
+
+	return nil
 }
 
-// 更新
-func (jb *JobLog) Update() error {
-	//只会更新非零字段
-	return dbclient.GetMysqlDB().Table(CronyJobLogTableName).Updates(jb).Error
-}
+func (j *Job) SplitCmd() {
+	ps := strings.SplitN(j.Command, " ", 2)
+	if len(ps) == 1 {
+		j.Cmd = ps
+		return
+	}
 
-func (jb *JobLog) Delete() error {
-	return dbclient.GetMysqlDB().Exec(fmt.Sprintf("delete from %s where id = ?", CronyJobLogTableName), jb.ID).Error
+	j.Cmd = make([]string, 0, 2)
+	j.Cmd = append(j.Cmd, ps[0])
+	j.Cmd = append(j.Cmd, utils.ParseCmdArguments(ps[1])...)
 }

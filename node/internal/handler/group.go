@@ -11,7 +11,7 @@ type Groups map[int]*models.Group
 // GetGroups 获取包含 nodeId 的 group
 // 如果 nodeId 为空，则获取所有的 group
 func GetGroups(nodeUUID string) (groupsMap Groups, err error) {
-	sql := fmt.Sprintf("select g.id as id g.name as name from %s  ng left join %s g  on  ng.group_id = g.id ")
+	sql := "select g.id as id g.name as name from %s  ng left join %s g  on  ng.group_id = g.id "
 	if len(nodeUUID) > 0 {
 		sql += "and ng.node_uuid=?"
 	}

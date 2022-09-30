@@ -6,7 +6,7 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
-	"log"
+	"github.com/tmnhs/crony/common/pkg/logger"
 	"sync"
 )
 
@@ -24,7 +24,7 @@ func NewNodeWatcher() *NodeWatcher {
 }
 
 func (s *NodeWatcher) Watch() error {
-	resp, err := s.client.Get(context.Background(), etcdclient.KeyEtcdNode, clientv3.WithPrefix())
+	resp, err := s.client.Get(context.Background(), etcdclient.KeyEtcdNodeProfile, clientv3.WithPrefix())
 	if err != nil {
 		return err
 	}
@@ -68,14 +68,14 @@ func (s *NodeWatcher) SetServiceList(key, val string) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.serverList[key] = val
-	log.Println("set data key :", key, "val:", val)
+	logger.GetLogger().Debug(fmt.Sprintf("set data key : %s val:%s", key, val))
 }
 
 func (s *NodeWatcher) DelServiceList(key string) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	delete(s.serverList, key)
-	log.Println("del data key:", key)
+	logger.GetLogger().Debug(fmt.Sprintf("del data key: %s", key))
 }
 
 func (s *NodeWatcher) SerList2Array() []string {

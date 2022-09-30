@@ -52,6 +52,20 @@ func Put(key, val string, opts ...clientv3.OpOption) (*clientv3.PutResponse, err
 	return _defalutEtcd.Put(ctx, key, val, opts...)
 }
 
+func PutWithTtl(key, val string, ttl int64) (*clientv3.PutResponse, error) {
+	if _defalutEtcd == nil {
+		return nil, errors.ErrEtcdNotInit
+	}
+	ctx, cancel := NewEtcdTimeoutContext()
+	defer cancel()
+	//申请一个lease(租约)
+	leaseRsp, err := Grant(ttl)
+	if err != nil {
+		return nil, err
+	}
+	return _defalutEtcd.Put(ctx, key, val, clientv3.WithLease(leaseRsp.ID))
+}
+
 func PutWithModRev(key, val string, rev int64) (*clientv3.PutResponse, error) {
 	if _defalutEtcd == nil {
 		return nil, errors.ErrEtcdNotInit

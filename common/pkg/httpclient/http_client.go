@@ -16,7 +16,7 @@ type ResponseWrapper struct {
 	Header     http.Header
 }
 
-func Get(url string, timeout int) ResponseWrapper {
+func Get(url string, timeout int64) ResponseWrapper {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return createRequestError(err)
@@ -25,7 +25,7 @@ func Get(url string, timeout int) ResponseWrapper {
 	return request(req, timeout)
 }
 
-func PostParams(url string, params string, timeout int) ResponseWrapper {
+func PostParams(url string, params string, timeout int64) ResponseWrapper {
 	buf := bytes.NewBufferString(params)
 	req, err := http.NewRequest("POST", url, buf)
 	if err != nil {
@@ -36,7 +36,7 @@ func PostParams(url string, params string, timeout int) ResponseWrapper {
 	return request(req, timeout)
 }
 
-func PostJson(url string, body string, timeout int) ResponseWrapper {
+func PostJson(url string, body string, timeout int64) ResponseWrapper {
 	buf := bytes.NewBufferString(body)
 	req, err := http.NewRequest("POST", url, buf)
 	if err != nil {
@@ -47,7 +47,7 @@ func PostJson(url string, body string, timeout int) ResponseWrapper {
 	return request(req, timeout)
 }
 
-func request(req *http.Request, timeout int) ResponseWrapper {
+func request(req *http.Request, timeout int64) ResponseWrapper {
 	wrapper := ResponseWrapper{StatusCode: 0, Body: "", Header: make(http.Header)}
 	client := &http.Client{}
 	if timeout > 0 {

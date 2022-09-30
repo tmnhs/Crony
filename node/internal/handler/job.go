@@ -9,7 +9,6 @@ import (
 	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
-	"github.com/tmnhs/crony/common/pkg/utils"
 	"github.com/tmnhs/crony/common/pkg/utils/errors"
 	"runtime"
 	"strconv"
@@ -38,18 +37,6 @@ func (j *Job) alone() {
 	}
 }
 
-func (j *Job) splitCmd() {
-	ps := strings.SplitN(j.Command, " ", 2)
-	if len(ps) == 1 {
-		j.Cmd = ps
-		return
-	}
-
-	j.Cmd = make([]string, 0, 2)
-	j.Cmd = append(j.Cmd, ps[0])
-	j.Cmd = append(j.Cmd, utils.ParseCmdArguments(ps[1])...)
-}
-
 func (j *Job) String() string {
 	data, err := json.Marshal(j)
 	if err != nil {
@@ -74,7 +61,7 @@ func GetJobAndRev(nodeUUID string, groupId, jobId int) (job *Job, rev int64, err
 		return
 	}
 
-	job.splitCmd()
+	job.SplitCmd()
 	return
 }
 
@@ -101,7 +88,7 @@ func GetJobs(nodeUUID string) (jobs Jobs, err error) {
 			continue
 		}
 		//todo
-		if err := job.Valid(); err != nil {
+		if err := job.Check(); err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("job[%s] is invalid: %s", string(j.Key), err.Error()))
 			continue
 		}
@@ -203,41 +190,6 @@ func CreateJob(j *Job) cron.FuncJob {
 	}
 	return taskFunc
 }
-
-func (j *Job) Check() error {
-	//j.ID = strings.TrimSpace(j.ID)
-	//todo
-	//if !IsValidAsKeyPath(j.ID) {
-	//	return errors.ErrIllegalJobId
-	//}
-
-	j.Name = strings.TrimSpace(j.Name)
-	if len(j.Name) == 0 {
-		return errors.ErrEmptyJobName
-	}
-	//todo
-	//j.Group = strings.TrimSpace(j.Group)
-	//if len(j.Group) == 0 {
-	//	j.Group = DefaultJobGroup
-	//}
-
-	//if !IsValidAsKeyPath(j.Group) {
-	//	return errors.ErrIllegalJobGroupName
-	//}
-
-	if j.LogExpiration < 0 {
-		j.LogExpiration = 0
-	}
-
-	j.CmdUser = strings.TrimSpace(j.CmdUser)
-
-	// 不修改 Command 的内容，简单判断是否为空
-	if len(strings.TrimSpace(j.Command)) == 0 {
-		return errors.ErrEmptyJobCommand
-	}
-
-	return j.Valid()
-}
 func WatchJobs(nodeUUID string) clientv3.WatchChan {
 	return etcdclient.Watch(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
 }
@@ -257,32 +209,6 @@ func GetJobFromKv(key, value []byte) (job *Job, err error) {
 /*func IsValidAsKeyPath(s string) bool {
 	return strings.IndexAny(s, "/\\") == -1
 }*/
-
-// 安全选项验证
-func (j *Job) Valid() error {
-	if len(j.Cmd) == 0 {
-		j.splitCmd()
-	}
-	//todo
-	//if err := j.ValidRules(); err != nil {
-	//	return err
-	//}
-
-	//security := conf.Config.Security
-	//if !security.Open {
-	//	return nil
-	//}
-	//
-	//if !j.validUser() {
-	//	return ErrSecurityInvalidUser
-	//}
-	//
-	//if !j.validCmd() {
-	//	return ErrSecurityInvalidCmd
-	//}
-
-	return nil
-}
 
 func ModifyJob(job *Job) {
 	//todo into db

@@ -23,16 +23,6 @@ LDFLAGS		:= -s -w \
 			   -X 'main.BuildDate=$(shell /bin/date "+%F %T")'
 
 
-fmt:
-	@go fmt $(PROJECTBASE)/...
-	@go mod tidy
-
-clean:
-	@#echo $(PROJECTBIN)
-	@rm -rf $(PROJECTBIN)/* &>/dev/null
-depend:
-	go mod download
-
 #linux amd64开发调试版本
 linux-dev:
 	@echo "install linux amd64 dev version"
@@ -76,7 +66,16 @@ gitpush: clean fmt
 	git add .
 	git commit -m "$(m) changed at $(TIMESTAMP)"
 	git push
+fmt:
+	@go fmt $(PROJECTBASE)/...
+	@echo "hello"
+	@go mod tidy
 
+clean:
+	@#echo $(PROJECTBIN)
+	@rm -rf $(PROJECTBIN)/* &>/dev/null
+depend:
+	go mod download
 gitpull: fmt
 	git add .
 	git commit -m "$(m) changed at $(TIMESTAMP)"

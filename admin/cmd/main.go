@@ -24,8 +24,10 @@ func main() {
 	srv.RegisterRouters(handler.RegisterRouters)
 	//todo 合并到srv
 	err = service.NewNodeWatcher().Watch()
-	logger.GetLogger().Debug(fmt.Sprintf("resolver  error:%s", err))
-
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("resolver  error:%#v", err))
+	}
+	logger.GetLogger().Error("this is an error info")
 	//todo 邮件相关操作
 
 	//todo 定时清理日志

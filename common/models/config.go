@@ -40,9 +40,10 @@ type (
 		ReqTimeout  int64    `mapstructure:"req-timeout" json:"req-timeout" yaml:"req-timeout"`
 	}
 	System struct {
-		Env     string `mapstructure:"env" json:"env" yaml:"env"`                // 环境值
-		Addr    int    `mapstructure:"addr" json:"addr" yaml:"addr"`             // 端口值
-		NodeTtl int64  `mapstructure:"node-ttl" json:"node-ttl" yaml:"node-ttl"` //
+		Env        string `mapstructure:"env" json:"env" yaml:"env"`                            // 环境值
+		Addr       int    `mapstructure:"addr" json:"addr" yaml:"addr"`                         // 端口值
+		NodeTtl    int64  `mapstructure:"node-ttl" json:"node-ttl" yaml:"node-ttl"`             //
+		JobProcTtl int64  `mapstructure:"job-proc-ttl" json:"job-proc-ttl" yaml:"job-proc-ttl"` //
 	}
 	Log struct {
 		Level         string `mapstructure:"level" json:"level" yaml:"level"`                           // 级别

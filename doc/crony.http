@@ -1,0 +1,47 @@
+POST {{url}}/job/update
+Content-Type: application/json
+
+{
+  "id": 10,
+  "name":"test2",
+  "group_id": 0,
+  "run_on": "aa91263d-408c-11ed-8f4a-ccf9e4ca232f",
+  "command": "/home/tmnh/hello2.sh",
+  "spec": "0 * * * * ?",
+  "timeout": 0,
+  "user": "",
+  "retry_times": 0,
+  "retry_interval": 0,
+  "kind": 1,
+  "job_type": 1,
+  "http_method": 0,
+  "notify_type": 1
+}
+
+###
+GET {{url}}/ping
+Accept: application/json
+
+
+
+###
+POST {{url}}/job/add
+Content-Type: application/json
+
+{
+  "name":"test",
+  "group_id": 0,
+  "run_on": "aa91263d-408c-11ed-8f4a-ccf9e4ca232f",
+  "command": "/home/tmnh/hello.sh",
+  "spec": "0 * * * * ?",
+  "timeout": 0,
+  "user": "",
+  "retry_times": 0,
+  "retry_interval": 0,
+  "kind": 1,
+  "job_type": 1,
+  "http_method": 0,
+  "notify_type": 1
+}
+
+###
