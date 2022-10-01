@@ -50,6 +50,7 @@ func (s *NodeWatcher) watcher() {
 				s.SetServiceList(string(ev.Kv.Key), string(ev.Kv.Value))
 			case mvccpb.DELETE:
 				fmt.Println("server delete")
+				//todo
 				s.DelServiceList(string(ev.Kv.Key))
 			}
 		}

@@ -5,6 +5,11 @@ import (
 	"github.com/tmnhs/crony/common/pkg/dbclient"
 )
 
+const (
+	NodeConnSuccess = 1
+	NodeConnFail    = 2
+)
+
 // 执行 cron cmd 的进程
 // 注册到 /cronsun/node/<id>
 type Node struct {

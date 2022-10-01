@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/jakecoffman/cron"
 	"github.com/ouqiang/goutil"
@@ -13,6 +14,7 @@ import (
 	"os"
 	"strconv"
 	"syscall"
+	"time"
 )
 
 // Node 执行 cron 命令服务的结构体
@@ -49,6 +51,8 @@ func NewNodeServer() (*NodeServer, error) {
 			PID:      strconv.Itoa(os.Getpid()),
 			IP:       ip.String(),
 			Hostname: hostname,
+			UpTime:   time.Now().Unix(),
+			Status:   models.NodeConnSuccess,
 		},
 		Cron: cron.New(),
 
@@ -102,7 +106,11 @@ func (srv *NodeServer) Register() error {
 		return fmt.Errorf("node[%s] with pid[%d] exist", srv.UUID, pid)
 	}
 	//creates a new lease
-	if err := srv.ServerReg.Register(fmt.Sprintf(etcdclient.KeyEtcdNode, srv.UUID), srv.PID); err != nil {
+	b, err := json.Marshal(srv.Node)
+	if err != nil {
+		return fmt.Errorf("node[%s] with pid[%d] json error:%s", srv.UUID, pid, err.Error())
+	}
+	if err := srv.ServerReg.Register(fmt.Sprintf(etcdclient.KeyEtcdNode, srv.UUID), string(b)); err != nil {
 		return err
 	}
 	return nil
