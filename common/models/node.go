@@ -1,5 +1,10 @@
 package models
 
+import (
+	"fmt"
+	"github.com/tmnhs/crony/common/pkg/dbclient"
+)
+
 // 执行 cron cmd 的进程
 // 注册到 /cronsun/node/<id>
 type Node struct {
@@ -18,4 +23,25 @@ type Node struct {
 
 func (n *Node) String() string {
 	return "node[" + n.UUID + "] pid[" + n.PID + "]"
+}
+
+func (n *Node) Insert() (insertId int, err error) {
+	err = dbclient.GetMysqlDB().Table(CronyNodeTableName).Create(n).Error
+	if err == nil {
+		insertId = n.ID
+	}
+	return
+}
+
+// 更新
+func (n *Node) Update() error {
+	return dbclient.GetMysqlDB().Table(CronyNodeTableName).Updates(n).Error
+}
+
+func (n *Node) Delete() error {
+	return dbclient.GetMysqlDB().Exec(fmt.Sprintf("delete from %s where uuid = ?", CronyNodeTableName), n.UUID).Error
+}
+
+func (n *Node) FindById() error {
+	return dbclient.GetMysqlDB().Table(CronyNodeTableName).Where("uuid = ? ", n.UUID).First(&n).Error
 }

@@ -23,7 +23,7 @@ func main() {
 	//注册API路由业务
 	srv.RegisterRouters(handler.RegisterRouters)
 	//todo 合并到srv
-	err = service.NewNodeWatcher().Watch()
+	err = service.DefaultNodeWatcher.Watch()
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("resolver  error:%#v", err))
 	}

@@ -5,6 +5,11 @@ import (
 	"github.com/tmnhs/crony/common/pkg/dbclient"
 )
 
+const (
+	RoleNormal = 1
+	RoleAdmin  = 2
+)
+
 type User struct {
 	ID       int    `json:"id" gorm:"id"`
 	UserName string `json:"username" gorm:"username"`
@@ -33,4 +38,8 @@ func (u *User) Insert() (insertId int, err error) {
 		insertId = u.ID
 	}
 	return
+}
+
+func (u *User) FindById() error {
+	return dbclient.GetMysqlDB().Table(CronyUserTableName).Where("id = ? ", u.ID).First(&u).Error
 }
