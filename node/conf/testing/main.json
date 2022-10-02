@@ -16,7 +16,8 @@
     "addr": 8088,
     "#node-timeout": "节点超时时间，单位秒",
     "node-ttl": 5,
-    "logclear": 12
+    "logclear": 12,
+    "version": "v1.0.5"
   },
   "etcd": {
     "endpoints":[

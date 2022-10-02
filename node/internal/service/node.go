@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/jakecoffman/cron"
 	"github.com/ouqiang/goutil"
@@ -53,6 +52,7 @@ func NewNodeServer() (*NodeServer, error) {
 			Hostname: hostname,
 			UpTime:   time.Now().Unix(),
 			Status:   models.NodeConnSuccess,
+			Version:  config.GetConfigModels().System.Version,
 		},
 		Cron: cron.New(),
 
@@ -106,11 +106,7 @@ func (srv *NodeServer) Register() error {
 		return fmt.Errorf("node[%s] with pid[%d] exist", srv.UUID, pid)
 	}
 	//creates a new lease
-	b, err := json.Marshal(srv.Node)
-	if err != nil {
-		return fmt.Errorf("node[%s] with pid[%d] json error:%s", srv.UUID, pid, err.Error())
-	}
-	if err := srv.ServerReg.Register(fmt.Sprintf(etcdclient.KeyEtcdNode, srv.UUID), string(b)); err != nil {
+	if err := srv.ServerReg.Register(fmt.Sprintf(etcdclient.KeyEtcdNode, srv.UUID), srv.PID); err != nil {
 		return err
 	}
 	return nil
@@ -118,17 +114,25 @@ func (srv *NodeServer) Register() error {
 
 // 停止服务
 func (srv *NodeServer) Stop(i interface{}) {
-	etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdNode, srv.UUID))
 	srv.Down()
 
-	srv.Client.Close()
+	_, err := etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdNode, srv.UUID))
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("failed to delete etcd node[%s] key error:%s", srv.UUID, err.Error()))
+	}
+
+	_ = srv.Client.Close()
 	srv.Cron.Stop()
 }
 
-//todo On 结点实例停用后，在 mongoDB 中去掉存活信息
+//结点实例停用后，在 mysql 中去掉存活信息
 func (srv *NodeServer) Down() {
-	/*	n.Alived, n.DownTime = false, time.Now()
-		n.SyncToMgo()*/
+	srv.Status = models.NodeConnFail
+	srv.DownTime = time.Now().Unix()
+	err := srv.Node.Delete()
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("failed to delete node[%s] error:%s", srv.UUID, err.Error()))
+	}
 }
 
 func (srv *NodeServer) Run() (err error) {
@@ -138,14 +142,13 @@ func (srv *NodeServer) Run() (err error) {
 		}
 	}()
 
-	// 延迟处理的函数
-	defer func() {
-		// 发生宕机时，获取panic传递的上下文并打印
-		if r := recover(); r != nil {
-
-		}
-	}()
 	if err = srv.loadJobs(); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("node[%s] failed to load job error:%s", srv.UUID, err.Error()))
+		return
+	}
+	_, err = srv.Node.Insert()
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("failed to create node[%s] into db error:%s", srv.UUID, err.Error()))
 		return
 	}
 	//start cron
@@ -153,7 +156,6 @@ func (srv *NodeServer) Run() (err error) {
 	go srv.watchJobs()
 	go srv.watchKilledProc()
 	go srv.watchOnce()
-	//n.Node.On()
 	return
 }
 

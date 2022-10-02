@@ -43,10 +43,6 @@ func (s *NodeWatcher) watcher() {
 		for _, ev := range wresp.Events {
 			switch ev.Type {
 			case mvccpb.PUT:
-				//todo insert or update
-				/*node:=&models.Node{
-					UUID:s.GetUUID(string(ev.Kv.Key)),
-				}*/
 				s.SetServiceList(string(ev.Kv.Key), string(ev.Kv.Value))
 			case mvccpb.DELETE:
 				fmt.Println("server delete")

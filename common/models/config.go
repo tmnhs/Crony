@@ -44,6 +44,7 @@ type (
 		Addr       int    `mapstructure:"addr" json:"addr" yaml:"addr"`                         // 端口值
 		NodeTtl    int64  `mapstructure:"node-ttl" json:"node-ttl" yaml:"node-ttl"`             //
 		JobProcTtl int64  `mapstructure:"job-proc-ttl" json:"job-proc-ttl" yaml:"job-proc-ttl"` //
+		Version    string `mapstructure:"version" json:"version" yaml:"version"`                //
 	}
 	Log struct {
 		Level         string `mapstructure:"level" json:"level" yaml:"level"`                           // 级别
