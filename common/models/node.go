@@ -47,6 +47,6 @@ func (n *Node) Delete() error {
 	return dbclient.GetMysqlDB().Exec(fmt.Sprintf("delete from %s where uuid = ?", CronyNodeTableName), n.UUID).Error
 }
 
-func (n *Node) FindById() error {
+func (n *Node) FindByUUID() error {
 	return dbclient.GetMysqlDB().Table(CronyNodeTableName).Where("uuid = ? ", n.UUID).First(&n).Error
 }

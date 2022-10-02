@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
@@ -51,12 +52,13 @@ func (n *NodeWatcherService) watcher() {
 			case mvccpb.DELETE:
 				uuid := n.GetUUID(string(ev.Kv.Key))
 				logger.GetLogger().Warn(fmt.Sprintf("crony node[%s] DELETE event detected", uuid))
-				nodeModel := models.Node{UUID: uuid}
-				err := nodeModel.FindById()
+				//先删除在故障转移
+				n.DelNodeList(n.GetUUID(string(ev.Kv.Key)))
+				success, fail, err := n.FailOver(uuid)
 				if err != nil {
-					logger.GetLogger().Warn(fmt.Sprintf("failed to fetch node[%s] from db: %s", uuid, err.Error()))
-					continue
+					logger.GetLogger().Error(fmt.Sprintf("crony node[%s] fail over error:%s", uuid, err.Error()))
 				}
+				logger.GetLogger().Info(fmt.Sprintf("crony node[%s] fail over success count:%d they are :%#v  ,fail count:%d they are :%#v ", uuid, len(success), success, len(fail), fail))
 				//todo notice
 				// 故障转移
 				/*if node.Alived {
@@ -67,7 +69,6 @@ func (n *NodeWatcherService) watcher() {
 						To:   conf.Config.Mail.To,
 					})
 				}*/
-				n.DelNodeList(n.GetUUID(string(ev.Kv.Key)))
 			}
 		}
 	}
@@ -154,13 +155,13 @@ func (n *NodeWatcherService) Search(s *request.ReqNodeSearch) ([]models.Node, in
 	return nodes, total, nil
 }
 
-//获取某节点的job数量
+//todo 获取某节点的job数量
 func (n *NodeWatcherService) GetJobCount(nodeUUID string) (int, error) {
-	resp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
+	resps, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
 	if err != nil {
 		return 0, err
 	}
-	return len(resp.Kvs), nil
+	return len(resps.Kvs), nil
 }
 
 func (n *NodeWatcherService) FindByGroupId(groupId int) ([]models.Node, error) {
@@ -171,4 +172,83 @@ func (n *NodeWatcherService) FindByGroupId(groupId int) ([]models.Node, error) {
 		return nil, err
 	}
 	return nodes, nil
+}
+
+//故障转移
+func (n *NodeWatcherService) FailOver(nodeUUID string) (success []int, fail []int, err error) {
+	jobs, err := n.GetJobs(nodeUUID)
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("node[%s] fail over get jobs error:%s", nodeUUID, err.Error()))
+		return
+	}
+	if len(jobs) == 0 {
+		return
+	}
+	success = make([]int, 2)
+	fail = make([]int, 2)
+	for _, job := range jobs {
+		if job.Type == models.JobTypeCmd {
+			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over don't support cmd type", nodeUUID, job.ID))
+			fail = append(fail, job.ID)
+			continue
+		}
+		autoUUID := DefaultJobService.AutoAllocateNode()
+		if autoUUID == "" {
+			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over auto allocate node error", nodeUUID, job.ID))
+			fail = append(fail, job.ID)
+			continue
+		}
+		node := &models.Node{UUID: autoUUID}
+		err = node.FindByUUID()
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over auto allocate node db find error:%s", nodeUUID, job.ID, err.Error()))
+			fail = append(fail, job.ID)
+			continue
+		}
+		job.InitNodeInfo(node.UUID, node.Hostname, node.IP)
+		err = job.Update()
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over auto allocate node db update error:%s", nodeUUID, job.ID, err.Error()))
+			fail = append(fail, job.ID)
+			continue
+		}
+		b, err := json.Marshal(job)
+		if err != nil {
+			logger.GetLogger().Error(fmt.Sprintf("node[%s] job[%d] fail over json marshal job error:%s", nodeUUID, job.ID, err.Error()))
+			fail = append(fail, job.ID)
+			continue
+		}
+
+		_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdJob, job.RunOn, job.GroupId, job.ID), string(b))
+		if err != nil {
+			logger.GetLogger().Error(fmt.Sprintf("node[%s] job[%d] fail over etcd put job error:%s", nodeUUID, job.ID, err.Error()))
+			fail = append(fail, job.ID)
+			continue
+		}
+		success = append(success, job.ID)
+	}
+	//todo 自动分配成功的有几个，失败的有几个
+	return
+}
+
+//获取某个node下的所有job
+func (n *NodeWatcherService) GetJobs(nodeUUID string) (jobs []*models.Job, err error) {
+	resps, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
+	if err != nil {
+		return
+	}
+	jobs = make([]*models.Job, 2)
+	count := len(resps.Kvs)
+	if count == 0 {
+		return
+	}
+	for _, j := range resps.Kvs {
+		job := new(models.Job)
+		if e := json.Unmarshal(j.Value, job); e != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("job[%s] umarshal err: %s", string(j.Key), e.Error()))
+			continue
+		}
+		jobs = append(jobs, job)
+	}
+	return
 }

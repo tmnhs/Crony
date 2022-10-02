@@ -58,7 +58,8 @@ type Job struct {
 	// 执行失败是否发送通知
 	NotifyStatus bool `json:"notify_status" gorm:"notify_status"`
 	NotifyType   int  `json:"notify_type" gorm:"notify_type"`
-	Status       int  `json:"status" gorm:"status"`
+	//fixme 待机状态
+	Status int `json:"status" gorm:"status"`
 	// 发送通知地址
 	NotifyTo      []byte `json:"-" gorm:"notify_to"`
 	NotifyToArray []int  `json:"notify_to" gorm:"-"`

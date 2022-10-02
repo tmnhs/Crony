@@ -31,11 +31,11 @@ func GetJob(nodeUUID string, groupId, jobId int) (job *Job, err error) {
 	return
 }
 
-func (j *Job) alone() {
+/*func (j *Job) alone() {
 	if j.Kind == models.KindAlone {
 		j.Parallels = 1
 	}
-}
+}*/
 
 func (j *Job) String() string {
 	data, err := json.Marshal(j)
