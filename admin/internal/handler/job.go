@@ -19,7 +19,7 @@ type JobRouter struct {
 var defaultJobRouter = new(JobRouter)
 
 func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
-	var req models.Job
+	var req request.ReqJobUpdate
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[create_job] request parameter error:%s", err.Error()))
 		resp.FailWithMessage(resp.ErrorRequestParameter, "[create_job] request parameter error", c)
@@ -41,6 +41,12 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 	//想更改数据库
 	if req.ID > 0 {
 		//update
+		oldNodeUUID := req.RunOn
+		_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, oldNodeUUID, req.GroupId, req.ID))
+		if err != nil {
+			logger.GetLogger().Error(fmt.Sprintf("[update_job] delete etcd node[%s]  error:%s", oldNodeUUID, err.Error()))
+			resp.FailWithMessage(resp.ERROR, "[update_job] delete etcd node error", c)
+		}
 		insertId = req.ID
 		req.Updated = t.Unix()
 		err = req.Update()
@@ -51,6 +57,16 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		}
 	} else {
 		//create
+		if req.Allocation == models.AutoAllocation {
+			//自动分配
+			nodeUUID := service.DefaultJobService.AutoAllocateNode()
+			if nodeUUID == "" {
+				logger.GetLogger().Error(fmt.Sprintf("[create_job] auto allocate node error"))
+				resp.FailWithMessage(resp.ERROR, "[create_job] auto allocate node error", c)
+				return
+			}
+			req.RunOn = nodeUUID
+		}
 		req.Created = t.Unix()
 		insertId, err = req.Insert()
 		if err != nil {
@@ -68,7 +84,6 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 	}
 
 	//添加至etcd
-	//todo 分配方法：手动和自动
 	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdJob, req.RunOn, req.GroupId, req.ID), string(b))
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[create_job] etcd put job error:%s", err.Error()))

@@ -25,6 +25,7 @@ const (
 
 	ErrorRequestParameter = 1001
 	ErrorJobFormat        = 1002
+	ErrorAutoAllocateNode = 1003
 	ErrorJwtInvalid       = 1011
 	ErrorTokenGenerate    = 1014
 	ErrorLoginStatusSet   = 1015

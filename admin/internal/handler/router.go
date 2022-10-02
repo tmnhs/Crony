@@ -29,10 +29,14 @@ func RegisterRouters(c *gin.Engine) {
 		user.POST("del", defaultUserRouter.Delete)
 		user.POST("find", defaultUserRouter.FindById)
 		user.POST("search", defaultUserRouter.Search)
+		user.POST("join", defaultUserRouter.JoinGroup)
+		user.POST("kick", defaultUserRouter.KickGroup)
 	}
 	node := c.Group("/node")
 	{
 		node.POST("search", defaultNodeRouter.Search)
+		node.POST("join", defaultNodeRouter.JoinGroup)
+		node.POST("kick", defaultNodeRouter.KickGroup)
 	}
 
 	group := c.Group("/group")

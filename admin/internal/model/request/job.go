@@ -20,4 +20,9 @@ type (
 		NodeUUID string `json:"uuid" gorm:"node_uuid"`
 		Success  *bool  `json:"success" gorm:"success"`
 	}
+	ReqJobUpdate struct {
+		*models.Job
+		//分配方式
+		Allocation int `json:"allocation" form:"allocation" binding:"required"`
+	}
 )

@@ -23,10 +23,13 @@ const (
 	JobLogStatusSuccess = 1
 	JobLogStatusProcess = 2
 	JobLogStatusFail    = 3
+
+	ManualAllocation = 1
+	AutoAllocation   = 2
 )
 
 // 需要执行的 cron cmd 命令
-// 注册到 /cronsun/cmd/groupName/<id>
+// 注册到 /cronsun/cmd/<node_uuid>/<group_id>/<job_id>
 type Job struct {
 	ID      int    `json:"id" gorm:"id"`
 	Name    string `json:"name" gorm:"name" binding:"required"`
@@ -74,13 +77,10 @@ type Job struct {
 	Ip       string `json:"ip" gorm:"-"`
 	// 用于存储分隔后的任务
 	Cmd []string `json:"cmd" gorm:"-"`
-	// 控制同时执行任务数
-	Count *int64 `json:"-" gorm:"-"`
 }
 
 func (j *Job) InitNodeInfo(nodeUUID, hostname, ip string) {
-	var c int64
-	j.Count, j.RunOn, j.Hostname, j.Ip = &c, nodeUUID, hostname, ip
+	j.RunOn, j.Hostname, j.Ip = nodeUUID, hostname, ip
 }
 
 func (j *Job) Insert() (insertId int, err error) {

@@ -1,9 +1,11 @@
 package service
 
 import (
+	"fmt"
 	"github.com/tmnhs/crony/admin/internal/model/request"
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/dbclient"
+	"github.com/tmnhs/crony/common/pkg/logger"
 )
 
 type JobService struct {
@@ -72,4 +74,25 @@ func (j *JobService) SearchJobLog(s *request.ReqJobLogSearch) ([]models.JobLog, 
 		return nil, 0, err
 	}
 	return jobLogs, total, nil
+}
+
+const MaxJobCount = 10000
+
+//优先分配工作任务最少的结点
+func (j *JobService) AutoAllocateNode() string {
+	//获取所有活着的节点
+	nodeList := DefaultNodeWatcher.List2Array()
+
+	resultCount, resultNodeUUID := MaxJobCount, ""
+	for _, nodeUUID := range nodeList {
+		count, err := DefaultNodeWatcher.GetJobCount(nodeUUID)
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("node[%s] get job conut error:%s", nodeUUID, err.Error()))
+			continue
+		}
+		if resultCount > count {
+			resultCount, resultNodeUUID = count, nodeUUID
+		}
+	}
+	return resultNodeUUID
 }

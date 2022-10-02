@@ -15,17 +15,18 @@ import (
 )
 
 type NodeWatcherService struct {
-	client     *etcdclient.Client
-	serverList map[string]string
-	lock       sync.Mutex
+	client *etcdclient.Client
+	//<uuid> <pid>
+	nodeList map[string]string
+	lock     sync.Mutex
 }
 
 var DefaultNodeWatcher = NewNodeWatcherService()
 
 func NewNodeWatcherService() *NodeWatcherService {
 	return &NodeWatcherService{
-		client:     etcdclient.GetEtcdClient(),
-		serverList: make(map[string]string),
+		client:   etcdclient.GetEtcdClient(),
+		nodeList: make(map[string]string),
 	}
 }
 
@@ -34,7 +35,7 @@ func (n *NodeWatcherService) Watch() error {
 	if err != nil {
 		return err
 	}
-	_ = n.extractAddrs(resp)
+	_ = n.extractNodes(resp)
 
 	go n.watcher()
 	return nil
@@ -46,7 +47,7 @@ func (n *NodeWatcherService) watcher() {
 		for _, ev := range wresp.Events {
 			switch ev.Type {
 			case mvccpb.PUT:
-				n.SetServiceList(string(ev.Kv.Key), string(ev.Kv.Value))
+				n.SetNodeList(n.GetUUID(string(ev.Kv.Key)), string(ev.Kv.Value))
 			case mvccpb.DELETE:
 				uuid := n.GetUUID(string(ev.Kv.Key))
 				logger.GetLogger().Warn(fmt.Sprintf("crony node[%s] DELETE event detected", uuid))
@@ -57,6 +58,7 @@ func (n *NodeWatcherService) watcher() {
 					continue
 				}
 				//todo notice
+				// 故障转移
 				/*if node.Alived {
 					n.Send(&Message{
 						Subject: fmt.Sprintf("[Cronsun Warning] Node[%s] break away cluster at %s",
@@ -65,50 +67,50 @@ func (n *NodeWatcherService) watcher() {
 						To:   conf.Config.Mail.To,
 					})
 				}*/
-				n.DelServiceList(string(ev.Kv.Key))
+				n.DelNodeList(n.GetUUID(string(ev.Kv.Key)))
 			}
 		}
 	}
 }
 
 //todo 是否需要
-func (n *NodeWatcherService) extractAddrs(resp *clientv3.GetResponse) []string {
-	addrs := make([]string, 0)
+func (n *NodeWatcherService) extractNodes(resp *clientv3.GetResponse) []string {
+	nodes := make([]string, 0)
 	if resp == nil || resp.Kvs == nil {
-		return addrs
+		return nodes
 	}
 	for i := range resp.Kvs {
 		if v := resp.Kvs[i].Value; v != nil {
-			n.SetServiceList(string(resp.Kvs[i].Key), string(resp.Kvs[i].Value))
-			addrs = append(addrs, string(v))
+			n.SetNodeList(n.GetUUID(string(resp.Kvs[i].Key)), string(resp.Kvs[i].Value))
+			nodes = append(nodes, string(v))
 		}
 	}
-	return addrs
+	return nodes
 }
 
-func (n *NodeWatcherService) SetServiceList(key, val string) {
+func (n *NodeWatcherService) SetNodeList(key, val string) {
 	n.lock.Lock()
 	defer n.lock.Unlock()
-	n.serverList[key] = val
+	n.nodeList[key] = val
 	logger.GetLogger().Debug(fmt.Sprintf("set data key : %s val:%s", key, val))
 }
 
-func (n *NodeWatcherService) DelServiceList(key string) {
+func (n *NodeWatcherService) DelNodeList(key string) {
 	n.lock.Lock()
 	defer n.lock.Unlock()
-	delete(n.serverList, key)
+	delete(n.nodeList, key)
 	logger.GetLogger().Debug(fmt.Sprintf("del data key: %s", key))
 }
 
-func (n *NodeWatcherService) SerList2Array() []string {
+func (n *NodeWatcherService) List2Array() []string {
 	n.lock.Lock()
 	defer n.lock.Unlock()
-	addrs := make([]string, 0)
+	nodes := make([]string, 0)
 
-	for _, v := range n.serverList {
-		addrs = append(addrs, v)
+	for _, v := range n.nodeList {
+		nodes = append(nodes, v)
 	}
-	return addrs
+	return nodes
 }
 
 func (n *NodeWatcherService) Close() error {
@@ -150,4 +152,13 @@ func (n *NodeWatcherService) Search(s *request.ReqNodeSearch) ([]models.Node, in
 		return nil, 0, err
 	}
 	return nodes, total, nil
+}
+
+//获取某节点的job数量
+func (n *NodeWatcherService) GetJobCount(nodeUUID string) (int, error) {
+	resp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
+	if err != nil {
+		return 0, err
+	}
+	return len(resp.Kvs), nil
 }
