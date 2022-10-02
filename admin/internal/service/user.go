@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/tmnhs/crony/admin/internal/model/request"
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/dbclient"
@@ -48,4 +49,14 @@ func (us *UserService) Search(s *request.ReqUserSearch) ([]models.User, int64, e
 		return nil, 0, err
 	}
 	return users, total, nil
+}
+
+func (us *UserService) FindByGroupId(groupId int) ([]models.User, error) {
+	var users []models.User
+	sql := fmt.Sprintf("select u.id u.username u.email u.role   from %s ug join %s u on ug.group_id = ? and ug.user_id = u.id", models.CronyUserGroupTableName, models.CronyUserTableName)
+	err := dbclient.GetMysqlDB().Raw(sql, groupId).Scan(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }

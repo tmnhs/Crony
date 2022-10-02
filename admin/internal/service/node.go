@@ -162,3 +162,13 @@ func (n *NodeWatcherService) GetJobCount(nodeUUID string) (int, error) {
 	}
 	return len(resp.Kvs), nil
 }
+
+func (n *NodeWatcherService) FindByGroupId(groupId int) ([]models.Node, error) {
+	var nodes []models.Node
+	sql := fmt.Sprintf("select n.* from %s ng join %s n on ng.group_id = ? and ng.node_uuid = n.uuid", models.CronyNodeGroupTableName, models.CronyNodeTableName)
+	err := dbclient.GetMysqlDB().Raw(sql, groupId).Scan(&nodes).Error
+	if err != nil {
+		return nil, err
+	}
+	return nodes, nil
+}

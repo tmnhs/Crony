@@ -14,16 +14,6 @@ type GroupService struct {
 
 var DefaultGroupService = new(GroupService)
 
-//todo
-func GetGroupById(groupId int) (group *models.Group, err error) {
-	if groupId <= 0 {
-		return
-	}
-	group = &models.Group{}
-	err = dbclient.GetMysqlDB().Table(models.CronyGroupTableName).Where("id = ?", groupId).First(group).Error
-	return
-}
-
 // GetGroups 获取包含 nodeId 的 group
 // 如果 nodeId 为空，则获取所有的 group
 func GetGroups(nodeUUID string) (groupsMap Groups, err error) {

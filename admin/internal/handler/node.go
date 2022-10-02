@@ -67,3 +67,19 @@ func (n *NodeRouter) KickGroup(c *gin.Context) {
 	}
 	resp.OkWithMessage("kick success", c)
 }
+
+func (n *NodeRouter) GetByGroupId(c *gin.Context) {
+	var req request.ByID
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[node_get_by_group] request parameter error:%s", err.Error()))
+		resp.FailWithMessage(resp.ErrorRequestParameter, "[node_get_by_group] request parameter error", c)
+		return
+	}
+	nodes, err := service.DefaultNodeWatcher.FindByGroupId(req.ID)
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[node_get_by_group] db error:%v", err))
+		resp.FailWithMessage(resp.ERROR, "[node_get_by_group] db error", c)
+		return
+	}
+	resp.OkWithDetailed(nodes, "get success", c)
+}

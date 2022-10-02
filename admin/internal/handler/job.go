@@ -26,7 +26,7 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		return
 	}
 	//todo node是否存活
-	if err := req.Check(); err != nil {
+	if err := req.Valid(); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("create_job check error:%s", err.Error()))
 		resp.FailWithMessage(resp.ErrorJobFormat, "[create_job] error error", c)
 		return
@@ -38,16 +38,28 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 	//todo notify
 	notifyTo, _ := json.Marshal(req.NotifyToArray)
 	req.NotifyTo = notifyTo
+	oldNodeUUID := req.RunOn
+	if req.Allocation == models.AutoAllocation {
+		//自动分配
+		nodeUUID := service.DefaultJobService.AutoAllocateNode()
+		if nodeUUID == "" {
+			logger.GetLogger().Error(fmt.Sprintf("[create_job] auto allocate node error"))
+			resp.FailWithMessage(resp.ERROR, "[create_job] auto allocate node error", c)
+			return
+		}
+		req.RunOn = nodeUUID
+	}
 	//想更改数据库
 	if req.ID > 0 {
 		//update
-		oldNodeUUID := req.RunOn
-		_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, oldNodeUUID, req.GroupId, req.ID))
-		if err != nil {
-			logger.GetLogger().Error(fmt.Sprintf("[update_job] delete etcd node[%s]  error:%s", oldNodeUUID, err.Error()))
-			resp.FailWithMessage(resp.ERROR, "[update_job] delete etcd node error", c)
+		if oldNodeUUID != "" {
+			_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, oldNodeUUID, req.GroupId, req.ID))
+			if err != nil {
+				logger.GetLogger().Error(fmt.Sprintf("[update_job] delete etcd node[%s]  error:%s", oldNodeUUID, err.Error()))
+				resp.FailWithMessage(resp.ERROR, "[update_job] delete etcd node error", c)
+				return
+			}
 		}
-		insertId = req.ID
 		req.Updated = t.Unix()
 		err = req.Update()
 		if err != nil {
@@ -57,16 +69,6 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		}
 	} else {
 		//create
-		if req.Allocation == models.AutoAllocation {
-			//自动分配
-			nodeUUID := service.DefaultJobService.AutoAllocateNode()
-			if nodeUUID == "" {
-				logger.GetLogger().Error(fmt.Sprintf("[create_job] auto allocate node error"))
-				resp.FailWithMessage(resp.ERROR, "[create_job] auto allocate node error", c)
-				return
-			}
-			req.RunOn = nodeUUID
-		}
 		req.Created = t.Unix()
 		insertId, err = req.Insert()
 		if err != nil {

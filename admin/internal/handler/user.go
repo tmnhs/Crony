@@ -201,3 +201,19 @@ func (u *UserRouter) KickGroup(c *gin.Context) {
 	}
 	resp.OkWithMessage("kick success", c)
 }
+
+func (u *UserRouter) GetByGroupId(c *gin.Context) {
+	var req request.ByID
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[user_get_by_group] request parameter error:%s", err.Error()))
+		resp.FailWithMessage(resp.ErrorRequestParameter, "[user_get_by_group] request parameter error", c)
+		return
+	}
+	users, err := service.DefaultUserService.FindByGroupId(req.ID)
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[user_get_by_group] db error:%v", err))
+		resp.FailWithMessage(resp.ERROR, "[user_get_by_group] db error", c)
+		return
+	}
+	resp.OkWithDetailed(users, "get success", c)
+}

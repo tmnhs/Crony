@@ -16,8 +16,9 @@ const (
 
 	HTTPMethodGet  = 1
 	HTTPMethodPost = 2
-
-	KindAlone = 1
+	//单机任务
+	JobKindAlone = 1
+	JobKindGroup = 2
 
 	//job log  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT "1->成功 2->正在运行 3->失败",
 	JobLogStatusSuccess = 1
