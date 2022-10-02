@@ -19,10 +19,8 @@ func main() {
 		logger.GetLogger().Error(fmt.Sprintf("new api server error:%s", err.Error()))
 		os.Exit(1)
 	}
-	//logger.Infof("hello logger")
 	//注册API路由业务
 	srv.RegisterRouters(handler.RegisterRouters)
-	//todo 合并到srv
 	err = service.DefaultNodeWatcher.Watch()
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("resolver  error:%#v", err))

@@ -30,4 +30,16 @@ func RegisterRouters(c *gin.Engine) {
 		user.POST("find", defaultUserRouter.FindById)
 		user.POST("search", defaultUserRouter.Search)
 	}
+	node := c.Group("/node")
+	{
+		node.POST("search", defaultNodeRouter.Search)
+	}
+
+	group := c.Group("/group")
+	{
+		group.POST("update", defaultGroupRouter.CreateOrUpdate)
+		group.POST("del", defaultGroupRouter.Delete)
+		group.GET("find", defaultGroupRouter.FindById)
+		group.GET("search", defaultGroupRouter.Search)
+	}
 }

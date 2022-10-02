@@ -29,9 +29,9 @@ const (
 // 注册到 /cronsun/cmd/groupName/<id>
 type Job struct {
 	ID      int    `json:"id" gorm:"id"`
-	Name    string `json:"name" gorm:"name"`
-	GroupId int    `json:"group_id" gorm:"-"`
-	Command string `json:"command" gorm:"command"`
+	Name    string `json:"name" gorm:"name" binding:"required"`
+	GroupId int    `json:"group_id" gorm:"-" `
+	Command string `json:"command" gorm:"command" binding:"required"`
 	CmdUser string `json:"user" gorm:"cmd_user"`
 	Pause   bool   `json:"pause" gorm:"-"`         // 可手工控制的状态
 	Timeout int64  `json:"timeout" gorm:"timeout"` // 任务执行时间超时设置，大于 0 时有效
@@ -49,7 +49,7 @@ type Job struct {
 	// 1: 单机任务
 	// 如果为单机任务，node 加载任务的时候 Parallels 设置 1
 	Kind       int     `json:"kind" gorm:"kind"`
-	Type       JobType `json:"job_type" gorm:"type"`
+	Type       JobType `json:"job_type" gorm:"type" binding:"required"`
 	HttpMethod int     `json:"http_method" gorm:"http_method"`
 	// 执行失败是否发送通知
 	NotifyStatus bool `json:"notify_status" gorm:"notify_status"`

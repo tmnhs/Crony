@@ -13,6 +13,9 @@ var DefaultJobService = new(JobService)
 
 func (j *JobService) Search(s *request.ReqJobSearch) ([]models.Job, int64, error) {
 	db := dbclient.GetMysqlDB().Table(models.CronyJobTableName)
+	if s.ID > 0 {
+		db = db.Where("id = ?", s.ID)
+	}
 	if len(s.Name) > 0 {
 		db = db.Where("name like ?", s.Name+"%")
 	}

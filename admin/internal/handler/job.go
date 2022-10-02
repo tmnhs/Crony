@@ -35,14 +35,14 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 	var err error
 	var insertId int
 	t := time.Now()
-	req.Created = time.Now().Unix()
+	//todo notify
 	notifyTo, _ := json.Marshal(req.NotifyToArray)
 	req.NotifyTo = notifyTo
 	//想更改数据库
 	if req.ID > 0 {
 		//update
 		insertId = req.ID
-		req.Updated = t.UnixNano()
+		req.Updated = t.Unix()
 		err = req.Update()
 		if err != nil {
 			logger.GetLogger().Error(fmt.Sprintf("[update_job] into db  error:%s", err.Error()))
@@ -76,7 +76,7 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		return
 	}
 
-	resp.OkWithMessage("add success", c)
+	resp.OkWithMessage("operation success", c)
 }
 
 func (j *JobRouter) Delete(c *gin.Context) {

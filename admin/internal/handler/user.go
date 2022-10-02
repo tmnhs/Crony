@@ -124,8 +124,8 @@ func (u *UserRouter) ChangePassword(c *gin.Context) {
 	}
 	err := service.DefaultUserService.ChangePassword(middlerware.GetUserInfo(c).ID, req.Password, req.NewPassword)
 	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[update_user] db update error:%v", err))
-		resp.FailWithMessage(resp.ERROR, "[update_user] db update error", c)
+		logger.GetLogger().Error(fmt.Sprintf("[change_password] db error:%v", err))
+		resp.FailWithMessage(resp.ERROR, "[change_password] db error", c)
 		return
 	}
 	resp.OkWithMessage("update success", c)
@@ -141,8 +141,8 @@ func (u *UserRouter) FindById(c *gin.Context) {
 	userModel := models.User{ID: req.ID}
 	err := userModel.FindById()
 	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[update_user] db update error:%v", err))
-		resp.FailWithMessage(resp.ERROR, "[update_user] db update error", c)
+		logger.GetLogger().Error(fmt.Sprintf("[find_user] db update error:%v", err))
+		resp.FailWithMessage(resp.ERROR, "[find_user] db update error", c)
 		return
 	}
 	resp.OkWithDetailed(userModel, "find success", c)
@@ -151,15 +151,15 @@ func (u *UserRouter) FindById(c *gin.Context) {
 func (u *UserRouter) Search(c *gin.Context) {
 	var req request.ReqUserSearch
 	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[find_user] request parameter error:%s", err.Error()))
-		resp.FailWithMessage(resp.ErrorRequestParameter, "[find_user] request parameter error", c)
+		logger.GetLogger().Error(fmt.Sprintf("[search_user] request parameter error:%s", err.Error()))
+		resp.FailWithMessage(resp.ErrorRequestParameter, "[search_user] request parameter error", c)
 		return
 	}
 	req.Check()
 	users, total, err := service.DefaultUserService.Search(&req)
 	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[update_user] db update error:%v", err))
-		resp.FailWithMessage(resp.ERROR, "[update_user] db update error", c)
+		logger.GetLogger().Error(fmt.Sprintf("[search_user] db error:%v", err))
+		resp.FailWithMessage(resp.ERROR, "[search_user] db error", c)
 		return
 	}
 	resp.OkWithDetailed(resp.PageResult{
@@ -168,4 +168,36 @@ func (u *UserRouter) Search(c *gin.Context) {
 		PageSize: req.PageSize,
 		Page:     req.Page,
 	}, "search success", c)
+}
+
+func (u *UserRouter) JoinGroup(c *gin.Context) {
+	var req models.UserGroup
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[user_join_group] request parameter error:%s", err.Error()))
+		resp.FailWithMessage(resp.ErrorRequestParameter, "[user_join_group] request parameter error", c)
+		return
+	}
+	_, err := req.Insert()
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[user_join_group] db error:%v", err))
+		resp.FailWithMessage(resp.ERROR, "[user_join_group] db error", c)
+		return
+	}
+	resp.OkWithMessage("join success", c)
+}
+
+func (u *UserRouter) KickGroup(c *gin.Context) {
+	var req models.UserGroup
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[user_kick_group] request parameter error:%s", err.Error()))
+		resp.FailWithMessage(resp.ErrorRequestParameter, "[user_kick_group] request parameter error", c)
+		return
+	}
+	err := req.Delete()
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[user_kick_group] db error:%v", err))
+		resp.FailWithMessage(resp.ERROR, "[user_kick_group] db error", c)
+		return
+	}
+	resp.OkWithMessage("kick success", c)
 }

@@ -5,6 +5,7 @@ import "github.com/tmnhs/crony/common/models"
 type (
 	ReqJobSearch struct {
 		PageInfo
+		ID      int            `json:"id" form:"id"`
 		Name    string         `json:"name" form:"name"`
 		GroupId int            `json:"group_id" form:"group_id"`
 		Kind    int            `json:"kind" form:"kind"`
