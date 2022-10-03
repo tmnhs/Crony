@@ -60,8 +60,8 @@ func (g *GroupRouter) Delete(c *gin.Context) {
 	group := models.Group{ID: req.ID}
 	err := group.Delete()
 	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[delete_group] into db error:%s", err.Error()))
-		resp.FailWithMessage(resp.ERROR, "[delete_group] into db error", c)
+		logger.GetLogger().Error(fmt.Sprintf("[delete_group]  db error:%s", err.Error()))
+		resp.FailWithMessage(resp.ERROR, "[delete_group]  db error", c)
 		return
 	}
 	resp.OkWithMessage("delete success", c)

@@ -32,49 +32,49 @@ const (
 // 需要执行的 cron cmd 命令
 // 注册到 /cronsun/cmd/<node_uuid>/<group_id>/<job_id>
 type Job struct {
-	ID      int    `json:"id" gorm:"id"`
-	Name    string `json:"name" gorm:"name" binding:"required"`
+	ID      int    `json:"id" gorm:"column:id"`
+	Name    string `json:"name" gorm:"column:name" binding:"required"`
 	GroupId int    `json:"group_id" gorm:"-" `
-	Command string `json:"command" gorm:"command" binding:"required"`
-	CmdUser string `json:"user" gorm:"cmd_user"`
-	Pause   bool   `json:"pause" gorm:"-"`         // 可手工控制的状态
-	Timeout int64  `json:"timeout" gorm:"timeout"` // 任务执行时间超时设置，大于 0 时有效
+	Command string `json:"command" gorm:"column:command" binding:"required"`
+	CmdUser string `json:"user" gorm:"column:cmd_user"`
+	Pause   bool   `json:"pause" gorm:"-"`                // 可手工控制的状态
+	Timeout int64  `json:"timeout" gorm:"column:timeout"` // 任务执行时间超时设置，大于 0 时有效
 	// 设置任务在单个节点上可以同时允许多少个
 	// 针对两次任务执行间隔比任务执行时间要长的任务启用
 	Parallels int64 `json:"parallels" gorm:"-"`
 	// 执行任务失败重试次数
 	// 默认为 0，不重试
-	RetryTimes int `json:"retry_times" gorm:"retry_times"`
+	RetryTimes int `json:"retry_times" gorm:"column:retry_times"`
 	// 执行任务失败重试时间间隔
 	// 单位秒，如果不大于 0 则马上重试
-	RetryInterval int64 `json:"retry_interval" gorm:"retry_interval"`
+	RetryInterval int64 `json:"retry_interval" gorm:"column:retry_interval"`
 	// 任务类型
 	// 0: 普通任务
 	// 1: 单机任务
 	// 如果为单机任务，node 加载任务的时候 Parallels 设置 1
-	Kind       int     `json:"kind" gorm:"kind"`
-	Type       JobType `json:"job_type" gorm:"type" binding:"required"`
-	HttpMethod int     `json:"http_method" gorm:"http_method"`
+	Kind       int     `json:"kind" gorm:"column:kind"`
+	Type       JobType `json:"job_type" gorm:"column:type" binding:"required"`
+	HttpMethod int     `json:"http_method" gorm:"column:http_method"`
 	// 执行失败是否发送通知
-	NotifyStatus bool `json:"notify_status" gorm:"notify_status"`
-	NotifyType   int  `json:"notify_type" gorm:"notify_type"`
+	NotifyStatus bool `json:"notify_status" gorm:"column:notify_status"`
+	NotifyType   int  `json:"notify_type" gorm:"column:notify_type"`
 	//fixme 待机状态
-	Status int `json:"status" gorm:"status"`
+	Status int `json:"status" gorm:"column:status"`
 	// 发送通知地址
-	NotifyTo      []byte `json:"-" gorm:"notify_to"`
+	NotifyTo      []byte `json:"-" gorm:"column:notify_to"`
 	NotifyToArray []int  `json:"notify_to" gorm:"-"`
-	NotifyToType  int    `json:"notify_to_type" gorm:"notify_to_type"`
-	Spec          string `json:"spec" gorm:"spec"`
+	NotifyToType  int    `json:"notify_to_type" gorm:"column:notify_to_type"`
+	Spec          string `json:"spec" gorm:"column:spec"`
 
-	Created int64 `json:"created" gorm:"created"`
-	Updated int64 `json:"updated" gorm:"updated"`
+	Created int64 `json:"created" gorm:"column:created"`
+	Updated int64 `json:"updated" gorm:"column:updated"`
 	// 平均执行时间，单位 ms
 	AvgTime int64 `json:"avg_time" gorm:"-"`
 	// 单独对任务指定日志清除时间
 	LogExpiration int `json:"log_expiration" gorm:"-"`
 
 	// 执行任务的结点，用于记录 job log
-	RunOn    string `json:"run_on" gorm:"-"`
+	RunOn    string `json:"run_on" gorm:"column:run_on"`
 	Hostname string `json:"host_name" gorm:"-"`
 	Ip       string `json:"ip" gorm:"-"`
 	// 用于存储分隔后的任务

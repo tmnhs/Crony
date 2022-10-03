@@ -28,7 +28,7 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 	//todo node是否存活
 	if err := req.Valid(); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("create_job check error:%s", err.Error()))
-		resp.FailWithMessage(resp.ErrorJobFormat, "[create_job] error error", c)
+		resp.FailWithMessage(resp.ErrorJobFormat, "[create_job] check error", c)
 		return
 	}
 	logger.GetLogger().Debug(fmt.Sprintf("create job req:%#v", req))
@@ -93,7 +93,7 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		return
 	}
 
-	resp.OkWithMessage("operation success", c)
+	resp.OkWithDetailed(req, "operation success", c)
 }
 
 func (j *JobRouter) Delete(c *gin.Context) {
@@ -129,17 +129,16 @@ func (j *JobRouter) Delete(c *gin.Context) {
 func (j *JobRouter) FindById(c *gin.Context) {
 	var req request.ByID
 	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[delete_job] request parameter error:%s", err.Error()))
-		resp.FailWithMessage(resp.ErrorRequestParameter, "[delete_job] request parameter error", c)
+		logger.GetLogger().Error(fmt.Sprintf("[find_job] request parameter error:%s", err.Error()))
+		resp.FailWithMessage(resp.ErrorRequestParameter, "[find_job] request parameter error", c)
 		return
 	}
 	//先查找再删除etcd之后再删除数据库
-	//job, err := models.FindJobById(req.ID)
 	job := models.Job{ID: req.ID}
 	err := job.FindById()
 	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[delete_job] find job by id :%d error:%s", req.ID, err.Error()))
-		resp.FailWithMessage(resp.ERROR, "[delete_job] find job by id error", c)
+		logger.GetLogger().Error(fmt.Sprintf("[find_job] find job by id :%d error:%s", req.ID, err.Error()))
+		resp.FailWithMessage(resp.ERROR, "[find_job] find job by id error", c)
 		return
 	}
 	resp.OkWithDetailed(job, "find success", c)
@@ -187,4 +186,29 @@ func (j *JobRouter) SearchLog(c *gin.Context) {
 		Page:     req.Page,
 		PageSize: req.PageSize,
 	}, "search success", c)
+}
+
+//手动执行
+func (j *JobRouter) Once(c *gin.Context) {
+	var req request.ReqJobOnce
+	var err error
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[job_once] request parameter error:%s", err.Error()))
+		resp.FailWithMessage(resp.ErrorRequestParameter, "[job_once] request parameter error", c)
+		return
+	}
+	jobModel := &models.Job{ID: req.JobId}
+	err = jobModel.FindById()
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[job_once] job_id[%d] not exist db:%s", req.JobId, err.Error()))
+		resp.FailWithMessage(resp.ERROR, "[job_once] job not exist ", c)
+		return
+	}
+	err = service.DefaultJobService.Once(&req)
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[job_once] etcd put job_id :%d error:%s", req.JobId, err.Error()))
+		resp.FailWithMessage(resp.ERROR, "[job_once] etcd put  error", c)
+		return
+	}
+	resp.OkWithMessage("job once success", c)
 }

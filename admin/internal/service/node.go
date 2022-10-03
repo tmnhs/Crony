@@ -22,7 +22,7 @@ type NodeWatcherService struct {
 	lock     sync.Mutex
 }
 
-var DefaultNodeWatcher = NewNodeWatcherService()
+var DefaultNodeWatcher *NodeWatcherService
 
 func NewNodeWatcherService() *NodeWatcherService {
 	return &NodeWatcherService{
@@ -43,7 +43,7 @@ func (n *NodeWatcherService) Watch() error {
 }
 
 func (n *NodeWatcherService) watcher() {
-	rch := n.client.Watch(context.Background(), etcdclient.KeyEtcdNode, clientv3.WithPrefix())
+	rch := n.client.Watch(context.Background(), etcdclient.KeyEtcdNodeProfile, clientv3.WithPrefix())
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
 			switch ev.Type {
@@ -58,7 +58,7 @@ func (n *NodeWatcherService) watcher() {
 				if err != nil {
 					logger.GetLogger().Error(fmt.Sprintf("crony node[%s] fail over error:%s", uuid, err.Error()))
 				}
-				logger.GetLogger().Info(fmt.Sprintf("crony node[%s] fail over success count:%d they are :%#v  ,fail count:%d they are :%#v ", uuid, len(success), success, len(fail), fail))
+				logger.GetLogger().Info(fmt.Sprintf("[Crony Warning]crony node[%s] fail over success count:%d jobID are :%s ,fail count:%d jobID are :%s ", uuid, success.Count(), success.String(), fail.Count(), fail.String()))
 				//todo notice
 				// 故障转移
 				/*if node.Alived {
@@ -108,8 +108,8 @@ func (n *NodeWatcherService) List2Array() []string {
 	defer n.lock.Unlock()
 	nodes := make([]string, 0)
 
-	for _, v := range n.nodeList {
-		nodes = append(nodes, v)
+	for k, _ := range n.nodeList {
+		nodes = append(nodes, k)
 	}
 	return nodes
 }
@@ -124,7 +124,6 @@ func (n *NodeWatcherService) GetUUID(key string) string {
 	if index == -1 {
 		return ""
 	}
-	logger.GetLogger().Debug(fmt.Sprintf("key_index:%s key_index+1%s", key[index:], key[index+1:]))
 	return key[index+1:]
 }
 
@@ -174,8 +173,29 @@ func (n *NodeWatcherService) FindByGroupId(groupId int) ([]models.Node, error) {
 	return nodes, nil
 }
 
+type Result []int
+
+func (r Result) Count() (count int) {
+	for _, v := range r {
+		if v != 0 {
+			count++
+		}
+	}
+	return
+}
+func (r Result) String() (str string) {
+	str = "["
+	for _, v := range r {
+		if v != 0 {
+			str += fmt.Sprintf("%d,", v)
+		}
+	}
+	str += "]"
+	return
+}
+
 //故障转移
-func (n *NodeWatcherService) FailOver(nodeUUID string) (success []int, fail []int, err error) {
+func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Result, err error) {
 	jobs, err := n.GetJobs(nodeUUID)
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("node[%s] fail over get jobs error:%s", nodeUUID, err.Error()))
@@ -184,14 +204,14 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success []int, fail []in
 	if len(jobs) == 0 {
 		return
 	}
-	success = make([]int, 2)
-	fail = make([]int, 2)
 	for _, job := range jobs {
-		if job.Type == models.JobTypeCmd {
+		//fixme
+		/*if job.Type == models.JobTypeCmd {
 			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over don't support cmd type", nodeUUID, job.ID))
 			fail = append(fail, job.ID)
 			continue
-		}
+		}*/
+		oldUUID := job.RunOn
 		autoUUID := DefaultJobService.AutoAllocateNode()
 		if autoUUID == "" {
 			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over auto allocate node error", nodeUUID, job.ID))
@@ -225,6 +245,13 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success []int, fail []in
 			fail = append(fail, job.ID)
 			continue
 		}
+		//如果转移成功则删除key值
+		_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, oldUUID, job.GroupId, job.ID))
+		if err != nil {
+			logger.GetLogger().Error(fmt.Sprintf("node[%s] job[%d] fail over etcd delete job error:%s", nodeUUID, job.ID, err.Error()))
+			fail = append(fail, job.ID)
+			continue
+		}
 		success = append(success, job.ID)
 	}
 	//todo 自动分配成功的有几个，失败的有几个
@@ -232,22 +259,23 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success []int, fail []in
 }
 
 //获取某个node下的所有job
-func (n *NodeWatcherService) GetJobs(nodeUUID string) (jobs []*models.Job, err error) {
+func (n *NodeWatcherService) GetJobs(nodeUUID string) (jobs []models.Job, err error) {
 	resps, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
 	if err != nil {
 		return
 	}
-	jobs = make([]*models.Job, 2)
+	jobs = make([]models.Job, 2)
 	count := len(resps.Kvs)
 	if count == 0 {
 		return
 	}
 	for _, j := range resps.Kvs {
-		job := new(models.Job)
-		if e := json.Unmarshal(j.Value, job); e != nil {
-			logger.GetLogger().Warn(fmt.Sprintf("job[%s] umarshal err: %s", string(j.Key), e.Error()))
+		var job models.Job
+		if err := json.Unmarshal(j.Value, &job); err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("job[%s] umarshal err: %s", string(j.Key), err.Error()))
 			continue
 		}
+		fmt.Println("job:", job)
 		jobs = append(jobs, job)
 	}
 	return

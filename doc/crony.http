@@ -1,5 +1,158 @@
-POST {{url}}/job/update
+###
+GET {{url}}/ping
+Accept: application/json
+
+###
+#注册
+###
+POST {{url}}/register
 Content-Type: application/json
+
+{
+  "username":"admin",
+  "password": "admin",
+  "email": "admin@admin",
+  "role": 2
+}
+
+###
+#登录
+###
+POST {{url}}/login
+Content-Type: application/json
+
+{
+  "username":"root",
+  "password": "123456"
+}
+
+###
+#根据id查找
+GET {{url}}/user/find
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "id":100003
+}
+
+###
+GET {{url}}/user/search
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "username":"roo",
+  "email": "",
+  "role": 0,
+  "page": 1,
+  "page_size": 10
+}
+
+###
+POST {{url}}/user/update
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "id": 100003,
+  "username":"admin update",
+  "email": "",
+  "role": 0
+}
+
+###
+POST {{url}}/user/del
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "id": 100003
+}
+
+###
+POST {{url}}/user/change_pw
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "password": "root",
+  "new_password":"123456"
+}
+
+###
+POST {{url}}/user/join
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "user_id": 100004,
+  "group_id":2
+}
+
+###
+POST {{url}}/user/kick
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "user_id": 100004,
+  "group_id":2
+}
+
+###
+GET {{url}}/user/get_by_group
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "id":2
+}
+
+###
+#创建或者更新
+POST {{url}}/group/update
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "#id": 3,
+  "name": "bing yan"
+}
+
+###
+POST {{url}}/group/del
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "id": 3
+}
+
+###
+GET {{url}}/group/find
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "id": 3
+}
+
+###
+GET {{url}}/group/search
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "name": ""
+}
+
+
+###
+POST {{url}}/job/add
+Content-Type: application/json
+X-Token: {{token}}
+
 
 {
   "id": 10,
@@ -15,25 +168,21 @@ Content-Type: application/json
   "kind": 1,
   "job_type": 1,
   "http_method": 0,
-  "notify_type": 1
+  "notify_type": 1,
+  "allocation": 0
 }
-
-###
-GET {{url}}/ping
-Accept: application/json
-
-
 
 ###
 POST {{url}}/job/add
 Content-Type: application/json
+X-Token: {{token}}
 
 {
-  "name":"test",
+  "name":"hello4",
   "group_id": 0,
-  "run_on": "aa91263d-408c-11ed-8f4a-ccf9e4ca232f",
-  "command": "/home/tmnh/hello.sh",
-  "spec": "0 * * * * ?",
+  "run_on": "",
+  "command": "/home/tmnh/hello2.sh",
+  "spec": "0 0/5 * * * ? ",
   "timeout": 0,
   "user": "",
   "retry_times": 0,
@@ -41,7 +190,76 @@ Content-Type: application/json
   "kind": 1,
   "job_type": 1,
   "http_method": 0,
-  "notify_type": 1
+  "notify_type": 1,
+  "allocation": 2
 }
 
 ###
+POST {{url}}/job/del
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "id": 23
+}
+
+
+###
+GET {{url}}/job/find
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "id": 20
+}
+
+###
+GET {{url}}/job/search
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "id": 0,
+  "name": "hello",
+  "page": 1,
+  "page_size": 20
+}
+
+###
+GET {{url}}/job/log
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "job_id": 0,
+  "name": "hello",
+  "success": true,
+  "page": 1,
+  "node_uuid": "",
+  "page_size": 20
+}
+
+###
+GET {{url}}/job/once
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "job_id": 29,
+  "group_id": 0,
+  "node_uuid": ""
+}
+
+###
+GET {{url}}/node/search
+Content-Type: application/json
+X-Token: {{token}}
+
+{
+  "ip": "",
+  "up": 0,
+  "status": 0,
+  "page": 1,
+  "uuid": "",
+  "page_size": 20
+}

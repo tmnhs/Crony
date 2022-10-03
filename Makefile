@@ -24,7 +24,7 @@ LDFLAGS		:= -s -w \
 
 
 #linux amd64开发调试版本
-linux-dev:
+linux-dev: clean
 	@echo "install linux amd64 dev version"
 	@if [ ! -d $(AdminConf)/logs ]; then \
         mkdir -p $(AdminConf)/logs; \

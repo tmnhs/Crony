@@ -11,15 +11,15 @@ const (
 )
 
 type User struct {
-	ID       int    `json:"id" gorm:"id"`
-	UserName string `json:"username" gorm:"username"`
-	Password string `json:"password" gorm:"password"`
-	Email    string `json:"email" gorm:"email"`
-	Role     int    `json:"role" gorm:"email"`
-	Status   int    `json:"status" gorm:"status"`
+	ID       int    `json:"id" gorm:"column:id"`
+	UserName string `json:"username" gorm:"column:username"`
+	Password string `json:"password" gorm:"column:password"`
+	Email    string `json:"email" gorm:"column:email"`
+	Role     int    `json:"role" gorm:"column:role"`
+	Status   int    `json:"status" gorm:"column:status"`
 
-	Created int64 `json:"created" gorm:"created"`
-	Updated int64 `json:"updated" gorm:"updated"`
+	Created int64 `json:"created" gorm:"column:created"`
+	Updated int64 `json:"updated" gorm:"column:updated"`
 }
 
 // 更新
@@ -41,5 +41,5 @@ func (u *User) Insert() (insertId int, err error) {
 }
 
 func (u *User) FindById() error {
-	return dbclient.GetMysqlDB().Table(CronyUserTableName).Where("id = ? ", u.ID).First(&u).Error
+	return dbclient.GetMysqlDB().Table(CronyUserTableName).Select("id", "username", "email", "role", "created", "updated").Where("id = ? ", u.ID).First(u).Error
 }

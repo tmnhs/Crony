@@ -21,11 +21,11 @@ func main() {
 	}
 	//注册API路由业务
 	srv.RegisterRouters(handler.RegisterRouters)
+	service.DefaultNodeWatcher = service.NewNodeWatcherService()
 	err = service.DefaultNodeWatcher.Watch()
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("resolver  error:%#v", err))
 	}
-	logger.GetLogger().Error("this is an error info")
 	//todo 邮件相关操作
 
 	//todo 定时清理日志

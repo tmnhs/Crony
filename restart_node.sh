@@ -3,13 +3,11 @@
 CURDIR=$(dirname "$0")
 cd $CURDIR
 
-PROJECTADMIN="cronyadmin"
 PROJECTNODE="cronynode"
 
 PROJECTBASE="."
 ProjectBin=$PROJECTBASE/bin
 
-AdminConf="$ProjectBin/admin"
 NodeConf="$ProjectBin/node"
 echo "start build file to $ProjectBin"
 
@@ -20,20 +18,18 @@ check() {
 		exit $EXCODE
 	fi
 }
-rm -rf $ProjectBin
+rm -rf $NodeConf
 
-mkdir -p $AdminConf/logs/
-cp -r admin/conf $AdminConf
 
 mkdir -p $NodeConf/logs
 cp -r node/conf $NodeConf
 
-echo "building project cronyadmin..."
-go build -o $ProjectBin/$PROJECTADMIN ./admin/cmd/main.go
-check
-
+#开启四个
 echo "building project cronynode..."
 go build -o $ProjectBin/$PROJECTNODE ./node/cmd/main.go
+go build -o $ProjectBin/$PROJECTNODE"2" ./node/cmd/main.go
+go build -o $ProjectBin/$PROJECTNODE"3" ./node/cmd/main.go
+go build -o $ProjectBin/$PROJECTNODE"4" ./node/cmd/main.go
 check
 
 

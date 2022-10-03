@@ -181,7 +181,7 @@ func CreateJob(j *Job) cron.FuncJob {
 			}
 		}
 		//执行全部失败
-		err = j.Fail(jobLogId, t, err.Error(), execTimes)
+		err = j.Fail(jobLogId, t, err.Error(), execTimes-1)
 		if err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
 		}

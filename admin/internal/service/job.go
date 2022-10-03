@@ -5,6 +5,7 @@ import (
 	"github.com/tmnhs/crony/admin/internal/model/request"
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/dbclient"
+	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
 )
 
@@ -95,4 +96,10 @@ func (j *JobService) AutoAllocateNode() string {
 		}
 	}
 	return resultNodeUUID
+}
+
+//立即执行
+func (j *JobService) Once(once *request.ReqJobOnce) (err error) {
+	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdOnce, once.GroupId, once.JobId), once.NodeUUID)
+	return
 }

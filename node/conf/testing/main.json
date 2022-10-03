@@ -42,7 +42,7 @@
     "prefix": "[crony-node]",
     "director": "logs",
     "showLine": false,
-    "encode-level": "LowercaseColorLevelEncoder",
+    "encode-level": "LowercaseLevelEncoder",
     "stacktrace-key": "stacktrace",
     "log-in-console": true
   }

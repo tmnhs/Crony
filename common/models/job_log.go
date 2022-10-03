@@ -7,24 +7,24 @@ import (
 
 //日志输出
 type JobLog struct {
-	ID       int    `json:"id" gorm:"id"`
-	Name     string `json:"name" gorm:"name"`
-	GroupId  int    `json:"group_id" gorm:"group_id"`
-	JobId    int    `json:"job_id" gorm:"job_id"`
-	Command  string `json:"command" gorm:"command"`
-	IP       string `json:"ip" gorm:"ip"` // node ip
-	Hostname string `json:"hostname" gorm:"hostname"`
-	NodeUUID string `json:"uuid" gorm:"node_uuid"`
-	Success  bool   `json:"success" gorm:"success"`
+	ID       int    `json:"id" gorm:"column:id"`
+	Name     string `json:"name" gorm:"column:name"`
+	GroupId  int    `json:"group_id" gorm:"column:group_id"`
+	JobId    int    `json:"job_id" gorm:"column:job_id"`
+	Command  string `json:"command" gorm:"column:command"`
+	IP       string `json:"ip" gorm:"column:ip"` // node ip
+	Hostname string `json:"hostname" gorm:"column:hostname"`
+	NodeUUID string `json:"uuid" gorm:"column:node_uuid"`
+	Success  bool   `json:"success" gorm:"column:success"`
 
-	Output string `json:"output" gorm:"output"`
-	Spec   string `json:"spec" gorm:"spec"`
+	Output string `json:"output" gorm:"column:output"`
+	Spec   string `json:"spec" gorm:"column:spec"`
 
 	// 执行任务失败重试次数
 	// 默认为 0，不重试
-	RetryTimes int   `json:"retry_times" gorm:"retry_times"`
-	StartTime  int64 `json:"start_time" gorm:"start_time"`
-	EndTime    int64 `json:"end_time" gorm:"end_time"`
+	RetryTimes int   `json:"retry_times" gorm:"column:retry_times"`
+	StartTime  int64 `json:"start_time" gorm:"column:start_time"`
+	EndTime    int64 `json:"end_time" gorm:"column:end_time"`
 }
 
 // 更新

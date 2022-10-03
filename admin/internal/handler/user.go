@@ -26,11 +26,12 @@ func (u *UserRouter) Login(c *gin.Context) {
 		return
 	}
 	user, err := service.DefaultUserService.Login(req.UserName, req.Password)
-	if err != nil || user == nil {
+	if err != nil || user.ID == 0 {
 		logger.GetLogger().Error(fmt.Sprintf("[user_login] db error:%v", err))
 		resp.FailWithMessage(resp.ERROR, "[user_login] username or password is incorrect", c)
 		return
 	}
+
 	j := middlerware.NewJWT() // 唯一签名
 	claims := j.CreateClaims(middlerware.BaseClaims{
 		ID:       user.ID,
@@ -56,8 +57,8 @@ func (u *UserRouter) Register(c *gin.Context) {
 		return
 	}
 	user, err := service.DefaultUserService.FindByUserName(req.UserName)
-	if err != nil || user == nil {
-		logger.GetLogger().Error(fmt.Sprintf("[user_register] db find by username:%s error:%v", req.UserName, err))
+	if user != nil || err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[user_register] db find by username:%s", req.UserName))
 		resp.FailWithMessage(resp.ErrorUserNameExist, "[user_register] the user name has already been used", c)
 		return
 	}
@@ -141,8 +142,8 @@ func (u *UserRouter) FindById(c *gin.Context) {
 	userModel := models.User{ID: req.ID}
 	err := userModel.FindById()
 	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[find_user] db update error:%v", err))
-		resp.FailWithMessage(resp.ERROR, "[find_user] db update error", c)
+		logger.GetLogger().Error(fmt.Sprintf("[find_user] db  error:%v", err))
+		resp.FailWithMessage(resp.ERROR, "[find_user] db  error", c)
 		return
 	}
 	resp.OkWithDetailed(userModel, "find success", c)
@@ -172,12 +173,27 @@ func (u *UserRouter) Search(c *gin.Context) {
 
 func (u *UserRouter) JoinGroup(c *gin.Context) {
 	var req models.UserGroup
+	var err error
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[user_join_group] request parameter error:%s", err.Error()))
 		resp.FailWithMessage(resp.ErrorRequestParameter, "[user_join_group] request parameter error", c)
 		return
 	}
-	_, err := req.Insert()
+	userModel := &models.User{ID: req.UserId}
+	err = userModel.FindById()
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[user_join_group] find user db:%s", err.Error()))
+		resp.FailWithMessage(resp.ERROR, "[user_join_group] user not exist ", c)
+		return
+	}
+	groupModel := &models.Group{ID: req.GroupId}
+	err = groupModel.FindById()
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[user_join_group] find group db:%s", err.Error()))
+		resp.FailWithMessage(resp.ERROR, "[user_join_group] group not exist ", c)
+		return
+	}
+	_, err = req.Insert()
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[user_join_group] db error:%v", err))
 		resp.FailWithMessage(resp.ERROR, "[user_join_group] db error", c)
@@ -188,12 +204,27 @@ func (u *UserRouter) JoinGroup(c *gin.Context) {
 
 func (u *UserRouter) KickGroup(c *gin.Context) {
 	var req models.UserGroup
+	var err error
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[user_kick_group] request parameter error:%s", err.Error()))
 		resp.FailWithMessage(resp.ErrorRequestParameter, "[user_kick_group] request parameter error", c)
 		return
 	}
-	err := req.Delete()
+	userModel := &models.User{ID: req.UserId}
+	err = userModel.FindById()
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[user_join_group] find user db:%s", err.Error()))
+		resp.FailWithMessage(resp.ERROR, "[user_join_group] user not exist ", c)
+		return
+	}
+	groupModel := &models.Group{ID: req.GroupId}
+	err = groupModel.FindById()
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[user_join_group] find group db:%s", err.Error()))
+		resp.FailWithMessage(resp.ERROR, "[user_join_group] group not exist ", c)
+		return
+	}
+	err = req.Delete()
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[user_kick_group] db error:%v", err))
 		resp.FailWithMessage(resp.ERROR, "[user_kick_group] db error", c)

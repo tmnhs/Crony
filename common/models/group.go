@@ -12,11 +12,11 @@ const (
 
 type Group struct {
 	ID   int    `json:"id" gorm:"id"`
-	Name string `json:"name" gorm:"name" binding:"required"`
+	Name string `json:"name" gorm:"column:name" binding:"required"`
 	//分组类型
-	Type    int   `json:"type" gorm:"type" binding:"required"`
-	Created int64 `json:"created" gorm:"created"`
-	Updated int64 `json:"updated" gorm:"updated"`
+	//Type    int   `json:"type" gorm:"column:type" binding:"required"`
+	Created int64 `json:"created" gorm:"column:created"`
+	Updated int64 `json:"updated" gorm:"column:updated"`
 
 	NodeIDs []string `json:"nids" gorm:"-"`
 }
@@ -32,7 +32,7 @@ func (g *Group) Update() error {
 	return dbclient.GetMysqlDB().Table(CronyGroupTableName).Updates(g).Error
 }
 func (g *Group) Delete() error {
-	return dbclient.GetMysqlDB().Exec(fmt.Sprintf("delete from %s where id = ?", CronyGroupTableName), g.ID).Error
+	return dbclient.GetMysqlDB().Exec(fmt.Sprintf("delete from `%s` where id = ?", CronyGroupTableName), g.ID).Error
 }
 func (g *Group) FindById() error {
 	return dbclient.GetMysqlDB().Table(CronyGroupTableName).Where("id = ? ", g.ID).First(g).Error
@@ -40,8 +40,8 @@ func (g *Group) FindById() error {
 
 type NodeGroup struct {
 	ID       int    `json:"id" gorm:"id"`
-	NodeUUID string `json:"node_uuid" gorm:"node_uuid" binding:"required"`
-	GroupId  int    `json:"group_id" gorm:"group_id" binding:"required"`
+	NodeUUID string `json:"node_uuid" gorm:"column:node_uuid" binding:"required"`
+	GroupId  int    `json:"group_id" gorm:"column:group_id" binding:"required"`
 }
 
 func (g *NodeGroup) Insert() (insertId int, err error) {
@@ -63,8 +63,8 @@ func (g *NodeGroup) FindById() error {
 
 type UserGroup struct {
 	ID      int `json:"id" gorm:"id"`
-	UserId  int `json:"user_id" gorm:"user_id" binding:"required"`
-	GroupId int `json:"group_id" gorm:"group_id" binding:"required" `
+	UserId  int `json:"user_id" gorm:"column:user_id" binding:"required"`
+	GroupId int `json:"group_id" gorm:"column:group_id" binding:"required" `
 }
 
 func (g *UserGroup) Insert() (insertId int, err error) {
