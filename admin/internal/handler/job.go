@@ -93,7 +93,7 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		return
 	}
 
-	resp.OkWithDetailed(req, "operation success", c)
+	resp.OkWithDetailed(req, "operate success", c)
 }
 
 func (j *JobRouter) Delete(c *gin.Context) {
