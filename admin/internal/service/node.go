@@ -74,7 +74,6 @@ func (n *NodeWatcherService) watcher() {
 	}
 }
 
-//todo 是否需要
 func (n *NodeWatcherService) extractNodes(resp *clientv3.GetResponse) []string {
 	nodes := make([]string, 0)
 	if resp == nil || resp.Kvs == nil {
@@ -93,14 +92,14 @@ func (n *NodeWatcherService) SetNodeList(key, val string) {
 	n.lock.Lock()
 	defer n.lock.Unlock()
 	n.nodeList[key] = val
-	logger.GetLogger().Debug(fmt.Sprintf("set data key : %s val:%s", key, val))
+	logger.GetLogger().Debug(fmt.Sprintf("discover node[%s],pid[%s]", key, val))
 }
 
 func (n *NodeWatcherService) DelNodeList(key string) {
 	n.lock.Lock()
 	defer n.lock.Unlock()
 	delete(n.nodeList, key)
-	logger.GetLogger().Debug(fmt.Sprintf("del data key: %s", key))
+	logger.GetLogger().Debug(fmt.Sprintf("delelte node[%s]", key))
 }
 
 func (n *NodeWatcherService) List2Array() []string {
