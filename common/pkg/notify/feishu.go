@@ -9,7 +9,7 @@ var feiShuTemplateCard = `{
     "header": {
       "title": {
         "tag": "plain_text",
-        "content": "1 级报警 - 数据平台" 
+        "content": "报警 - Crony定时任务平台" 
       },
       "template": "red" 
     },
@@ -26,14 +26,14 @@ var feiShuTemplateCard = `{
 				{
 				  "is_short": true,
 				  "text": {
-					"content": "**👤 值班：**\nuserSlot",
+					"content": "**📋报警主机：**\nipSlot",
 					"tag": "lark_md"
 				  }
 				},
 				{
-				  "is_short": false,
+				  "is_short": true,
 				  "text": {
-					"content": "",
+					"content": "**👤 值班：**\nuserSlot",
 					"tag": "lark_md"
 				  }
 				},
@@ -57,8 +57,9 @@ var feiShuTemplateCard = `{
 				  },
 				  "type": "primary",
 				  "value": {
-					"key1": "value1"
-				  }
+					"key1": "https://cloud.tencent.com/developer/article/1467743"
+				  },
+					"url":"https://cloud.tencent.com/developer/article/1467743"
 				}
 			  ],
 			  "tag": "action"

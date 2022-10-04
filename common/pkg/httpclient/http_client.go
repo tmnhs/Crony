@@ -4,7 +4,6 @@ package httpclient
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"io/ioutil"
@@ -66,13 +65,10 @@ func PostParams(url string, params string, timeout int64) (err error) {
 	return
 }
 
-func PostJson(url string, body interface{}, timeout int64) (err error) {
+func PostJson(url string, body string, timeout int64) (err error) {
 	var client = &http.Client{}
-	b, err := json.Marshal(body)
-	if err != nil {
-		return
-	}
-	buf := bytes.NewBufferString(string(b))
+
+	buf := bytes.NewBufferString(body)
 	req, err := http.NewRequest("POST", url, buf)
 	if err != nil {
 		return

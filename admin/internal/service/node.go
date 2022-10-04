@@ -58,6 +58,9 @@ func (n *NodeWatcherService) watcher() {
 				if err != nil {
 					logger.GetLogger().Error(fmt.Sprintf("crony node[%s] fail over error:%s", uuid, err.Error()))
 				}
+				/*msg:=&notify.Message{
+
+				}*/
 				logger.GetLogger().Info(fmt.Sprintf("[Crony Warning]crony node[%s] fail over success count:%d jobID are :%s ,fail count:%d jobID are :%s ", uuid, success.Count(), success.String(), fail.Count(), fail.String()))
 				//todo notice
 				// 故障转移

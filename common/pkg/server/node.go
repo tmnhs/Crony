@@ -8,6 +8,7 @@ import (
 	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
+	"github.com/tmnhs/crony/common/pkg/notify"
 	"net/http"
 	"os"
 )
@@ -66,6 +67,16 @@ func InitNodeServer(serverName string, inits ...func()) (*models.Config, error) 
 	mysqlConfig := defaultConfig.Mysql
 	etcdConfig := defaultConfig.Etcd
 	logger.Init(serverName, logConfig.Level, logConfig.Format, logConfig.Prefix, logConfig.Director, logConfig.ShowLine, logConfig.EncodeLevel, logConfig.StacktraceKey, logConfig.LogInConsole)
+	notify.Init(&notify.Mail{
+		Port:     defaultConfig.Email.Port,
+		From:     defaultConfig.Email.From,
+		Host:     defaultConfig.Email.Host,
+		Secret:   defaultConfig.Email.Secret,
+		Nickname: defaultConfig.Email.Nickname,
+	}, &notify.WebHook{
+		Url:  defaultConfig.WebHook.Url,
+		Kind: defaultConfig.WebHook.Kind,
+	})
 	//初始化数据层服务
 	_, err = dbclient.Init(mysqlConfig.Dsn(), mysqlConfig.LogMode, mysqlConfig.MaxIdleConns, mysqlConfig.MaxOpenConns)
 	if err != nil {

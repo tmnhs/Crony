@@ -32,6 +32,10 @@ type (
 		Secret   string `mapstructure:"secret" json:"secret" yaml:"secret"`       // 密钥
 		Nickname string `mapstructure:"nickname" json:"nickname" yaml:"nickname"` // 昵称
 	}
+	WebHook struct {
+		Kind string `mapstructure:"kind" json:"kind" yaml:"kind"`
+		Url  string `mapstructure:"url" json:"url" yaml:"url"`
+	}
 	Etcd struct {
 		Endpoints   []string `mapstructure:"endpoints" json:"endpoints" yaml:"endpoints"`
 		Username    string   `mapstructure:"username" json:"username" yaml:"username"` // 库用户名
@@ -57,11 +61,12 @@ type (
 		LogInConsole  bool   `mapstructure:"log-in-console" json:"logInConsole" yaml:"log-in-console"`  // 输出控制台
 	}
 	Config struct {
-		Log    Log    `mapstructure:"log" json:"log" yaml:"log"`
-		Email  Email  `mapstructure:"email" json:"email" yaml:"email"`
-		System System `mapstructure:"system" json:"system" yaml:"system"`
-		Mysql  Mysql  `mapstructure:"mysql" json:"mysql" yaml:"mysql"`
-		Etcd   Etcd   `mapstructure:"etcd" json:"etcd" yaml:"etcd"`
+		WebHook WebHook `mapstructure:"webhook" json:"webhook" yaml:"webhook"`
+		Log     Log     `mapstructure:"log" json:"log" yaml:"log"`
+		Email   Email   `mapstructure:"email" json:"email" yaml:"email"`
+		System  System  `mapstructure:"system" json:"system" yaml:"system"`
+		Mysql   Mysql   `mapstructure:"mysql" json:"mysql" yaml:"mysql"`
+		Etcd    Etcd    `mapstructure:"etcd" json:"etcd" yaml:"etcd"`
 	}
 )
 

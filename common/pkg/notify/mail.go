@@ -4,8 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/go-gomail/gomail"
-	"github.com/tmnhs/crony/common/pkg/logger"
 	"html/template"
+)
+
+const (
+	NotifyTypeMail    = 1
+	NotifyTypeWebHook = 2
 )
 
 var _defaultMail *Mail
@@ -20,16 +24,18 @@ type Mail struct {
 
 func (mail *Mail) SendMsg(msg *Message) {
 	m := gomail.NewMessage()
+
 	//邮件
+	m.SetHeader("From", m.FormatAddress(_defaultMail.From, _defaultMail.Nickname)) //这种方式可以添加别名，即“XX官方”
 	m.SetHeader("To", msg.To...)
 	m.SetHeader("Subject", msg.Subject)
 	msgData := parseMailTemplate(msg)
 	m.SetBody("text/html", msgData)
-	m.SetHeader("From", m.FormatAddress(_defaultMail.From, _defaultMail.Nickname)) //这种方式可以添加别名，即“XX官方”
 
 	d := gomail.NewDialer(_defaultMail.Host, _defaultMail.Port, _defaultMail.From, _defaultMail.Secret)
 	if err := d.DialAndSend(m); err != nil {
-		logger.GetLogger().Warn(fmt.Sprintf("smtp send msg[%+v] err: %s", msg, err.Error()))
+		fmt.Println(err)
+		//logger.GetLogger().Warn(fmt.Sprintf("smtp send msg[%+v] err: %s", msg, err.Error()))
 	}
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/tmnhs/crony/common/pkg/logger"
+	"github.com/tmnhs/crony/common/pkg/notify"
 	"github.com/tmnhs/crony/common/pkg/server"
 	"github.com/tmnhs/crony/common/pkg/utils/event"
 	"github.com/tmnhs/crony/node/internal/service"
@@ -31,7 +32,8 @@ func main() {
 		logger.GetLogger().Error(fmt.Sprintf("node run error: %s", err.Error()))
 		os.Exit(1)
 	}
-
+	//邮件相关操作
+	go notify.Serve()
 	logger.GetLogger().Info(fmt.Sprintf("crony node %s service started, Ctrl+C or send kill sign to exit", nodeServer.String()))
 	// 注册退出事件
 	event.OnEvent(event.EXIT, nodeServer.Stop /*,stopwatcher()*/)

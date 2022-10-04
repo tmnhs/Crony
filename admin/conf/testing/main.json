@@ -36,6 +36,10 @@
     "secret": "wqkncnzhdvbpdabj",
     "nickname": "crony定时任务平台"
   },
+  "webhook": {
+    "url": "",
+    "kind": "1685290935@qq.com"
+  },
   "log": {
     "level": "debug",
     "format": "console",

@@ -1,6 +1,7 @@
 package notify
 
 import (
+	"github.com/tmnhs/crony/common/pkg/utils"
 	"time"
 )
 
@@ -9,12 +10,13 @@ type Noticer interface {
 }
 
 type Message struct {
-	Type      int
-	IP        string
-	Subject   string
-	Body      string
-	To        []string
-	OccurTime time.Time
+	Type    int
+	IP      string
+	Subject string
+	Body    string
+	To      []string
+	//时间字符串
+	OccurTime string
 }
 
 var msgQueue chan *Message
@@ -44,17 +46,24 @@ func Serve() {
 		select {
 		case msg := <-msgQueue:
 			if msg == nil {
-				continue
+
 			}
 			switch msg.Type {
 			case 1:
 				//发送邮件
-				go _defaultMail.SendMsg(msg)
+				msg.Check()
+				_defaultMail.SendMsg(msg)
 			case 2:
 				//webhook
+				msg.Check()
 				go _defaultWebHook.SendMsg(msg)
 			}
 		}
 	}
+}
 
+func (m *Message) Check() {
+	if m.OccurTime == "" {
+		m.OccurTime = time.Now().Format(utils.TimeFormatSecond)
+	}
 }

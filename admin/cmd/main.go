@@ -5,6 +5,7 @@ import (
 	"github.com/tmnhs/crony/admin/internal/handler"
 	"github.com/tmnhs/crony/admin/internal/service"
 	"github.com/tmnhs/crony/common/pkg/logger"
+	"github.com/tmnhs/crony/common/pkg/notify"
 	"github.com/tmnhs/crony/common/pkg/server"
 	"os"
 )
@@ -26,8 +27,7 @@ func main() {
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("resolver  error:%#v", err))
 	}
-	//todo 邮件相关操作
-
+	go notify.Serve()
 	//todo 定时清理日志
 	err = srv.ListenAndServe()
 	if err != nil {
