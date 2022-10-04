@@ -1,32 +1,14 @@
 package notify
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/go-gomail/gomail"
+	"github.com/tmnhs/crony/common/pkg/logger"
+	"html/template"
 )
 
-type Noticer interface {
-	Send(*Message)
-}
-
-type Message struct {
-	Subject string
-	Body    string
-	To      []string
-}
-
 var _defaultMail *Mail
-
-func Init(port int, from, host, secret, nickName string) {
-	_defaultMail = &Mail{
-		Port:     port,
-		From:     from,
-		Host:     host,
-		Secret:   secret,
-		Nickname: nickName,
-		msgChan:  make(chan Message, 100),
-	}
-}
 
 type Mail struct {
 	Port     int
@@ -34,30 +16,33 @@ type Mail struct {
 	Host     string
 	Secret   string
 	Nickname string
-	msgChan  chan Message
 }
 
-func Serve() {
-	var err error
+func (mail *Mail) SendMsg(msg *Message) {
 	m := gomail.NewMessage()
-	for msg := range _defaultMail.msgChan {
-		fmt.Println("dd")
-		m.SetHeader("To", msg.To...)
-		m.SetHeader("Subject", msg.Subject)
-		m.SetBody("text/html", msg.Body)
-		m.SetHeader("From", m.FormatAddress(_defaultMail.Nickname, "crony定时任务平台")) //这种方式可以添加别名，即“XX官方”
-		//说明：如果是用网易邮箱账号发送，以下方法别名可以是中文，如果是qq企业邮箱，以下方法用中文别名，会报错，需要用上面此方法转码
-		//m.SetHeader("From", "FB Sample"+"<"+mailConn["user"]+">") //这种方式可以添加别名，即“FB Sample”， 也可以直接用<code>m.SetHeader("From",mailConn["user"])</code> 读者可以自行实验下效果
+	//邮件
+	m.SetHeader("To", msg.To...)
+	m.SetHeader("Subject", msg.Subject)
+	msgData := parseMailTemplate(msg)
+	m.SetBody("text/html", msgData)
+	m.SetHeader("From", m.FormatAddress(_defaultMail.From, _defaultMail.Nickname)) //这种方式可以添加别名，即“XX官方”
 
-		d := gomail.NewDialer(_defaultMail.Host, _defaultMail.Port, _defaultMail.From, _defaultMail.Secret)
-
-		if err = d.DialAndSend(m); err != nil {
-			//logger.GetLogger().Warn(fmt.Sprintf("smtp send msg[%+v] err: %s", msg, err.Error()))
-			fmt.Printf("smtp send msg[%+v] err: %s", msg, err.Error())
-		}
+	d := gomail.NewDialer(_defaultMail.Host, _defaultMail.Port, _defaultMail.From, _defaultMail.Secret)
+	if err := d.DialAndSend(m); err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("smtp send msg[%+v] err: %s", msg, err.Error()))
 	}
 }
 
-func Send(msg Message) {
-	_defaultMail.msgChan <- msg
+func parseMailTemplate(msg *Message) string {
+	tmpl, err := template.ParseFiles("./notify.html")
+	if err != nil {
+		return fmt.Sprintf("解析通知模板失败 ParseFiles: %s", err)
+	}
+
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, msg)
+	if err != nil {
+		return fmt.Sprintf("解析通知模板失败 Execute: %s", err)
+	}
+	return buf.String()
 }
