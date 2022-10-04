@@ -4,79 +4,96 @@ package httpclient
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/tmnhs/crony/common/pkg/logger"
 	"io/ioutil"
 	"net/http"
 	"time"
 )
 
-type ResponseWrapper struct {
-	StatusCode int
-	Body       string
-	Header     http.Header
-}
-
-func Get(url string, timeout int64) ResponseWrapper {
+func Get(url string, timeout int64) (err error) {
+	var client = &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return createRequestError(err)
+		return
 	}
-
-	return request(req, timeout)
-}
-
-func PostParams(url string, params string, timeout int64) ResponseWrapper {
-	buf := bytes.NewBufferString(params)
-	req, err := http.NewRequest("POST", url, buf)
-	if err != nil {
-		return createRequestError(err)
-	}
-	req.Header.Set("Content-type", "application/x-www-form-urlencoded")
-
-	return request(req, timeout)
-}
-
-func PostJson(url string, body string, timeout int64) ResponseWrapper {
-	buf := bytes.NewBufferString(body)
-	req, err := http.NewRequest("POST", url, buf)
-	if err != nil {
-		return createRequestError(err)
-	}
-	req.Header.Set("Content-type", "application/json")
-
-	return request(req, timeout)
-}
-
-func request(req *http.Request, timeout int64) ResponseWrapper {
-	wrapper := ResponseWrapper{StatusCode: 0, Body: "", Header: make(http.Header)}
-	client := &http.Client{}
 	if timeout > 0 {
 		client.Timeout = time.Duration(timeout) * time.Second
 	}
-	setRequestHeader(req)
 	resp, err := client.Do(req)
 	if err != nil {
-		wrapper.Body = fmt.Sprintf("执行HTTP请求错误-%s", err.Error())
-		return wrapper
+		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		wrapper.Body = fmt.Sprintf("读取HTTP请求返回值失败-%s", err.Error())
-		return wrapper
+	if resp.StatusCode == 200 {
+		return
 	}
-	wrapper.StatusCode = resp.StatusCode
-	wrapper.Body = string(body)
-	wrapper.Header = resp.Header
-
-	return wrapper
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("http get api url:%s send  err: %s", url, err.Error()))
+		return
+	}
+	logger.GetLogger().Warn(fmt.Sprintf("http get api url:%s send error return body:%s", url, string(data)))
+	return
 }
 
-func setRequestHeader(req *http.Request) {
-	req.Header.Set("User-Agent", "golang/gocron")
+func PostParams(url string, params string, timeout int64) (err error) {
+	var client = &http.Client{}
+	buf := bytes.NewBufferString(params)
+	req, err := http.NewRequest("POST", url, buf)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-type", "application/x-www-form-urlencoded")
+	if timeout > 0 {
+		client.Timeout = time.Duration(timeout) * time.Second
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == 200 {
+		return
+	}
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("http post api url:%s send  err: %s", url, err.Error()))
+		return
+	}
+	logger.GetLogger().Warn(fmt.Sprintf("http post api url:%s send error return body:%s", url, string(data)))
+	return
 }
 
-func createRequestError(err error) ResponseWrapper {
-	errorMessage := fmt.Sprintf("创建HTTP请求错误-%s", err.Error())
-	return ResponseWrapper{0, errorMessage, make(http.Header)}
+func PostJson(url string, body interface{}, timeout int64) (err error) {
+	var client = &http.Client{}
+	b, err := json.Marshal(body)
+	if err != nil {
+		return
+	}
+	buf := bytes.NewBufferString(string(b))
+	req, err := http.NewRequest("POST", url, buf)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-type", "application/json")
+	if timeout > 0 {
+		client.Timeout = time.Duration(timeout) * time.Second
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == 200 {
+		return
+	}
+	_, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		//logger.GetLogger().Warn(fmt.Sprintf("http post api url:%s send  err: %s", url, err.Error()))
+		return
+	}
+	//logger.GetLogger().Warn(fmt.Sprintf("http post api url:%s send error return body:%s", url,string(data)))
+	return
 }
