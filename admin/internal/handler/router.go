@@ -20,6 +20,11 @@ func RegisterRouters(c *gin.Engine) {
 		base.POST("login", defaultUserRouter.Login)
 	}
 
+	stat := c.Group("/static")
+	stat.Use(middlerware.JWTAuth())
+	{
+		stat.GET("", defaultNodeRouter.GetStatistics)
+	}
 	job := c.Group("/job")
 	job.Use(middlerware.JWTAuth())
 	{
@@ -39,25 +44,10 @@ func RegisterRouters(c *gin.Engine) {
 		user.POST("change_pw", defaultUserRouter.ChangePassword)
 		user.GET("find", defaultUserRouter.FindById)
 		user.POST("search", defaultUserRouter.Search)
-		user.GET("get_by_group", defaultUserRouter.GetByGroupId)
-		user.POST("join", defaultUserRouter.JoinGroup)
-		user.POST("kick", defaultUserRouter.KickGroup)
 	}
 	node := c.Group("/node")
 	node.Use(middlerware.JWTAuth())
 	{
 		node.POST("search", defaultNodeRouter.Search)
-		node.POST("join", defaultNodeRouter.JoinGroup)
-		node.POST("kick", defaultNodeRouter.KickGroup)
-		node.GET("get_by_group", defaultNodeRouter.GetByGroupId)
-	}
-
-	group := c.Group("/group")
-	//group.Use(middlerware.JWTAuth())
-	{
-		group.POST("update", defaultGroupRouter.CreateOrUpdate)
-		group.POST("del", defaultGroupRouter.Delete)
-		group.GET("find", defaultGroupRouter.FindById)
-		group.GET("search", defaultGroupRouter.Search)
 	}
 }

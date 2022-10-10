@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func Get(url string, timeout int64) (err error) {
+func Get(url string, timeout int64) (result string, err error) {
 	var client = &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -33,11 +33,11 @@ func Get(url string, timeout int64) (err error) {
 		logger.GetLogger().Warn(fmt.Sprintf("http get api url:%s send  err: %s", url, err.Error()))
 		return
 	}
-	logger.GetLogger().Warn(fmt.Sprintf("http get api url:%s send error return body:%s", url, string(data)))
+	result = string(data)
 	return
 }
 
-func PostParams(url string, params string, timeout int64) (err error) {
+func PostParams(url string, params string, timeout int64) (result string, err error) {
 	var client = &http.Client{}
 	buf := bytes.NewBufferString(params)
 	req, err := http.NewRequest("POST", url, buf)
@@ -61,11 +61,11 @@ func PostParams(url string, params string, timeout int64) (err error) {
 		logger.GetLogger().Warn(fmt.Sprintf("http post api url:%s send  err: %s", url, err.Error()))
 		return
 	}
-	logger.GetLogger().Warn(fmt.Sprintf("http post api url:%s send error return body:%s", url, string(data)))
+	result = string(data)
 	return
 }
 
-func PostJson(url string, body string, timeout int64) (err error) {
+func PostJson(url string, body string, timeout int64) (result string, err error) {
 	var client = &http.Client{}
 
 	buf := bytes.NewBufferString(body)
@@ -85,11 +85,11 @@ func PostJson(url string, body string, timeout int64) (err error) {
 	if resp.StatusCode == 200 {
 		return
 	}
-	_, err = ioutil.ReadAll(resp.Body)
+	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		//logger.GetLogger().Warn(fmt.Sprintf("http post api url:%s send  err: %s", url, err.Error()))
 		return
 	}
-	//logger.GetLogger().Warn(fmt.Sprintf("http post api url:%s send error return body:%s", url,string(data)))
+	result = string(data)
 	return
 }

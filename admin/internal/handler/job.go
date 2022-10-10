@@ -66,7 +66,7 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		_ = job.FindById()
 		oldNodeUUID := job.RunOn
 		if oldNodeUUID != "" {
-			_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, oldNodeUUID, req.GroupId, req.ID))
+			_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, oldNodeUUID, req.ID))
 			if err != nil {
 				logger.GetLogger().Error(fmt.Sprintf("[update_job] delete etcd node[%s]  error:%s", oldNodeUUID, err.Error()))
 				resp.FailWithMessage(resp.ERROR, "[update_job] delete etcd node error", c)
@@ -98,7 +98,7 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		return
 	}
 	//添加至etcd
-	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdJob, req.RunOn, req.GroupId, req.ID), string(b))
+	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdJob, req.RunOn, req.ID), string(b))
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[create_job] etcd put job error:%s", err.Error()))
 		resp.FailWithMessage(resp.ERROR, "[create_job] etcd put job error", c)
@@ -123,7 +123,7 @@ func (j *JobRouter) Delete(c *gin.Context) {
 			logger.GetLogger().Error(fmt.Sprintf("[delete_job] find job by id :%d error:%s", id, err.Error()))
 			continue
 		}
-		_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, job.RunOn, job.GroupId, id))
+		_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, job.RunOn, id))
 		if err != nil {
 			logger.GetLogger().Error(fmt.Sprintf("[delete_job] etcd delete job error:%s", err.Error()))
 			continue

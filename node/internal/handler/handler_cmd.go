@@ -51,7 +51,6 @@ func (c *CMDHandler) Run(job *Job) (result string, err error) {
 		JobProc: &models.JobProc{
 			ID:       cmd.Process.Pid,
 			JobID:    job.ID,
-			GroupId:  job.GroupId,
 			NodeUUID: job.RunOn,
 			JobProcVal: models.JobProcVal{
 				Time: time.Now(),

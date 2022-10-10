@@ -23,13 +23,13 @@ type Job struct {
 }
 type Jobs map[int]*Job
 
-func JobKey(nodeUUID string, groupId, jobId int) string {
-	return fmt.Sprintf(etcdclient.KeyEtcdJob, nodeUUID, groupId, jobId)
+func JobKey(nodeUUID string, jobId int) string {
+	return fmt.Sprintf(etcdclient.KeyEtcdJob, nodeUUID, jobId)
 }
 
 // Note: this function did't check the job.
-func GetJob(nodeUUID string, groupId, jobId int) (job *Job, err error) {
-	job, _, err = GetJobAndRev(nodeUUID, groupId, jobId)
+func GetJob(nodeUUID string, jobId int) (job *Job, err error) {
+	job, _, err = GetJobAndRev(nodeUUID, jobId)
 	return
 }
 
@@ -47,8 +47,8 @@ func (j *Job) String() string {
 	return string(data)
 }
 
-func GetJobAndRev(nodeUUID string, groupId, jobId int) (job *Job, rev int64, err error) {
-	resp, err := etcdclient.Get(JobKey(nodeUUID, groupId, jobId))
+func GetJobAndRev(nodeUUID string, jobId int) (job *Job, rev int64, err error) {
+	resp, err := etcdclient.Get(JobKey(nodeUUID, jobId))
 	if err != nil {
 		return
 	}
@@ -67,8 +67,8 @@ func GetJobAndRev(nodeUUID string, groupId, jobId int) (job *Job, rev int64, err
 	return
 }
 
-func DeleteJob(nodeUUID string, groupId, jobId int) (resp *clientv3.DeleteResponse, err error) {
-	return etcdclient.Delete(JobKey(nodeUUID, groupId, jobId))
+func DeleteJob(nodeUUID string, jobId int) (resp *clientv3.DeleteResponse, err error) {
+	return etcdclient.Delete(JobKey(nodeUUID, jobId))
 }
 
 func GetJobs(nodeUUID string) (jobs Jobs, err error) {
@@ -247,7 +247,6 @@ func (j *Job) CreateJobLog() (int, error) {
 	start := time.Now()
 	jobLog := &models.JobLog{
 		Name:      j.Name,
-		GroupId:   j.GroupId,
 		JobId:     j.ID,
 		Command:   j.Command,
 		IP:        j.Ip,

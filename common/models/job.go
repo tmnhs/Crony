@@ -17,8 +17,9 @@ const (
 	HTTPMethodGet  = 1
 	HTTPMethodPost = 2
 
-	NotifyTypeMail    = 1
-	NotifyTypeWebHook = 2
+	JobExcSuccess = 1
+	JobExcFail    = 0
+
 	//单机任务
 	JobKindAlone = 1
 	JobKindGroup = 2
@@ -37,7 +38,6 @@ const (
 type Job struct {
 	ID      int    `json:"id" gorm:"column:id"`
 	Name    string `json:"name" gorm:"column:name" binding:"required"`
-	GroupId int    `json:"group_id" gorm:"-" `
 	Command string `json:"command" gorm:"column:command" binding:"required"`
 	CmdUser string `json:"user" gorm:"column:cmd_user"`
 	Pause   bool   `json:"pause" gorm:"-"`                // 可手工控制的状态

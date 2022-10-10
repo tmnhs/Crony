@@ -2,11 +2,13 @@ package service
 
 import (
 	"fmt"
+	"github.com/coreos/etcd/clientv3"
 	"github.com/tmnhs/crony/admin/internal/model/request"
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
+	"github.com/tmnhs/crony/common/pkg/utils"
 )
 
 type JobService struct {
@@ -78,6 +80,27 @@ func (j *JobService) SearchJobLog(s *request.ReqJobLogSearch) ([]models.JobLog, 
 	return jobLogs, total, nil
 }
 
+//获取任务执行总数 1表示成功 0表示失败
+func (j *JobService) GetTodayJobExcCount(success int) (int64, error) {
+	db := dbclient.GetMysqlDB().Table(models.CronyJobLogTableName).Where("start_time > ?", utils.GetTodayUnix()).Where("success = ?", success)
+	var total int64
+	err := db.Count(&total).Error
+	if err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+//
+func (j *JobService) GetRunningJobCount() (int64, error) {
+	resp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdProcProfile), clientv3.WithPrefix(), clientv3.WithCountOnly())
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.Count, nil
+}
+
 const MaxJobCount = 10000
 
 //优先分配工作任务最少的结点
@@ -101,6 +124,6 @@ func (j *JobService) AutoAllocateNode() string {
 
 //立即执行
 func (j *JobService) Once(once *request.ReqJobOnce) (err error) {
-	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdOnce, once.GroupId, once.JobId), once.NodeUUID)
+	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdOnce, once.JobId), once.NodeUUID)
 	return
 }

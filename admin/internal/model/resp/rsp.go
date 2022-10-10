@@ -17,6 +17,13 @@ type (
 		Data interface{} `json:"data"`
 		Msg  string      `json:"msg"`
 	}
+	RspSystemStatistics struct {
+		NormalNodeCount int64 `json:"normal_node_count"`  //正常节点数量
+		FailNodeCount   int64 `json:"fail_node_count"`    //不正常节点数量
+		JobExcCount     int64 `json:"job_exc_count"`      //任务执行总数
+		JobRunningCount int64 `json:"job_running_count"`  //任务正在执行总数
+		JobExcFailCount int64 `json:"job_exc_fail_count"` //任务执行失败总数
+	}
 )
 
 const (

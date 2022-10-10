@@ -17,8 +17,7 @@ type JobProcVal struct {
 type JobProc struct {
 	// parse from key path
 	ID       int    `json:"id"` // pid
-	JobID    int    `json:"jobId"`
-	GroupId  int    `json:"group"`
+	JobID    int    `json:"job_id"`
 	NodeUUID string `json:"node_uuid"`
 	// parse from value
 	JobProcVal

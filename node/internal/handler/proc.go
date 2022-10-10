@@ -37,23 +37,18 @@ func GetProcFromKey(key string) (proc *JobProc, err error) {
 	if err != nil {
 		return
 	}
-	groupId, err := strconv.Atoi(ss[sslen-3])
-	if err != nil {
-		return
-	}
 	proc = &JobProc{
 		JobProc: &models.JobProc{
 			ID:       id,
 			JobID:    jobId,
-			GroupId:  groupId,
-			NodeUUID: ss[sslen-4],
+			NodeUUID: ss[sslen-3],
 		},
 	}
 	return
 }
 
 func (p *JobProc) Key() string {
-	return fmt.Sprintf(etcdclient.KeyEtcdProc, p.NodeUUID, p.GroupId, p.JobID, p.ID)
+	return fmt.Sprintf(etcdclient.KeyEtcdProc, p.NodeUUID, p.JobID, p.ID)
 }
 
 func (p *JobProc) Val() (string, error) {
@@ -91,9 +86,7 @@ func WatchProc(nodeUUID string) clientv3.WatchChan {
 	return etcdclient.Watch(fmt.Sprintf(etcdclient.KeyEtcdProcProfile, nodeUUID), clientv3.WithPrefix())
 }
 
-//todo 注册
 func (p *JobProc) Start() error {
-	//todo new regserver in node server
 	if p == nil {
 		return nil
 	}

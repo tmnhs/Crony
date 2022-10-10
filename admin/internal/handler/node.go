@@ -45,50 +45,32 @@ func (n *NodeRouter) Search(c *gin.Context) {
 	}, "search success", c)
 }
 
-func (n *NodeRouter) JoinGroup(c *gin.Context) {
-	var req models.NodeGroup
-	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[node_join_group] request parameter error:%s", err.Error()))
-		resp.FailWithMessage(resp.ErrorRequestParameter, "[node_join_group] request parameter error", c)
-		return
-	}
-	_, err := req.Insert()
+func (n *NodeRouter) GetStatistics(c *gin.Context) {
+	jobExcSuccess, err := service.DefaultJobService.GetTodayJobExcCount(models.JobExcSuccess)
 	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[node_join_group] db error:%v", err))
-		resp.FailWithMessage(resp.ERROR, "[node_join_group] db error", c)
-		return
+		logger.GetLogger().Warn(fmt.Sprintf("[get_statisitcs] GetTodayJobExcCount(successs)  error:%s", err.Error()))
 	}
-	resp.OkWithMessage("join success", c)
-}
-
-func (n *NodeRouter) KickGroup(c *gin.Context) {
-	var req models.NodeGroup
-	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[node_kick_group] request parameter error:%s", err.Error()))
-		resp.FailWithMessage(resp.ErrorRequestParameter, "[node_kick_group] request parameter error", c)
-		return
-	}
-	err := req.Delete()
+	jobExcFail, err := service.DefaultJobService.GetTodayJobExcCount(models.JobExcFail)
 	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[node_kick_group] db error:%v", err))
-		resp.FailWithMessage(resp.ERROR, "[node_kick_group] db error", c)
-		return
+		logger.GetLogger().Warn(fmt.Sprintf("[get_statisitcs] GetTodayJobExcCount(fail) error:%s", err.Error()))
 	}
-	resp.OkWithMessage("kick success", c)
-}
-
-func (n *NodeRouter) GetByGroupId(c *gin.Context) {
-	var req request.ByID
-	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[node_get_by_group] request parameter error:%s", err.Error()))
-		resp.FailWithMessage(resp.ErrorRequestParameter, "[node_get_by_group] request parameter error", c)
-		return
-	}
-	nodes, err := service.DefaultNodeWatcher.FindByGroupId(req.ID)
+	jobRunningCount, err := service.DefaultJobService.GetRunningJobCount()
 	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[node_get_by_group] db error:%v", err))
-		resp.FailWithMessage(resp.ERROR, "[node_get_by_group] db error", c)
-		return
+		logger.GetLogger().Warn(fmt.Sprintf("[get_statisitcs] GetRunningJobCount error:%s", err.Error()))
 	}
-	resp.OkWithDetailed(nodes, "get success", c)
+	normalNodeCount, err := service.DefaultNodeWatcher.GetNodeCount(models.NodeConnSuccess)
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("[get_statisitcs] GetNodeCount(success) error:%s", err.Error()))
+	}
+	failNodeCount, err := service.DefaultNodeWatcher.GetNodeCount(models.NodeConnFail)
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("[get_statisitcs] GetNodeCount(fail) error:%s", err.Error()))
+	}
+	resp.OkWithDetailed(resp.RspSystemStatistics{
+		NormalNodeCount: normalNodeCount,
+		FailNodeCount:   failNodeCount,
+		JobExcCount:     jobExcFail + jobExcSuccess,
+		JobRunningCount: jobRunningCount,
+		JobExcFailCount: jobExcFail,
+	}, "ok", c)
 }

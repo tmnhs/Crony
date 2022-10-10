@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/httpclient"
-	"net/http"
 	"strings"
+	"time"
 )
 
 type HTTPHandler struct {
@@ -15,12 +14,30 @@ type HTTPHandler struct {
 const HttpExecTimeout = 300
 
 func (h *HTTPHandler) Run(job *Job) (result string, err error) {
+	var (
+		proc *JobProc
+	)
+	proc = &JobProc{
+		JobProc: &models.JobProc{
+			ID:       0,
+			JobID:    job.ID,
+			NodeUUID: job.RunOn,
+			JobProcVal: models.JobProcVal{
+				Time: time.Now(),
+			},
+		},
+	}
+
+	err = proc.Start()
+	if err != nil {
+		return
+	}
+	defer proc.Stop()
 	if job.Timeout <= 0 || job.Timeout > HttpExecTimeout {
 		job.Timeout = HttpExecTimeout
 	}
-	var resp httpclient.ResponseWrapper
 	if job.HttpMethod == models.HTTPMethodGet {
-		resp = httpclient.Get(job.Command, job.Timeout)
+		result, err = httpclient.Get(job.Command, job.Timeout)
 	} else if job.HttpMethod == models.HTTPMethodPost {
 		urlFields := strings.Split(job.Command, "?")
 		job.Command = urlFields[0]
@@ -28,12 +45,7 @@ func (h *HTTPHandler) Run(job *Job) (result string, err error) {
 		if len(urlFields) >= 2 {
 			params = urlFields[1]
 		}
-		resp = httpclient.PostParams(job.Command, params, job.Timeout)
+		result, err = httpclient.PostParams(job.Command, params, job.Timeout)
 	}
-	// 返回状态码非200，均为失败
-	if resp.StatusCode != http.StatusOK {
-		return resp.Body, fmt.Errorf("HTTP状态码非200-->%d", resp.StatusCode)
-	}
-
-	return resp.Body, err
+	return
 }

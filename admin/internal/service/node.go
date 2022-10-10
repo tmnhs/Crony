@@ -69,7 +69,6 @@ func (n *NodeWatcherService) watcher() {
 					logger.GetLogger().Error(fmt.Sprintf("crony node[%s] fail over error:%s", uuid, err.Error()))
 					return
 				}
-
 				//如果故障转移全部成功则在数据库里删除节点
 				if fail.Count() == 0 {
 					err = node.Delete()
@@ -173,23 +172,12 @@ func (n *NodeWatcherService) Search(s *request.ReqNodeSearch) ([]models.Node, in
 	return nodes, total, nil
 }
 
-//todo 获取某节点的job数量
 func (n *NodeWatcherService) GetJobCount(nodeUUID string) (int, error) {
-	resps, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
+	resps, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix(), clientv3.WithCountOnly())
 	if err != nil {
 		return 0, err
 	}
-	return len(resps.Kvs), nil
-}
-
-func (n *NodeWatcherService) FindByGroupId(groupId int) ([]models.Node, error) {
-	var nodes []models.Node
-	sql := fmt.Sprintf("select n.* from %s ng join %s n on ng.group_id = ? and ng.node_uuid = n.uuid", models.CronyNodeGroupTableName, models.CronyNodeTableName)
-	err := dbclient.GetMysqlDB().Raw(sql, groupId).Scan(&nodes).Error
-	if err != nil {
-		return nil, err
-	}
-	return nodes, nil
+	return int(resps.Count), nil
 }
 
 type Result []int
@@ -258,14 +246,14 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Res
 			continue
 		}
 
-		_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdJob, job.RunOn, job.GroupId, job.ID), string(b))
+		_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdJob, job.RunOn, job.ID), string(b))
 		if err != nil {
 			logger.GetLogger().Error(fmt.Sprintf("node[%s] job[%d] fail over etcd put job error:%s", nodeUUID, job.ID, err.Error()))
 			fail = append(fail, job.ID)
 			continue
 		}
 		//如果转移成功则删除key值
-		_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, oldUUID, job.GroupId, job.ID))
+		_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, oldUUID, job.ID))
 		if err != nil {
 			logger.GetLogger().Error(fmt.Sprintf("node[%s] job[%d] fail over etcd delete job error:%s", nodeUUID, job.ID, err.Error()))
 			fail = append(fail, job.ID)
@@ -273,7 +261,6 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Res
 		}
 		success = append(success, job.ID)
 	}
-	//todo 自动分配成功的有几个，失败的有几个
 	return
 }
 
@@ -294,18 +281,21 @@ func (n *NodeWatcherService) GetJobs(nodeUUID string) (jobs []models.Job, err er
 			logger.GetLogger().Warn(fmt.Sprintf("job[%s] umarshal err: %s", string(j.Key), err.Error()))
 			continue
 		}
-		fmt.Println("job:", job)
 		jobs = append(jobs, job)
 	}
 	return
 }
 
-//todo 获取节点正在执行任务的数量
-/*func (j *Job) CountRunning() (int64, error) {
-	resp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdProc+j.RunOn+"/"+"%s"+"/"+"%s", j.GroupId, j.ID), clientv3.WithPrefix(), clientv3.WithCountOnly())
+//获取某个node的数量
+func (n *NodeWatcherService) GetNodeCount(status int) (int64, error) {
+	db := dbclient.GetMysqlDB().Table(models.CronyNodeTableName)
+	if status > 0 {
+		db = db.Where("status = ?", status)
+	}
+	var total int64
+	err := db.Count(&total).Error
 	if err != nil {
 		return 0, err
 	}
-
-	return resp.Count, nil
-}*/
+	return total, nil
+}

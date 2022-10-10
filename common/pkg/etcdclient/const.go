@@ -8,22 +8,15 @@ const (
 	KeyEtcdNodeProfile = keyEtcdProfile + "node/"
 	KeyEtcdNode        = KeyEtcdNodeProfile + "%s"
 
-	//key  /crony/proc/<node_uuid>/<group_id>/<job_id>/<pid>
-	KeyEtcdProcProfile = keyEtcdProfile + "proc/%s/"
-	KeyEtcdProc        = KeyEtcdProcProfile + "%d/%d/%d"
+	//key  /crony/proc/<node_uuid>/<job_id>/<pid>
+	KeyEtcdProcProfile = keyEtcdProfile + "proc/"
+	KeyEtcdProc        = KeyEtcdProcProfile + "%s/%d/%d"
 
-	//key /crony/job/<node_uuid>/<group_id>/<job_id>
+	//key /crony/job/<node_uuid>/<job_id>
 	KeyEtcdJobProfile = keyEtcdProfile + "job/%s/"
-	KeyEtcdJob        = KeyEtcdJobProfile + "%d/%d"
+	KeyEtcdJob        = KeyEtcdJobProfile + "%d"
 
-	// key /crony/once/group/<jobID>
+	// key /crony/once/<jobID>
 	KeyEtcdOnceProfile = keyEtcdProfile + "once/"
-	KeyEtcdOnce        = KeyEtcdOnceProfile + "%d/%d"
-
-	// key /crony/group/<group_id>
-	KeyEtcdGroupProfile = keyEtcdProfile + "group/"
-	KeyEtcdGroup        = KeyEtcdGroupProfile + "%d"
-
-	KeyEtcdLock    = keyEtcdProfile + "lock/"
-	KeyEtcdNoticer = keyEtcdProfile + "noticer/"
+	KeyEtcdOnce        = KeyEtcdOnceProfile + "%d"
 )

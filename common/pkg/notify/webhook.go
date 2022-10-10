@@ -29,7 +29,7 @@ func (w *WebHook) SendMsg(msg *Message) {
 		}
 		sendData = strings.Replace(sendData, "userSlot", userSlot, 1)
 		sendData = strings.Replace(sendData, "msgSlot", msg.Body, 1)
-		err := httpclient.PostJson(w.Url, sendData, 0)
+		_, err := httpclient.PostJson(w.Url, sendData, 0)
 		if err != nil {
 			//logger.GetLogger().Error(fmt.Sprintf("feishu  send msg[%+v] err: %s", msg, err.Error()))
 			fmt.Println(err)
@@ -39,7 +39,7 @@ func (w *WebHook) SendMsg(msg *Message) {
 		if err != nil {
 			return
 		}
-		err = httpclient.PostJson(w.Url, string(b), 0)
+		_, err = httpclient.PostJson(w.Url, string(b), 0)
 		if err != nil {
 			logger.GetLogger().Error(fmt.Sprintf("web hook api send msg[%+v] err: %s", msg, err.Error()))
 		}
