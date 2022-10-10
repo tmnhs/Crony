@@ -214,8 +214,9 @@ func NewApiServer(serverName string, inits ...func()) (*ApiServer, error) {
 	logConfig := defaultConfig.Log
 	mysqlConfig := defaultConfig.Mysql
 	etcdConfig := defaultConfig.Etcd
-
+	//初始化日志
 	logger.Init(serverName, logConfig.Level, logConfig.Format, logConfig.Prefix, logConfig.Director, logConfig.ShowLine, logConfig.EncodeLevel, logConfig.StacktraceKey, logConfig.LogInConsole)
+	//初始化通知
 	notify.Init(&notify.Mail{
 		Port:     defaultConfig.Email.Port,
 		From:     defaultConfig.Email.From,

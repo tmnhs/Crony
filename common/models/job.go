@@ -59,18 +59,15 @@ type Job struct {
 	Type       JobType `json:"job_type" gorm:"column:type" binding:"required"`
 	HttpMethod int     `json:"http_method" gorm:"column:http_method"`
 	// 执行失败是否发送通知
-	NotifyStatus bool `json:"notify_status" gorm:"column:notify_status"`
-	NotifyType   int  `json:"notify_type" gorm:"column:notify_type"`
-	//fixme 待机状态
-	Status int `json:"status" gorm:"column:status"`
+	NotifyType int `json:"notify_type" gorm:"column:notify_type"`
+	Status     int `json:"status" gorm:"column:status"`
 	// 发送通知地址
 	NotifyTo      []byte `json:"-" gorm:"column:notify_to"`
 	NotifyToArray []int  `json:"notify_to" gorm:"-"`
-	NotifyToType  int    `json:"notify_to_type" gorm:"column:notify_to_type"`
 	Spec          string `json:"spec" gorm:"column:spec"`
-
-	Created int64 `json:"created" gorm:"column:created"`
-	Updated int64 `json:"updated" gorm:"column:updated"`
+	Note          string `json:"note" gorm:"column:note"`
+	Created       int64  `json:"created" gorm:"column:created"`
+	Updated       int64  `json:"updated" gorm:"column:updated"`
 	// 平均执行时间，单位 ms
 	AvgTime int64 `json:"avg_time" gorm:"-"`
 	// 单独对任务指定日志清除时间
@@ -126,26 +123,6 @@ func (j *Job) Check() error {
 	if len(j.Cmd) == 0 {
 		j.SplitCmd()
 	}
-	//todo 安全性
-
-	//security := conf.Config.Security
-	//if !security.Open {
-	//	return nil
-	//}
-	//
-	/*if len(conf.Config.Security.Users) == 0 {
-		return true
-	}
-
-	for _, u := range conf.Config.Security.Users {
-		if j.User == u {
-			return true
-		}
-	}*/
-	//
-	//if !j.validCmd() {
-	//	return ErrSecurityInvalidCmd
-	//}
 
 	return nil
 }

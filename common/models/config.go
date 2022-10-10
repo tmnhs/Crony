@@ -25,12 +25,13 @@ type (
 		LogZap       bool   `mapstructure:"log-zap" json:"logZap" yaml:"log-zap"`                     // 是否通过zap写入日志文件
 	}
 	Email struct {
-		Port     int    `mapstructure:"port" json:"port" yaml:"port"`             // 端口
-		From     string `mapstructure:"from" json:"from" yaml:"from"`             // 收件人
-		Host     string `mapstructure:"host" json:"host" yaml:"host"`             // 服务器地址
-		IsSSL    bool   `mapstructure:"is-ssl" json:"isSSL" yaml:"is-ssl"`        // 是否SSL
-		Secret   string `mapstructure:"secret" json:"secret" yaml:"secret"`       // 密钥
-		Nickname string `mapstructure:"nickname" json:"nickname" yaml:"nickname"` // 昵称
+		Port     int      `mapstructure:"port" json:"port" yaml:"port"`             // 端口
+		From     string   `mapstructure:"from" json:"from" yaml:"from"`             // 收件人
+		Host     string   `mapstructure:"host" json:"host" yaml:"host"`             // 服务器地址
+		IsSSL    bool     `mapstructure:"is-ssl" json:"isSSL" yaml:"is-ssl"`        // 是否SSL
+		Secret   string   `mapstructure:"secret" json:"secret" yaml:"secret"`       // 密钥
+		Nickname string   `mapstructure:"nickname" json:"nickname" yaml:"nickname"` // 昵称
+		To       []string `mapstructure:"to" json:"to" yaml:"to"`                   // 默认邮件发送对象
 	}
 	WebHook struct {
 		Kind string `mapstructure:"kind" json:"kind" yaml:"kind"`

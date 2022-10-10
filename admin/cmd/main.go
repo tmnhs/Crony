@@ -27,6 +27,7 @@ func main() {
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("resolver  error:%#v", err))
 	}
+	//初始化邮件配置
 	go notify.Serve()
 	//todo 定时清理日志
 	err = srv.ListenAndServe()

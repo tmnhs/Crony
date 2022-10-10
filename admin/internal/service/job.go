@@ -70,7 +70,7 @@ func (j *JobService) SearchJobLog(s *request.ReqJobLogSearch) ([]models.JobLog, 
 	if err != nil {
 		return nil, 0, err
 	}
-	err = db.Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Find(&jobLogs).Error
+	err = db.Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Order("start_time desc").Find(&jobLogs).Error
 	if err != nil {
 		return nil, 0, err
 	}

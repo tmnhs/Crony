@@ -22,7 +22,7 @@ func (srv *NodeServer) watchJobs() {
 				}
 				srv.jobs[job.ID] = job
 				job.InitNodeInfo(srv.UUID, srv.Hostname, srv.IP)
-				srv.addJob(job, true)
+				srv.addJob(job)
 			case ev.IsModify():
 				job, err := handler.GetJobFromKv(ev.Kv.Key, ev.Kv.Value)
 				if err != nil {

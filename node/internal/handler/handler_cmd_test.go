@@ -17,7 +17,6 @@ func TestCmd(t *testing.T) {
 				Timeout: 0,
 			},
 		},
-		// TODO
 		//{
 		//	Name:          "post",
 		//	HttpUrl:       "",

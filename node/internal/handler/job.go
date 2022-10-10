@@ -6,9 +6,11 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"github.com/jakecoffman/cron"
 	"github.com/tmnhs/crony/common/models"
-	"github.com/tmnhs/crony/common/pkg/dbclient"
+	"github.com/tmnhs/crony/common/pkg/config"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
+	"github.com/tmnhs/crony/common/pkg/notify"
+	"github.com/tmnhs/crony/common/pkg/utils"
 	"github.com/tmnhs/crony/common/pkg/utils/errors"
 	"runtime"
 	"strconv"
@@ -87,13 +89,10 @@ func GetJobs(nodeUUID string) (jobs Jobs, err error) {
 			logger.GetLogger().Warn(fmt.Sprintf("job[%s] umarshal err: %s", string(j.Key), e.Error()))
 			continue
 		}
-		//todo
 		if err := job.Check(); err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("job[%s] is invalid: %s", string(j.Key), err.Error()))
 			continue
 		}
-		//todo 执行类型
-		//job.alone()
 		jobs[job.ID] = job
 	}
 	return
@@ -138,13 +137,13 @@ func CreateJob(j *Job) cron.FuncJob {
 		//logger and error
 		return nil
 	}
-	taskFunc := func() {
+	jobFunc := func() {
 		/*handler.taskCount.Add()
 		defer handler.taskCount.Done()
 
 		handler.concurrencyQueue.Add()
 		defer handler.concurrencyQueue.Done()*/
-		logger.GetLogger().Info(fmt.Sprintf("开始执行任务#%s#命令-%s", j.Name, j.Command))
+		logger.GetLogger().Info(fmt.Sprintf("start the job#%s#command-%s", j.Name, j.Command))
 		// 默认只运行任务一次
 		var execTimes int = 1
 		if j.RetryTimes > 0 {
@@ -152,6 +151,7 @@ func CreateJob(j *Job) cron.FuncJob {
 		}
 		var i = 0
 		var output string
+		var runErr error
 		var err error
 		var jobLogId int
 		t := time.Now()
@@ -160,8 +160,8 @@ func CreateJob(j *Job) cron.FuncJob {
 			logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
 		}
 		for i < execTimes {
-			output, err = h.Run(j)
-			if err == nil {
+			output, runErr = h.Run(j)
+			if runErr == nil {
 				//执行成功
 				err = j.Success(jobLogId, t, output, i)
 				if err != nil {
@@ -171,7 +171,7 @@ func CreateJob(j *Job) cron.FuncJob {
 			}
 			i++
 			if i < execTimes {
-				logger.GetLogger().Warn(fmt.Sprintf("任务执行失败#任务id-%d#重试第%d次#输出-%s#错误-%s", j.ID, i, output, err.Error()))
+				logger.GetLogger().Warn(fmt.Sprintf("job execution failure#jobId-%d#retry%d次#output-%s#error-%s", j.ID, i, output, err.Error()))
 				if j.RetryInterval > 0 {
 					time.Sleep(time.Duration(j.RetryInterval) * time.Second)
 				} else {
@@ -185,10 +185,35 @@ func CreateJob(j *Job) cron.FuncJob {
 		if err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
 		}
-		// todo 任务执行后置操作 发邮件等
-		logger.GetLogger().Info(fmt.Sprintf("任务完成#%s#命令-%s", j.Name, j.Command))
+		node := &models.Node{UUID: j.RunOn}
+		err = node.FindByUUID()
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("Failed to find node with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
+		}
+		var to []string
+		for _, userId := range j.NotifyToArray {
+			userModel := &models.User{ID: userId}
+			err = userModel.FindById()
+			if err != nil {
+				continue
+			}
+			if j.NotifyType == notify.NotifyTypeMail {
+				to = append(to, userModel.Email)
+			} else if j.NotifyType == notify.NotifyTypeMail && config.GetConfigModels().WebHook.Kind == "feishu" {
+				to = append(to, userModel.UserName)
+			}
+		}
+		msg := &notify.Message{
+			Type:      j.NotifyType,
+			IP:        fmt.Sprintf("%s:%s", node.IP, node.PID),
+			Subject:   "",
+			Body:      fmt.Sprintf("job[%d] run on node[%s] execute failed ,error info :%s", j.ID, j.RunOn, runErr.Error()),
+			To:        to,
+			OccurTime: time.Now().Format(utils.TimeFormatSecond),
+		}
+		go notify.Send(msg)
 	}
-	return taskFunc
+	return jobFunc
 }
 func WatchJobs(nodeUUID string) clientv3.WatchChan {
 	return etcdclient.Watch(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
@@ -200,36 +225,8 @@ func GetJobFromKv(key, value []byte) (job *Job, err error) {
 		err = fmt.Errorf("job[%s] umarshal err: %s", string(key), err.Error())
 		return
 	}
-	//todo
-	//err = job.Valid()
-	//job.alone()
+	err = job.Check()
 	return
-}
-
-/*func IsValidAsKeyPath(s string) bool {
-	return strings.IndexAny(s, "/\\") == -1
-}*/
-
-func ModifyJob(job *Job) {
-	//todo into db
-
-	/*	n.link.delJob(oJob)
-		prevCmds := oJob.Cmds(n.ID, n.groups)
-
-		job.Count = oJob.Count
-		*oJob = *job
-		cmds := oJob.Cmds(n.ID, n.groups)
-
-		for id, cmd := range cmds {
-			n.modCmd(cmd, true)
-			delete(prevCmds, id)
-		}
-
-		for _, cmd := range prevCmds {
-			n.delCmd(cmd)
-		}
-
-		n.link.addJob(oJob)*/
 }
 
 // 从 etcd 的 key 中取 job_id
@@ -243,11 +240,6 @@ func GetJobIDFromKey(key string) int {
 		return 0
 	}
 	return jobId
-}
-
-//todo 转移至crony admin
-func (j *Job) Insert2Db() error {
-	return dbclient.Insert(models.CronyJobTableName, j)
 }
 
 //将每次执行任务的结果写入日志
@@ -284,6 +276,5 @@ func (j *Job) Success(jobLogId int, start time.Time, output string, retry int) e
 }
 
 func (j *Job) Fail(jobLogId int, start time.Time, errMsg string, retry int) error {
-	//todo notify
 	return UpdateJobLog(jobLogId, start, errMsg, retry, false)
 }

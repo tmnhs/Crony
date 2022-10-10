@@ -16,7 +16,6 @@ func TestHttpCall(t *testing.T) {
 				Timeout:    3000,
 			},
 		},
-		// TODO
 		//{
 		//	Name:          "post",
 		//	HttpUrl:       "",

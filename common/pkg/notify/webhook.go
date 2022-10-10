@@ -17,7 +17,6 @@ type WebHook struct {
 var _defaultWebHook *WebHook
 
 func (w *WebHook) SendMsg(msg *Message) {
-	//todo
 	switch _defaultWebHook.Kind {
 	case "feishu":
 		var sendData = feiShuTemplateCard

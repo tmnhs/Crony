@@ -64,15 +64,6 @@ func (p *JobProc) Val() (string, error) {
 	return string(b), nil
 }
 
-//todo 获取节点正在执行任务的数量
-/*func (j *Job) CountRunning() (int64, error) {
-	resp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdProc+j.RunOn+"/"+"%s"+"/"+"%s", j.GroupId, j.ID), clientv3.WithPrefix(), clientv3.WithCountOnly())
-	if err != nil {
-		return 0, err
-	}
-
-	return resp.Count, nil
-}*/
 func (p *JobProc) del() error {
 	if atomic.LoadInt32(&p.HasPut) != 1 {
 		return nil

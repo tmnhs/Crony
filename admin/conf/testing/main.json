@@ -34,7 +34,9 @@
     "host": "smtp.qq.com",
     "is-ssl": true,
     "secret": "wqkncnzhdvbpdabj",
-    "nickname": "crony定时任务平台"
+    "nickname": "crony定时任务平台",
+    "#to": "邮件默认通知对象",
+    "to": ["mananhai@highlight.mobi"]
   },
   "webhook": {
     "url": "",

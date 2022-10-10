@@ -8,11 +8,15 @@ import (
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/tmnhs/crony/admin/internal/model/request"
 	"github.com/tmnhs/crony/common/models"
+	"github.com/tmnhs/crony/common/pkg/config"
 	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
+	"github.com/tmnhs/crony/common/pkg/notify"
+	"github.com/tmnhs/crony/common/pkg/utils"
 	"strings"
 	"sync"
+	"time"
 )
 
 type NodeWatcherService struct {
@@ -52,26 +56,38 @@ func (n *NodeWatcherService) watcher() {
 			case mvccpb.DELETE:
 				uuid := n.GetUUID(string(ev.Kv.Key))
 				logger.GetLogger().Warn(fmt.Sprintf("crony node[%s] DELETE event detected", uuid))
-				//先删除在故障转移
+				node := &models.Node{UUID: uuid}
+				err := node.FindByUUID()
+				if err != nil {
+					logger.GetLogger().Error(fmt.Sprintf("crony node[%s] find by uuid  error:%s", uuid, err.Error()))
+					return
+				}
+				// 先删除再故障转移
 				n.DelNodeList(n.GetUUID(string(ev.Kv.Key)))
 				success, fail, err := n.FailOver(uuid)
 				if err != nil {
 					logger.GetLogger().Error(fmt.Sprintf("crony node[%s] fail over error:%s", uuid, err.Error()))
+					return
 				}
-				/*msg:=&notify.Message{
 
-				}*/
-				logger.GetLogger().Info(fmt.Sprintf("[Crony Warning]crony node[%s] fail over success count:%d jobID are :%s ,fail count:%d jobID are :%s ", uuid, success.Count(), success.String(), fail.Count(), fail.String()))
-				//todo notice
-				// 故障转移
-				/*if node.Alived {
-					n.Send(&Message{
-						Subject: fmt.Sprintf("[Cronsun Warning] Node[%s] break away cluster at %s",
-							node.Hostname, time.Now().Format(time.RFC3339)),
-						Body: fmt.Sprintf("Cronsun Node breaked away cluster, this might happened when node crash or network problems.\nUUID: %s\nHostname: %s\nIP: %s\n", id, node.Hostname, node.IP),
-						To:   conf.Config.Mail.To,
-					})
-				}*/
+				//如果故障转移全部成功则在数据库里删除节点
+				if fail.Count() == 0 {
+					err = node.Delete()
+					if err != nil {
+						logger.GetLogger().Error(fmt.Sprintf("crony node[%s] delete by uuid  error:%s", uuid, err.Error()))
+					}
+				}
+				//节点失活信息默认使用邮件
+				msg := &notify.Message{
+					Type:      notify.NotifyTypeMail,
+					IP:        fmt.Sprintf("%s:%s", node.IP, node.PID),
+					Subject:   "节点失活报警",
+					Body:      fmt.Sprintf("[Crony Warning]crony node[%s] in the cluster has failed,，fail over success count:%d jobID are :%s ,fail count:%d jobID are :%s ", uuid, success.Count(), success.String(), fail.Count(), fail.String()),
+					To:        config.GetConfigModels().Email.To,
+					OccurTime: time.Now().Format(utils.TimeFormatSecond),
+				}
+
+				go notify.Send(msg)
 			}
 		}
 	}
@@ -149,7 +165,7 @@ func (n *NodeWatcherService) Search(s *request.ReqNodeSearch) ([]models.Node, in
 	if err != nil {
 		return nil, 0, err
 	}
-	err = db.Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Find(&nodes).Error
+	err = db.Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Order("up desc").Find(&nodes).Error
 	if err != nil {
 		return nil, 0, err
 	}
@@ -283,3 +299,13 @@ func (n *NodeWatcherService) GetJobs(nodeUUID string) (jobs []models.Job, err er
 	}
 	return
 }
+
+//todo 获取节点正在执行任务的数量
+/*func (j *Job) CountRunning() (int64, error) {
+	resp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdProc+j.RunOn+"/"+"%s"+"/"+"%s", j.GroupId, j.ID), clientv3.WithPrefix(), clientv3.WithCountOnly())
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.Count, nil
+}*/

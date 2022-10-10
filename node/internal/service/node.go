@@ -23,8 +23,6 @@ type NodeServer struct {
 	*cron.Cron
 
 	jobs handler.Jobs // 和结点相关的任务
-	//fixme
-	//Groups handler.Groups
 
 	// 删除的 job id，用于 group 更新
 	delIDs map[string]bool
@@ -129,9 +127,9 @@ func (srv *NodeServer) Stop(i interface{}) {
 func (srv *NodeServer) Down() {
 	srv.Status = models.NodeConnFail
 	srv.DownTime = time.Now().Unix()
-	err := srv.Node.Delete()
+	err := srv.Node.Update()
 	if err != nil {
-		logger.GetLogger().Warn(fmt.Sprintf("failed to delete node[%s] error:%s", srv.UUID, err.Error()))
+		logger.GetLogger().Warn(fmt.Sprintf("failed to update  node[%s] down  error:%s", srv.UUID, err.Error()))
 	}
 }
 
@@ -146,11 +144,12 @@ func (srv *NodeServer) Run() (err error) {
 		logger.GetLogger().Error(fmt.Sprintf("node[%s] failed to load job error:%s", srv.UUID, err.Error()))
 		return
 	}
-	_, err = srv.Node.Insert()
+	insertId, err := srv.Node.Insert()
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("failed to create node[%s] into db error:%s", srv.UUID, err.Error()))
 		return
 	}
+	srv.Node.ID = insertId
 	//start cron
 	srv.Cron.Start()
 	go srv.watchJobs()
@@ -179,14 +178,13 @@ func (srv *NodeServer) loadJobs() (err error) {
 
 	for _, j := range jobs {
 		j.InitNodeInfo(srv.UUID, srv.Hostname, srv.IP)
-		srv.addJob(j, false)
+		srv.addJob(j)
 	}
 
 	return
 }
 
-//todo notice
-func (srv *NodeServer) addJob(j *handler.Job, notice bool) {
+func (srv *NodeServer) addJob(j *handler.Job) {
 	if err := j.Check(); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("job check error :%s", err.Error()))
 		return
@@ -213,13 +211,13 @@ func (srv *NodeServer) modifyJob(j *handler.Job) {
 	oldJob, ok := srv.jobs[j.ID]
 	// 之前此任务没有在当前结点执行，直接增加任务
 	if !ok {
-		srv.addJob(j, true)
+		srv.addJob(j)
 		return
 	}
 	//先删除
 	srv.deleteJob(oldJob.ID)
 	//再
-	srv.addJob(j, true)
+	srv.addJob(j)
 	return
 }
 
