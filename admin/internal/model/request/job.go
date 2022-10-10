@@ -10,6 +10,7 @@ type (
 		ID      int            `json:"id" form:"id"`
 		Name    string         `json:"name" form:"name"`
 		GroupId int            `json:"group_id" form:"group_id"`
+		RunOn   string         `json:"run_on" form:"run_on"`
 		Kind    int            `json:"kind" form:"kind"`
 		Type    models.JobType `json:"job_type" form:"type"`
 		Status  int            `json:"status" form:"status"`

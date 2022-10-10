@@ -9,6 +9,9 @@ type (
 	ByID struct {
 		ID int `json:"id" form:"id"`
 	}
+	ByIDS struct {
+		IDS []int `json:"ids" form:"ids"`
+	}
 )
 
 func (page *PageInfo) Check() {

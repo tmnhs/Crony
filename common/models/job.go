@@ -16,6 +16,9 @@ const (
 
 	HTTPMethodGet  = 1
 	HTTPMethodPost = 2
+
+	NotifyTypeMail    = 1
+	NotifyTypeWebHook = 2
 	//单机任务
 	JobKindAlone = 1
 	JobKindGroup = 2

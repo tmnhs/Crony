@@ -14,7 +14,7 @@ type JobLog struct {
 	Command  string `json:"command" gorm:"column:command"`
 	IP       string `json:"ip" gorm:"column:ip"` // node ip
 	Hostname string `json:"hostname" gorm:"column:hostname"`
-	NodeUUID string `json:"uuid" gorm:"column:node_uuid"`
+	NodeUUID string `json:"node_uuid" gorm:"column:node_uuid"`
 	Success  bool   `json:"success" gorm:"column:success"`
 
 	Output string `json:"output" gorm:"column:output"`

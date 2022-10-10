@@ -28,8 +28,17 @@ func (n *NodeRouter) Search(c *gin.Context) {
 		resp.FailWithMessage(resp.ERROR, "[search_node] search node  error", c)
 		return
 	}
+	var resultNodes []resp.RspNodeSearch
+	for _, node := range nodes {
+		resultNode := resp.RspNodeSearch{
+			Node: node,
+		}
+		resultNode.JobCount, _ = service.DefaultNodeWatcher.GetJobCount(node.UUID)
+		resultNodes = append(resultNodes, resultNode)
+	}
+
 	resp.OkWithDetailed(resp.PageResult{
-		List:     nodes,
+		List:     resultNodes,
 		Total:    total,
 		Page:     req.Page,
 		PageSize: req.PageSize,

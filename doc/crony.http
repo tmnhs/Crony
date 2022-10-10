@@ -28,31 +28,29 @@ Content-Type: application/json
 
 ###
 #根据id查找
+#GET {{url}}/user/find?id=100004
 GET {{url}}/user/find
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
-{
-  "id":100003
-}
 
 ###
-GET {{url}}/user/search
+POST {{url}}/user/search
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
-  "username":"roo",
+  "username":"",
   "email": "",
   "role": 0,
-  "page": 1,
+  "page": 2,
   "page_size": 10
 }
 
 ###
 POST {{url}}/user/update
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "id": 100003,
@@ -64,7 +62,7 @@ X-Token: {{token}}
 ###
 POST {{url}}/user/del
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "id": 100003
@@ -73,7 +71,7 @@ X-Token: {{token}}
 ###
 POST {{url}}/user/change_pw
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "password": "root",
@@ -83,7 +81,7 @@ X-Token: {{token}}
 ###
 POST {{url}}/user/join
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "user_id": 100004,
@@ -93,7 +91,7 @@ X-Token: {{token}}
 ###
 POST {{url}}/user/kick
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "user_id": 100004,
@@ -103,7 +101,7 @@ X-Token: {{token}}
 ###
 GET {{url}}/user/get_by_group
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "id":2
@@ -113,7 +111,7 @@ X-Token: {{token}}
 #创建或者更新
 POST {{url}}/group/update
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "#id": 3,
@@ -123,7 +121,7 @@ X-Token: {{token}}
 ###
 POST {{url}}/group/del
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "id": 3
@@ -132,7 +130,7 @@ X-Token: {{token}}
 ###
 GET {{url}}/group/find
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "id": 3
@@ -141,7 +139,7 @@ X-Token: {{token}}
 ###
 GET {{url}}/group/search
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "name": ""
@@ -151,7 +149,7 @@ X-Token: {{token}}
 ###
 POST {{url}}/job/add
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 
 {
@@ -175,7 +173,7 @@ X-Token: {{token}}
 ###
 POST {{url}}/job/add
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "name":"hello4",
@@ -197,7 +195,7 @@ X-Token: {{token}}
 ###
 POST {{url}}/job/del
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "id": 23
@@ -207,7 +205,7 @@ X-Token: {{token}}
 ###
 GET {{url}}/job/find
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "id": 20
@@ -216,7 +214,7 @@ X-Token: {{token}}
 ###
 GET {{url}}/job/search
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "id": 0,
@@ -228,7 +226,7 @@ X-Token: {{token}}
 ###
 GET {{url}}/job/log
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "job_id": 0,
@@ -242,7 +240,7 @@ X-Token: {{token}}
 ###
 GET {{url}}/job/once
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "job_id": 29,
@@ -251,9 +249,9 @@ X-Token: {{token}}
 }
 
 ###
-GET {{url}}/node/search
+POST {{url}}/node/search
 Content-Type: application/json
-X-Token: {{token}}
+Authorization: {{token}}
 
 {
   "ip": "",

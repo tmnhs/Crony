@@ -145,14 +145,15 @@ func (n *NodeWatcherService) Search(s *request.ReqNodeSearch) ([]models.Node, in
 	}
 	nodes := make([]models.Node, 2)
 	var total int64
-	err := db.Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Find(&nodes).Error
+	err := db.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	err = db.Count(&total).Error
+	err = db.Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Find(&nodes).Error
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return nodes, total, nil
 }
 

@@ -18,6 +18,7 @@ type (
 	}
 	ReqUserSearch struct {
 		PageInfo
+		ID       int    `json:"id" form:"id"`
 		UserName string `json:"username" form:"username"`
 		Email    string `json:"email" form:"email"`
 		Role     int    `json:"role" form:"email"`

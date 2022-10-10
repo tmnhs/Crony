@@ -38,22 +38,27 @@ func (us *UserService) Search(s *request.ReqUserSearch) ([]models.User, int64, e
 	if len(s.UserName) > 0 {
 		db = db.Where("username like ?", s.UserName+"%")
 	}
+
 	if len(s.Email) > 0 {
 		db.Where("email = ?", s.Email)
 	}
 	if s.Role > 0 {
 		db.Where("role = ?", s.Role)
 	}
+	if s.ID > 0 {
+		db.Where("id = ?", s.ID)
+	}
 	users := make([]models.User, 2)
 	var total int64
-	err := db.Select("id", "username", "email", "role", "created", "updated").Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Find(&users).Error
+	err := db.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	err = db.Count(&total).Error
+	err = db.Select("id", "username", "email", "role", "created", "updated").Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Find(&users).Error
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return users, total, nil
 }
 

@@ -99,11 +99,11 @@ func (j *JWT) ParseToken(tokenString string) (*CustomClaims, error) {
 }
 
 func GetClaims(c *gin.Context) (*CustomClaims, error) {
-	token := c.Request.Header.Get("x-token")
+	token := c.Request.Header.Get("Authorization")
 	j := NewJWT()
 	claims, err := j.ParseToken(token)
 	if err != nil {
-		logger.GetLogger().Error("从Gin的Context中获取从jwt解析信息失败, 请检查请求头是否存在x-token且claims是否为规定结构")
+		logger.GetLogger().Error("从Gin的Context中获取从jwt解析信息失败, 请检查请求头是否存在Authorization且claims是否为规定结构")
 	}
 	return claims, err
 }
@@ -124,8 +124,8 @@ func GetUserInfo(c *gin.Context) *CustomClaims {
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 我们这里jwt鉴权取头部信息 x-token 登录时回返回token信息 这里前端需要把token存储到cookie或者本地localStorage中 不过需要跟后端协商过期时间 可以约定刷新令牌或者重新登录
-		token := c.Request.Header.Get("x-token")
+		// 我们这里jwt鉴权取头部信息 Authorization 登录时回返回token信息 这里前端需要把token存储到cookie或者本地localStorage中 不过需要跟后端协商过期时间 可以约定刷新令牌或者重新登录
+		token := c.Request.Header.Get("Authorization")
 		if token == "" {
 			logger.GetLogger().Debug("get jwt  token error ,you have no right ")
 			resp.FailWithDetailed(resp.ERROR, gin.H{"reload": true}, "未登录或非法访问", c)

@@ -22,8 +22,8 @@ func (j *JobService) Search(s *request.ReqJobSearch) ([]models.Job, int64, error
 	if len(s.Name) > 0 {
 		db = db.Where("name like ?", s.Name+"%")
 	}
-	if s.GroupId > 0 {
-		db.Where("group_id = ?", s.GroupId)
+	if len(s.RunOn) > 0 {
+		db.Where("run_on = ?", s.RunOn)
 	}
 	if s.Type > 0 {
 		db.Where("type = ?", s.Type)
@@ -36,11 +36,11 @@ func (j *JobService) Search(s *request.ReqJobSearch) ([]models.Job, int64, error
 	}
 	jobs := make([]models.Job, 2)
 	var total int64
-	err := db.Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Find(&jobs).Error
+	err := db.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	err = db.Count(&total).Error
+	err = db.Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Find(&jobs).Error
 	if err != nil {
 		return nil, 0, err
 	}
@@ -66,14 +66,15 @@ func (j *JobService) SearchJobLog(s *request.ReqJobLogSearch) ([]models.JobLog, 
 	}
 	jobLogs := make([]models.JobLog, 2)
 	var total int64
-	err := db.Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Find(&jobLogs).Error
+	err := db.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	err = db.Count(&total).Error
+	err = db.Limit(s.PageSize).Offset((s.Page - 1) * s.PageSize).Find(&jobLogs).Error
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return jobLogs, total, nil
 }
 

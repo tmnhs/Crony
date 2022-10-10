@@ -97,42 +97,42 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 }
 
 func (j *JobRouter) Delete(c *gin.Context) {
-	var req request.ByID
+	var req request.ByIDS
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[delete_job] request parameter error:%s", err.Error()))
 		resp.FailWithMessage(resp.ErrorRequestParameter, "[delete_job] request parameter error", c)
 		return
 	}
-	//先查找再删除etcd之后再删除数据库
-	job := models.Job{ID: req.ID}
-	err := job.FindById()
-	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[delete_job] find job by id :%d error:%s", req.ID, err.Error()))
-		resp.FailWithMessage(resp.ERROR, "[delete_job] find job by id error", c)
-		return
-	}
-	_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, job.RunOn, job.GroupId, req.ID))
-	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[delete_job] etcd delete job error:%s", err.Error()))
-		resp.FailWithMessage(resp.ERROR, "[delete_job] etcd delete job error", c)
-		return
-	}
-	err = job.Delete()
-	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[delete_job] into db error:%s", err.Error()))
-		resp.FailWithMessage(resp.ERROR, "[delete_job] into db error", c)
-		return
+	for _, id := range req.IDS {
+		//先查找再删除etcd之后再删除数据库
+		job := models.Job{ID: id}
+		err := job.FindById()
+		if err != nil {
+			logger.GetLogger().Error(fmt.Sprintf("[delete_job] find job by id :%d error:%s", id, err.Error()))
+			continue
+		}
+		_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, job.RunOn, job.GroupId, id))
+		if err != nil {
+			logger.GetLogger().Error(fmt.Sprintf("[delete_job] etcd delete job error:%s", err.Error()))
+			continue
+		}
+		err = job.Delete()
+		if err != nil {
+			logger.GetLogger().Error(fmt.Sprintf("[delete_job] into db error:%s", err.Error()))
+			continue
+		}
 	}
 	resp.OkWithMessage("delete success", c)
 }
 
 func (j *JobRouter) FindById(c *gin.Context) {
 	var req request.ByID
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindQuery(&req); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[find_job] request parameter error:%s", err.Error()))
 		resp.FailWithMessage(resp.ErrorRequestParameter, "[find_job] request parameter error", c)
 		return
 	}
+
 	//先查找再删除etcd之后再删除数据库
 	job := models.Job{ID: req.ID}
 	err := job.FindById()

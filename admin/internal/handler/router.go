@@ -26,9 +26,9 @@ func RegisterRouters(c *gin.Engine) {
 		job.POST("add", defaultJobRouter.CreateOrUpdate)
 		job.POST("del", defaultJobRouter.Delete)
 		job.GET("find", defaultJobRouter.FindById)
-		job.GET("search", defaultJobRouter.Search)
-		job.GET("log", defaultJobRouter.SearchLog)
-		job.GET("once", defaultJobRouter.Once)
+		job.POST("search", defaultJobRouter.Search)
+		job.POST("log", defaultJobRouter.SearchLog)
+		job.POST("once", defaultJobRouter.Once)
 	}
 
 	user := c.Group("/user")
@@ -38,7 +38,7 @@ func RegisterRouters(c *gin.Engine) {
 		user.POST("update", defaultUserRouter.Update)
 		user.POST("change_pw", defaultUserRouter.ChangePassword)
 		user.GET("find", defaultUserRouter.FindById)
-		user.GET("search", defaultUserRouter.Search)
+		user.POST("search", defaultUserRouter.Search)
 		user.GET("get_by_group", defaultUserRouter.GetByGroupId)
 		user.POST("join", defaultUserRouter.JoinGroup)
 		user.POST("kick", defaultUserRouter.KickGroup)
@@ -46,14 +46,14 @@ func RegisterRouters(c *gin.Engine) {
 	node := c.Group("/node")
 	node.Use(middlerware.JWTAuth())
 	{
-		node.GET("search", defaultNodeRouter.Search)
+		node.POST("search", defaultNodeRouter.Search)
 		node.POST("join", defaultNodeRouter.JoinGroup)
 		node.POST("kick", defaultNodeRouter.KickGroup)
 		node.GET("get_by_group", defaultNodeRouter.GetByGroupId)
 	}
 
 	group := c.Group("/group")
-	group.Use(middlerware.JWTAuth())
+	//group.Use(middlerware.JWTAuth())
 	{
 		group.POST("update", defaultGroupRouter.CreateOrUpdate)
 		group.POST("del", defaultGroupRouter.Delete)

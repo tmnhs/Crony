@@ -97,21 +97,23 @@ func (u *UserRouter) Update(c *gin.Context) {
 		return
 	}
 	resp.OkWithMessage("update success", c)
+	//}
+
 }
 
 func (u *UserRouter) Delete(c *gin.Context) {
-	var req request.ByID
+	var req request.ByIDS
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[delete_user] request parameter error:%s", err.Error()))
 		resp.FailWithMessage(resp.ErrorRequestParameter, "[delete_user] request parameter error", c)
 		return
 	}
-	userModel := models.User{ID: req.ID}
-	err := userModel.Delete()
-	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("[delete_user] db error:%v", err))
-		resp.FailWithMessage(resp.ERROR, "[delete_user] db error", c)
-		return
+	for _, id := range req.IDS {
+		userModel := models.User{ID: id}
+		err := userModel.Delete()
+		if err != nil {
+			logger.GetLogger().Error(fmt.Sprintf("[delete_user] db error:%v", err))
+		}
 	}
 	resp.OkWithMessage("delete success", c)
 }
@@ -134,10 +136,13 @@ func (u *UserRouter) ChangePassword(c *gin.Context) {
 
 func (u *UserRouter) FindById(c *gin.Context) {
 	var req request.ByID
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindQuery(&req); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[find_user] request parameter error:%s", err.Error()))
 		resp.FailWithMessage(resp.ErrorRequestParameter, "[find_user] request parameter error", c)
 		return
+	}
+	if req.ID == 0 {
+		req.ID = middlerware.GetUserInfo(c).ID
 	}
 	userModel := models.User{ID: req.ID}
 	err := userModel.FindById()
