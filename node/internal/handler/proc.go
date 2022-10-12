@@ -15,7 +15,7 @@ import (
 
 //继承
 // 当前执行中的任务信息
-// key: /cronsun/proc/node/group/jobId/pid
+// key: /crony/proc/<node_uuid>/<job_id>/pid
 // value: 开始执行时间
 //key 会自动过期，防止进程意外退出后没有清除相关 key，过期时间可配置
 type JobProc struct {

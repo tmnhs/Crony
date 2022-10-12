@@ -10,8 +10,7 @@ const (
 	NodeConnFail    = 2
 )
 
-// 执行 cron cmd 的进程
-// 注册到 /cronsun/node/<id>
+// 注册到 /crony/node/<node_uuid>>/
 type Node struct {
 	ID       int    `json:"id" gorm:"column:id"`   // machine id
 	PID      string `json:"pid" gorm:"column:pid"` // 进程 pid

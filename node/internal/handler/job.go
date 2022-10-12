@@ -138,11 +138,6 @@ func CreateJob(j *Job) cron.FuncJob {
 		return nil
 	}
 	jobFunc := func() {
-		/*handler.taskCount.Add()
-		defer handler.taskCount.Done()
-
-		handler.concurrencyQueue.Add()
-		defer handler.concurrencyQueue.Done()*/
 		logger.GetLogger().Info(fmt.Sprintf("start the job#%s#command-%s", j.Name, j.Command))
 		// 默认只运行任务一次
 		var execTimes int = 1

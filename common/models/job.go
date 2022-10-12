@@ -33,18 +33,13 @@ const (
 	AutoAllocation   = 2
 )
 
-// 需要执行的 cron cmd 命令
-// 注册到 /cronsun/cmd/<node_uuid>/<group_id>/<job_id>
+// 注册到 /crony/job/<node_uuid>/<job_id>
 type Job struct {
 	ID      int    `json:"id" gorm:"column:id"`
 	Name    string `json:"name" gorm:"column:name" binding:"required"`
 	Command string `json:"command" gorm:"column:command" binding:"required"`
 	CmdUser string `json:"user" gorm:"column:cmd_user"`
-	Pause   bool   `json:"pause" gorm:"-"`                // 可手工控制的状态
 	Timeout int64  `json:"timeout" gorm:"column:timeout"` // 任务执行时间超时设置，大于 0 时有效
-	// 设置任务在单个节点上可以同时允许多少个
-	// 针对两次任务执行间隔比任务执行时间要长的任务启用
-	Parallels int64 `json:"parallels" gorm:"-"`
 	// 执行任务失败重试次数
 	// 默认为 0，不重试
 	RetryTimes int `json:"retry_times" gorm:"column:retry_times"`
@@ -52,10 +47,6 @@ type Job struct {
 	// 单位秒，如果不大于 0 则马上重试
 	RetryInterval int64 `json:"retry_interval" gorm:"column:retry_interval"`
 	// 任务类型
-	// 0: 普通任务
-	// 1: 单机任务
-	// 如果为单机任务，node 加载任务的时候 Parallels 设置 1
-	Kind       int     `json:"kind" gorm:"column:kind"`
 	Type       JobType `json:"job_type" gorm:"column:type" binding:"required"`
 	HttpMethod int     `json:"http_method" gorm:"column:http_method"`
 	// 执行失败是否发送通知
@@ -68,9 +59,6 @@ type Job struct {
 	Note          string `json:"note" gorm:"column:note"`
 	Created       int64  `json:"created" gorm:"column:created"`
 	Updated       int64  `json:"updated" gorm:"column:updated"`
-	// 平均执行时间，单位 ms
-	AvgTime int64 `json:"avg_time" gorm:"-"`
-
 	// 执行任务的结点，用于记录 job log
 	RunOn    string `json:"run_on" gorm:"column:run_on"`
 	Hostname string `json:"host_name" gorm:"-"`
