@@ -20,10 +20,11 @@ func RegisterRouters(c *gin.Engine) {
 		base.POST("login", defaultUserRouter.Login)
 	}
 
-	stat := c.Group("/static")
+	stat := c.Group("/statis")
 	stat.Use(middlerware.JWTAuth())
 	{
-		stat.GET("", defaultNodeRouter.GetStatistics)
+		stat.GET("today", defaultStatRouter.GetTodayStatistics)
+		stat.GET("week", defaultStatRouter.GetWeekStatistics)
 	}
 	job := c.Group("/job")
 	job.Use(middlerware.JWTAuth())

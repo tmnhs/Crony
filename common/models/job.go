@@ -70,8 +70,6 @@ type Job struct {
 	Updated       int64  `json:"updated" gorm:"column:updated"`
 	// 平均执行时间，单位 ms
 	AvgTime int64 `json:"avg_time" gorm:"-"`
-	// 单独对任务指定日志清除时间
-	LogExpiration int `json:"log_expiration" gorm:"-"`
 
 	// 执行任务的结点，用于记录 job log
 	RunOn    string `json:"run_on" gorm:"column:run_on"`
@@ -110,10 +108,6 @@ func (j *Job) Check() error {
 	if len(j.Name) == 0 {
 		return errors.ErrEmptyJobName
 	}
-	if j.LogExpiration < 0 {
-		j.LogExpiration = 0
-	}
-
 	j.CmdUser = strings.TrimSpace(j.CmdUser)
 
 	// 不修改 Command 的内容，简单判断是否为空

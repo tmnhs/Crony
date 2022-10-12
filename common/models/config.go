@@ -1,13 +1,10 @@
 package models
 
 const (
-	CronyNodeTableName      = "node"
-	CronyGroupTableName     = "group"
-	CronyNodeGroupTableName = "node_group"
-	CronyUserGroupTableName = "user_group"
-	CronyJobTableName       = "job"
-	CronyJobLogTableName    = "job_log"
-	CronyUserTableName      = "user"
+	CronyNodeTableName   = "node"
+	CronyJobTableName    = "job"
+	CronyJobLogTableName = "job_log"
+	CronyUserTableName   = "user"
 )
 
 type (
@@ -45,11 +42,13 @@ type (
 		ReqTimeout  int64    `mapstructure:"req-timeout" json:"req-timeout" yaml:"req-timeout"`
 	}
 	System struct {
-		Env        string `mapstructure:"env" json:"env" yaml:"env"`                            // 环境值
-		Addr       int    `mapstructure:"addr" json:"addr" yaml:"addr"`                         // 端口值
-		NodeTtl    int64  `mapstructure:"node-ttl" json:"node-ttl" yaml:"node-ttl"`             //
-		JobProcTtl int64  `mapstructure:"job-proc-ttl" json:"job-proc-ttl" yaml:"job-proc-ttl"` //
-		Version    string `mapstructure:"version" json:"version" yaml:"version"`                //
+		Env                string `mapstructure:"env" json:"env" yaml:"env"`                            // 环境值
+		Addr               int    `mapstructure:"addr" json:"addr" yaml:"addr"`                         // 端口值
+		NodeTtl            int64  `mapstructure:"node-ttl" json:"node-ttl" yaml:"node-ttl"`             //
+		JobProcTtl         int64  `mapstructure:"job-proc-ttl" json:"job-proc-ttl" yaml:"job-proc-ttl"` //
+		Version            string `mapstructure:"version" json:"version" yaml:"version"`                //
+		LogCleanPeriod     int64  `mapstructure:"log-clean-period" json:"log-clean-period" yaml:"log-clean-period"`
+		LogCleanExpiration int64  `mapstructure:"log-clean-expiration" json:"log-clean-expiration" yaml:"log-clean-expiration"`
 	}
 	Log struct {
 		Level         string `mapstructure:"level" json:"level" yaml:"level"`                           // 级别

@@ -6,7 +6,6 @@ import (
 	"github.com/tmnhs/crony/admin/internal/model/request"
 	"github.com/tmnhs/crony/admin/internal/model/resp"
 	"github.com/tmnhs/crony/admin/internal/service"
-	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/logger"
 )
 
@@ -43,34 +42,4 @@ func (n *NodeRouter) Search(c *gin.Context) {
 		Page:     req.Page,
 		PageSize: req.PageSize,
 	}, "search success", c)
-}
-
-func (n *NodeRouter) GetStatistics(c *gin.Context) {
-	jobExcSuccess, err := service.DefaultJobService.GetTodayJobExcCount(models.JobExcSuccess)
-	if err != nil {
-		logger.GetLogger().Warn(fmt.Sprintf("[get_statisitcs] GetTodayJobExcCount(successs)  error:%s", err.Error()))
-	}
-	jobExcFail, err := service.DefaultJobService.GetTodayJobExcCount(models.JobExcFail)
-	if err != nil {
-		logger.GetLogger().Warn(fmt.Sprintf("[get_statisitcs] GetTodayJobExcCount(fail) error:%s", err.Error()))
-	}
-	jobRunningCount, err := service.DefaultJobService.GetRunningJobCount()
-	if err != nil {
-		logger.GetLogger().Warn(fmt.Sprintf("[get_statisitcs] GetRunningJobCount error:%s", err.Error()))
-	}
-	normalNodeCount, err := service.DefaultNodeWatcher.GetNodeCount(models.NodeConnSuccess)
-	if err != nil {
-		logger.GetLogger().Warn(fmt.Sprintf("[get_statisitcs] GetNodeCount(success) error:%s", err.Error()))
-	}
-	failNodeCount, err := service.DefaultNodeWatcher.GetNodeCount(models.NodeConnFail)
-	if err != nil {
-		logger.GetLogger().Warn(fmt.Sprintf("[get_statisitcs] GetNodeCount(fail) error:%s", err.Error()))
-	}
-	resp.OkWithDetailed(resp.RspSystemStatistics{
-		NormalNodeCount: normalNodeCount,
-		FailNodeCount:   failNodeCount,
-		JobExcCount:     jobExcFail + jobExcSuccess,
-		JobRunningCount: jobRunningCount,
-		JobExcFailCount: jobExcFail,
-	}, "ok", c)
 }

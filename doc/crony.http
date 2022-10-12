@@ -261,3 +261,9 @@ Authorization: {{token}}
   "uuid": "",
   "page_size": 20
 }
+
+###
+GET {{url}}/statis/week
+Content-Type: application/json
+Authorization: {{token}}
+

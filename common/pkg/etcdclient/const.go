@@ -19,4 +19,7 @@ const (
 	// key /crony/once/<jobID>
 	KeyEtcdOnceProfile = keyEtcdProfile + "once/"
 	KeyEtcdOnce        = KeyEtcdOnceProfile + "%d"
+
+	KeyEtcdLockProfile = keyEtcdProfile + "lock/"
+	KeyEtcdLock        = KeyEtcdLockProfile + "%s"
 )

@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"github.com/tmnhs/crony/admin/internal/handler"
 	"github.com/tmnhs/crony/admin/internal/service"
+	"github.com/tmnhs/crony/common/pkg/config"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"github.com/tmnhs/crony/common/pkg/notify"
 	"github.com/tmnhs/crony/common/pkg/server"
 	"os"
+	"time"
 )
 
 const (
@@ -29,10 +31,15 @@ func main() {
 	}
 	//初始化邮件配置
 	go notify.Serve()
-	//todo 定时清理日志
+	var closeChan chan struct{}
+	period := config.GetConfigModels().System.LogCleanPeriod
+	if period > 0 {
+		closeChan = service.RunLogCleaner(time.Duration(period)*time.Minute, config.GetConfigModels().System.LogCleanExpiration)
+	}
 	err = srv.ListenAndServe()
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("startup api server error:%v", err.Error()))
+		close(closeChan)
 		os.Exit(1)
 	}
 	os.Exit(0)

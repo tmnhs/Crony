@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"github.com/coreos/etcd/clientv3"
 	"github.com/tmnhs/crony/admin/internal/model/request"
+	"github.com/tmnhs/crony/admin/internal/model/resp"
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"github.com/tmnhs/crony/common/pkg/utils"
+	"time"
 )
 
 type JobService struct {
@@ -80,15 +82,26 @@ func (j *JobService) SearchJobLog(s *request.ReqJobLogSearch) ([]models.JobLog, 
 	return jobLogs, total, nil
 }
 
-//获取任务执行总数 1表示成功 0表示失败
+//获取今日任务执行总数 1表示成功 0表示失败
 func (j *JobService) GetTodayJobExcCount(success int) (int64, error) {
-	db := dbclient.GetMysqlDB().Table(models.CronyJobLogTableName).Where("start_time > ?", utils.GetTodayUnix()).Where("success = ?", success)
+	db := dbclient.GetMysqlDB().Table(models.CronyJobLogTableName).Where("start_time > ? and end_time!=0 and success = ?", utils.GetTodayUnix(), success)
 	var total int64
 	err := db.Count(&total).Error
 	if err != nil {
 		return 0, err
 	}
 	return total, nil
+}
+
+//某个时间段内每天的任务数量
+func (j *JobService) GetJobExcCount(start, end int64, success int) ([]resp.DateCount, error) {
+	var dateCount []resp.DateCount
+	db := dbclient.GetMysqlDB().Table(models.CronyJobLogTableName).Select("FROM_UNIXTIME( start_time, '%Y-%m-%d' ) AS date", "COUNT( * ) AS count ").Group("date").Order("date ASC").Where("start_time > ? and start_time<?  and end_time!=0 and success = ?", start, end, success)
+	err := db.Find(&dateCount).Error
+	if err != nil {
+		return nil, err
+	}
+	return dateCount, nil
 }
 
 //
@@ -126,4 +139,28 @@ func (j *JobService) AutoAllocateNode() string {
 func (j *JobService) Once(once *request.ReqJobOnce) (err error) {
 	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdOnce, once.JobId), once.NodeUUID)
 	return
+}
+
+func RunLogCleaner(cleanPeriod time.Duration, expiration int64) (close chan struct{}) {
+	t := time.NewTicker(cleanPeriod)
+	close = make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-t.C:
+				err := cleanupLogs(expiration)
+				if err != nil {
+					logger.GetLogger().Error(fmt.Sprintf("clean up logs at time:%v error:%s", time.Now(), err.Error()))
+				}
+			case <-close:
+				return
+			}
+		}
+	}()
+	return
+}
+
+func cleanupLogs(expirationTime int64) error {
+	sql := fmt.Sprintf("delete from %s where start_time < ?", models.CronyJobLogTableName)
+	return dbclient.GetMysqlDB().Exec(sql, time.Now().Unix()-expirationTime).Error
 }

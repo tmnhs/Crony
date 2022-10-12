@@ -16,7 +16,10 @@
     "addr": 8088,
     "#node-timeout": "节点超时时间，单位秒",
     "node-ttl": 5,
-    "job-proc-ttl": 300
+    "job-proc-ttl": 300,
+    "#log_clean_period":"分钟",
+    "log-clean-period":1440,
+    "log-clean-expiration":604800
   },
   "etcd": {
     "endpoints":[
