@@ -267,3 +267,9 @@ GET {{url}}/statis/week
 Content-Type: application/json
 Authorization: {{token}}
 
+
+
+###
+GET {{url}}/statis/system?uuid=126f4568-4a40-11ed-9241-ccf9e4ca232f
+Content-Type: application/json
+Authorization: {{token}}

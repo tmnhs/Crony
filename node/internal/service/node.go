@@ -113,10 +113,13 @@ func (srv *NodeServer) Register() error {
 // 停止服务
 func (srv *NodeServer) Stop(i interface{}) {
 	srv.Down()
-
 	_, err := etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdNode, srv.UUID))
 	if err != nil {
 		logger.GetLogger().Warn(fmt.Sprintf("failed to delete etcd node[%s] key error:%s", srv.UUID, err.Error()))
+	}
+	_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdSystemGet, srv.UUID))
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("failed to delete system etcd node[%s] key error:%s", srv.UUID, err.Error()))
 	}
 
 	_ = srv.Client.Close()
@@ -155,6 +158,7 @@ func (srv *NodeServer) Run() (err error) {
 	go srv.watchJobs()
 	go srv.watchKilledProc()
 	go srv.watchOnce()
+	go srv.watchSystemInfo()
 	return
 }
 
@@ -191,7 +195,7 @@ func (srv *NodeServer) addJob(j *handler.Job) {
 	}
 	taskFunc := handler.CreateJob(j)
 	if taskFunc == nil {
-		logger.GetLogger().Error(fmt.Sprintf("创建任务处理Job失败,不支持的任务协议#%s", j.Type))
+		logger.GetLogger().Error(fmt.Sprintf("Failed to create a task to process the Job. The task protocol was not supported%s", j.Type))
 		return
 	}
 	err := goutil.PanicToError(func() {

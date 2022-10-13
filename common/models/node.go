@@ -8,6 +8,8 @@ import (
 const (
 	NodeConnSuccess = 1
 	NodeConnFail    = 2
+
+	NodeSystemInfoSwitch = "alive"
 )
 
 // 注册到 /crony/node/<node_uuid>>/

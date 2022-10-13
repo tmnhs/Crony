@@ -9,8 +9,8 @@ const (
 	KeyEtcdNode        = KeyEtcdNodeProfile + "%s"
 
 	//key  /crony/proc/<node_uuid>/<job_id>/<pid>
-	KeyEtcdProcProfile = keyEtcdProfile + "proc/"
-	KeyEtcdProc        = KeyEtcdProcProfile + "%s/%d/%d"
+	KeyEtcdProcProfile = keyEtcdProfile + "proc/%s"
+	KeyEtcdProc        = KeyEtcdProcProfile + "%d/%d"
 
 	//key /crony/job/<node_uuid>/<job_id>
 	KeyEtcdJobProfile = keyEtcdProfile + "job/%s/"
@@ -22,4 +22,9 @@ const (
 
 	KeyEtcdLockProfile = keyEtcdProfile + "lock/"
 	KeyEtcdLock        = KeyEtcdLockProfile + "%s"
+
+	// key /crony/system/<node_uuid>
+	KeyEtcdSystemProfile = keyEtcdProfile + "system/"
+	KeyEtcdSystemSwitch  = KeyEtcdSystemProfile + "switch/" + "%s"
+	KeyEtcdSystemGet     = KeyEtcdSystemProfile + "get/" + "%s"
 )

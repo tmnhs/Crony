@@ -299,3 +299,19 @@ func (n *NodeWatcherService) GetNodeCount(status int) (int64, error) {
 	}
 	return total, nil
 }
+
+func GetNodeSystemInfo(uuid string) (s *utils.Server, err error) {
+	defer func() {
+		_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdSystemSwitch, uuid))
+	}()
+	s = new(utils.Server)
+	res, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdSystemGet, uuid), clientv3.WithPrefix())
+	if err != nil || len(res.Kvs) == 0 {
+		return
+	}
+	err = json.Unmarshal(res.Kvs[0].Value, s)
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("json error:%v", err))
+	}
+	return
+}

@@ -18,10 +18,13 @@ require (
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/ouqiang/goutil v1.4.1
+	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/spf13/viper v1.13.0
+	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6 // indirect
 	github.com/xiang90/probing v0.0.0-20160813154853-07dd2e8dfe18 // indirect
+	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.uber.org/zap v1.17.0
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
 	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
