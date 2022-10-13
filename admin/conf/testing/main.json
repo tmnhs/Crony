@@ -17,9 +17,11 @@
     "#node-timeout": "节点超时时间，单位秒",
     "node-ttl": 5,
     "job-proc-ttl": 300,
-    "#log_clean_period":"分钟",
+    "#log-clean-period":"分钟",
     "log-clean-period":1440,
-    "log-clean-expiration":604800
+    "log-clean-expiration":604800,
+    "#cmd-auto-allocation": "是否支持cmd即shell命令自动分配节点，默认不支持,如果需要支持，必须确保每个节点都有响应的配置",
+    "cmd-auto-allocation":false
   },
   "etcd": {
     "endpoints":[

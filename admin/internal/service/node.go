@@ -111,6 +111,30 @@ func (n *NodeWatcherService) SetNodeList(key, val string) {
 	defer n.lock.Unlock()
 	n.nodeList[key] = val
 	logger.GetLogger().Debug(fmt.Sprintf("discover node[%s],pid[%s]", key, val))
+	//寻找为分配的job
+	jobs, err := DefaultJobService.GetNotAssignedJob()
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("discover node[%s],pid[%s] and get not assigned job err:%s", key, val, err.Error()))
+		return
+	}
+	//将未分配的job分配给node
+	for _, job := range jobs {
+		if job.Type == models.JobTypeCmd && !config.GetConfigModels().System.CmdAutoAllocation {
+			logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d]  don't support cmd type", job.ID))
+			continue
+		}
+		nodeUUID := DefaultJobService.AutoAllocateNode()
+		if nodeUUID == "" {
+			//自动分配失败，则直接分配给新增的节点
+			nodeUUID = n.GetUUID(key)
+		}
+		err = n.assignJob(nodeUUID, job)
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d]  error:%s", job.ID, err.Error()))
+			continue
+		}
+
+	}
 }
 
 func (n *NodeWatcherService) DelNodeList(key string) {
@@ -201,6 +225,32 @@ func (r Result) String() (str string) {
 	return
 }
 
+func (n *NodeWatcherService) assignJob(nodeUUID string, job models.Job) (err error) {
+	node := &models.Node{UUID: nodeUUID}
+	err = node.FindByUUID()
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d] json marshal job error:%s", job.ID, err.Error()))
+		return
+	}
+	b, err := json.Marshal(job)
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("assign unassigned job[%d] json marshal job error:%s", job.ID, err.Error()))
+		return
+	}
+	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdJob, job.RunOn, job.ID), string(b))
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("assign unassigned job[%d] put to etcd error:%s", job.ID, err.Error()))
+		return
+	}
+	job.InitNodeInfo(models.JobStatusAssigned, node.UUID, node.Hostname, node.IP)
+	err = job.Update()
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d] update job into db error:%s", job.ID, err.Error()))
+		return
+	}
+	return
+}
+
 //故障转移
 func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Result, err error) {
 	jobs, err := n.GetJobs(nodeUUID)
@@ -212,12 +262,12 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Res
 		return
 	}
 	for _, job := range jobs {
-		//fixme
-		/*if job.Type == models.JobTypeCmd {
+		//不支持shell命令故障转移
+		if job.Type == models.JobTypeCmd && !config.GetConfigModels().System.CmdAutoAllocation {
 			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over don't support cmd type", nodeUUID, job.ID))
 			fail = append(fail, job.ID)
 			continue
-		}*/
+		}
 		oldUUID := job.RunOn
 		autoUUID := DefaultJobService.AutoAllocateNode()
 		if autoUUID == "" {
@@ -225,30 +275,9 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Res
 			fail = append(fail, job.ID)
 			continue
 		}
-		node := &models.Node{UUID: autoUUID}
-		err = node.FindByUUID()
+		err = n.assignJob(autoUUID, job)
 		if err != nil {
-			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over auto allocate node db find error:%s", nodeUUID, job.ID, err.Error()))
-			fail = append(fail, job.ID)
-			continue
-		}
-		job.InitNodeInfo(node.UUID, node.Hostname, node.IP)
-		err = job.Update()
-		if err != nil {
-			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over auto allocate node db update error:%s", nodeUUID, job.ID, err.Error()))
-			fail = append(fail, job.ID)
-			continue
-		}
-		b, err := json.Marshal(job)
-		if err != nil {
-			logger.GetLogger().Error(fmt.Sprintf("node[%s] job[%d] fail over json marshal job error:%s", nodeUUID, job.ID, err.Error()))
-			fail = append(fail, job.ID)
-			continue
-		}
-
-		_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdJob, job.RunOn, job.ID), string(b))
-		if err != nil {
-			logger.GetLogger().Error(fmt.Sprintf("node[%s] job[%d] fail over etcd put job error:%s", nodeUUID, job.ID, err.Error()))
+			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over assign job error", nodeUUID, job.ID))
 			fail = append(fail, job.ID)
 			continue
 		}

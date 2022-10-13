@@ -49,6 +49,7 @@ type (
 		Version            string `mapstructure:"version" json:"version" yaml:"version"`                //
 		LogCleanPeriod     int64  `mapstructure:"log-clean-period" json:"log-clean-period" yaml:"log-clean-period"`
 		LogCleanExpiration int64  `mapstructure:"log-clean-expiration" json:"log-clean-expiration" yaml:"log-clean-expiration"`
+		CmdAutoAllocation  bool   `mapstructure:"cmd-auto-allocation" json:"cmd-auto-allocation" yaml:"cmd-auto-allocation"`
 	}
 	Log struct {
 		Level         string `mapstructure:"level" json:"level" yaml:"level"`                           // 级别

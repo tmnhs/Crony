@@ -6,6 +6,7 @@ import (
 	"github.com/ouqiang/goutil"
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/config"
+	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"github.com/tmnhs/crony/common/pkg/utils"
@@ -132,7 +133,15 @@ func (srv *NodeServer) Down() {
 	srv.DownTime = time.Now().Unix()
 	err := srv.Node.Update()
 	if err != nil {
-		logger.GetLogger().Warn(fmt.Sprintf("failed to update  node[%s] down  error:%s", srv.UUID, err.Error()))
+		logger.GetLogger().Error(fmt.Sprintf("failed to update  node[%s] down  error:%s", srv.UUID, err.Error()))
+	}
+	err = dbclient.GetMysqlDB().Table(models.CronyJobTableName).Select("status", "run_on").Where("run_on = ? ", srv.UUID).Updates(models.Job{
+		Status: models.JobStatusNotAssigned,
+		RunOn:  "",
+	}).Error
+
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("failed to update job on node[%s] down  error:%s", srv.UUID, err.Error()))
 	}
 }
 
@@ -181,7 +190,7 @@ func (srv *NodeServer) loadJobs() (err error) {
 	srv.jobs = jobs
 
 	for _, j := range jobs {
-		j.InitNodeInfo(srv.UUID, srv.Hostname, srv.IP)
+		j.InitNodeInfo(models.JobStatusAssigned, srv.UUID, srv.Hostname, srv.IP)
 		srv.addJob(j)
 	}
 

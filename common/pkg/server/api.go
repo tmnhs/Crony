@@ -257,7 +257,7 @@ func NewApiServer(serverName string, inits ...func()) (*ApiServer, error) {
 	case config.EnvProduction:
 		gin.SetMode(gin.ReleaseMode)
 	case config.EnvTesting:
-		gin.SetMode(gin.TestMode)
+		gin.SetMode(gin.DebugMode)
 	}
 	return apiServer, nil
 }

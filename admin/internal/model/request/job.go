@@ -7,18 +7,15 @@ import (
 type (
 	ReqJobSearch struct {
 		PageInfo
-		ID      int            `json:"id" form:"id"`
-		Name    string         `json:"name" form:"name"`
-		GroupId int            `json:"group_id" form:"group_id"`
-		RunOn   string         `json:"run_on" form:"run_on"`
-		Kind    int            `json:"kind" form:"kind"`
-		Type    models.JobType `json:"job_type" form:"type"`
-		Status  int            `json:"status" form:"status"`
+		ID     int            `json:"id" form:"id"`
+		Name   string         `json:"name" form:"name"`
+		RunOn  string         `json:"run_on" form:"run_on"`
+		Type   models.JobType `json:"job_type" form:"type"`
+		Status int            `json:"status" form:"status"`
 	}
 	ReqJobLogSearch struct {
 		PageInfo
 		Name     string `json:"name" form:"name"`
-		GroupId  int    `json:"group_id" form:"group_id"`
 		JobId    int    `json:"job_id" form:"job_id"`
 		NodeUUID string `json:"node_uuid" form:"node_uuid"`
 		Success  *bool  `json:"success" form:"success"`

@@ -83,7 +83,7 @@ func (p *JobProc) Stop() {
 }
 
 func WatchProc(nodeUUID string) clientv3.WatchChan {
-	return etcdclient.Watch(fmt.Sprintf(etcdclient.KeyEtcdProcProfile, nodeUUID), clientv3.WithPrefix())
+	return etcdclient.Watch(fmt.Sprintf(etcdclient.KeyEtcdNodeProcProfile, nodeUUID), clientv3.WithPrefix())
 }
 
 func (p *JobProc) Start() error {

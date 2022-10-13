@@ -23,8 +23,7 @@ type Node struct {
 	UpTime   int64  `json:"up" gorm:"column:up"`     // 启动时间
 	DownTime int64  `json:"down" gorm:"column:down"` // 上次关闭时间
 
-	Status    int  `json:"status" gorm:"column:status"` // 是否可用
-	Connected bool `json:"connected" gorm:"-"`          // 当 Alived 为 true 时有效，表示心跳是否正常
+	Status int `json:"status" gorm:"column:status"` // 是否可用
 }
 
 func (n *Node) String() string {

@@ -9,8 +9,9 @@ const (
 	KeyEtcdNode        = KeyEtcdNodeProfile + "%s"
 
 	//key  /crony/proc/<node_uuid>/<job_id>/<pid>
-	KeyEtcdProcProfile = keyEtcdProfile + "proc/%s"
-	KeyEtcdProc        = KeyEtcdProcProfile + "%d/%d"
+	KeyEtcdProcProfile     = keyEtcdProfile + "proc/"
+	KeyEtcdNodeProcProfile = KeyEtcdProcProfile + "%s/"
+	KeyEtcdProc            = KeyEtcdNodeProcProfile + "%d/%d"
 
 	//key /crony/job/<node_uuid>/<job_id>
 	KeyEtcdJobProfile = keyEtcdProfile + "job/%s/"

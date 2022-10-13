@@ -20,14 +20,8 @@ const (
 	JobExcSuccess = 1
 	JobExcFail    = 0
 
-	//单机任务
-	JobKindAlone = 1
-	JobKindGroup = 2
-
-	//job log  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT "1->成功 2->正在运行 3->失败",
-	JobLogStatusSuccess = 1
-	JobLogStatusProcess = 2
-	JobLogStatusFail    = 3
+	JobStatusNotAssigned = 0
+	JobStatusAssigned    = 1
 
 	ManualAllocation = 1
 	AutoAllocation   = 2
@@ -67,8 +61,8 @@ type Job struct {
 	Cmd []string `json:"cmd" gorm:"-"`
 }
 
-func (j *Job) InitNodeInfo(nodeUUID, hostname, ip string) {
-	j.RunOn, j.Hostname, j.Ip = nodeUUID, hostname, ip
+func (j *Job) InitNodeInfo(status int, nodeUUID, hostname, ip string) {
+	j.Status, j.RunOn, j.Hostname, j.Ip = status, nodeUUID, hostname, ip
 }
 
 func (j *Job) Insert() (insertId int, err error) {

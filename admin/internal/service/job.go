@@ -32,9 +32,6 @@ func (j *JobService) Search(s *request.ReqJobSearch) ([]models.Job, int64, error
 	if s.Type > 0 {
 		db.Where("type = ?", s.Type)
 	}
-	if s.Kind > 0 {
-		db.Where("kind = ?", s.Kind)
-	}
 	if s.Status > 0 {
 		db.Where("status = ? ", s.Status)
 	}
@@ -55,9 +52,6 @@ func (j *JobService) SearchJobLog(s *request.ReqJobLogSearch) ([]models.JobLog, 
 	db := dbclient.GetMysqlDB().Table(models.CronyJobLogTableName)
 	if len(s.Name) > 0 {
 		db = db.Where("name like ?", s.Name+"%")
-	}
-	if s.GroupId > 0 {
-		db.Where("group_id = ?", s.GroupId)
 	}
 	if s.JobId > 0 {
 		db.Where("job_id = ?", s.JobId)
@@ -104,14 +98,20 @@ func (j *JobService) GetJobExcCount(start, end int64, success int) ([]resp.DateC
 	return dateCount, nil
 }
 
+func (j *JobService) GetNotAssignedJob() (jobs []models.Job, err error) {
+	jobs = make([]models.Job, 2)
+	err = dbclient.GetMysqlDB().Table(models.CronyJobTableName).Where("status = ?", models.JobStatusNotAssigned).Find(&jobs).Error
+	return
+}
+
 //
 func (j *JobService) GetRunningJobCount() (int64, error) {
-	resp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdProcProfile), clientv3.WithPrefix(), clientv3.WithCountOnly())
+	wresp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdProcProfile), clientv3.WithPrefix(), clientv3.WithCountOnly())
 	if err != nil {
 		return 0, err
 	}
 
-	return resp.Count, nil
+	return wresp.Count, nil
 }
 
 const MaxJobCount = 10000
@@ -137,7 +137,8 @@ func (j *JobService) AutoAllocateNode() string {
 
 //立即执行
 func (j *JobService) Once(once *request.ReqJobOnce) (err error) {
-	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdOnce, once.JobId), once.NodeUUID)
+	//默认存在时间60秒
+	_, err = etcdclient.PutWithTtl(fmt.Sprintf(etcdclient.KeyEtcdOnce, once.JobId), once.NodeUUID, 60)
 	return
 }
 

@@ -24,7 +24,7 @@ func (srv *NodeServer) watchJobs() {
 					continue
 				}
 				srv.jobs[job.ID] = job
-				job.InitNodeInfo(srv.UUID, srv.Hostname, srv.IP)
+				job.InitNodeInfo(models.JobStatusAssigned, srv.UUID, srv.Hostname, srv.IP)
 				srv.addJob(job)
 			case ev.IsModify():
 				job, err := handler.GetJobFromKv(ev.Kv.Key, ev.Kv.Value)
@@ -32,7 +32,7 @@ func (srv *NodeServer) watchJobs() {
 					logger.GetLogger().Warn(fmt.Sprintf("watch job err: %s, kv: %s", err.Error(), ev.Kv.String()))
 					continue
 				}
-				job.InitNodeInfo(srv.UUID, srv.Hostname, srv.IP)
+				job.InitNodeInfo(models.JobStatusAssigned, srv.UUID, srv.Hostname, srv.IP)
 				srv.modifyJob(job)
 			case ev.Type == mvccpb.DELETE:
 				srv.deleteJob(handler.GetJobIDFromKey(string(ev.Kv.Key)))

@@ -3,6 +3,16 @@ GET {{url}}/ping
 Accept: application/json
 
 ###
+POST {{url}}/ping
+Content-Type: application/json
+
+{
+  "name":"tmnhs"
+}
+
+
+
+###
 #注册
 ###
 POST {{url}}/register

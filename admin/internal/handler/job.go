@@ -8,6 +8,7 @@ import (
 	"github.com/tmnhs/crony/admin/internal/model/resp"
 	"github.com/tmnhs/crony/admin/internal/service"
 	"github.com/tmnhs/crony/common/models"
+	"github.com/tmnhs/crony/common/pkg/config"
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"time"
@@ -30,7 +31,6 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		resp.FailWithMessage(resp.ErrorJobFormat, "[create_job] check error", c)
 		return
 	}
-	logger.GetLogger().Debug(fmt.Sprintf("create job req:%#v", req))
 	var err error
 	var insertId int
 	t := time.Now()
@@ -38,7 +38,12 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		notifyTo, _ := json.Marshal(req.NotifyToArray)
 		req.NotifyTo = notifyTo
 	}
+
 	if req.Allocation == models.AutoAllocation {
+		if !config.GetConfigModels().System.CmdAutoAllocation && req.Type == models.JobTypeCmd {
+			resp.FailWithMessage(resp.ERROR, "[create_job] The shell command is not supported to automatically assign nodes by default.", c)
+			return
+		}
 		//自动分配
 		nodeUUID := service.DefaultJobService.AutoAllocateNode()
 		if nodeUUID == "" {

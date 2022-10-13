@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/tmnhs/crony/admin/internal/middlerware"
+	"github.com/tmnhs/crony/admin/internal/model/resp"
 )
 
 func RegisterRouters(c *gin.Engine) {
@@ -13,7 +14,20 @@ func RegisterRouters(c *gin.Engine) {
 		hello.GET("", func(c *gin.Context) {
 			c.JSON(200, "pong")
 		})
+		hello.POST("", func(c *gin.Context) {
+			type Hello struct {
+				Name string `json:"name" form:"name"`
+			}
+			var h Hello
+			var err error
+			err = c.ShouldBindJSON(&h)
+			if err != nil {
+				c.JSON(resp.ERROR, err.Error())
+			}
+			c.JSON(200, "hello,"+h.Name)
+		})
 	}
+
 	base := c.Group("")
 	{
 		base.POST("register", defaultUserRouter.Register)
