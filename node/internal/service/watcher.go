@@ -83,7 +83,6 @@ func (srv *NodeServer) watchSystemInfo() {
 			//监控是否被创建
 			case ev.IsCreate() || ev.IsModify():
 				key := string(ev.Kv.Key)
-				logger.GetLogger().Debug(fmt.Sprintf("create:%s", string(ev.Kv.Value)))
 				if string(ev.Kv.Value) != models.NodeSystemInfoSwitch || srv.Node.UUID != getUUID(key) {
 					logger.GetLogger().Error(fmt.Sprintf("get system info from node[%s] ,switch is not alive ", srv.UUID))
 					continue

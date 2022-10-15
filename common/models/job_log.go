@@ -9,7 +9,6 @@ import (
 type JobLog struct {
 	ID       int    `json:"id" gorm:"column:id"`
 	Name     string `json:"name" gorm:"column:name"`
-	GroupId  int    `json:"group_id" gorm:"column:group_id"`
 	JobId    int    `json:"job_id" gorm:"column:job_id"`
 	Command  string `json:"command" gorm:"column:command"`
 	IP       string `json:"ip" gorm:"column:ip"` // node ip

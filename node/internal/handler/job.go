@@ -166,7 +166,7 @@ func CreateJob(j *Job) cron.FuncJob {
 			}
 			i++
 			if i < execTimes {
-				logger.GetLogger().Warn(fmt.Sprintf("job execution failure#jobId-%d#retry%d次#output-%s#error-%s", j.ID, i, output, err.Error()))
+				logger.GetLogger().Warn(fmt.Sprintf("job execution failure#jobId-%d#retry%d次#output-%s#error-%v", j.ID, i, output, runErr))
 				if j.RetryInterval > 0 {
 					time.Sleep(time.Duration(j.RetryInterval) * time.Second)
 				} else {
@@ -176,7 +176,7 @@ func CreateJob(j *Job) cron.FuncJob {
 			}
 		}
 		//执行全部失败
-		err = j.Fail(jobLogId, t, err.Error(), execTimes-1)
+		err = j.Fail(jobLogId, t, runErr.Error(), execTimes-1)
 		if err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
 		}

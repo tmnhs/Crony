@@ -120,7 +120,6 @@ const MaxJobCount = 10000
 func (j *JobService) AutoAllocateNode() string {
 	//获取所有活着的节点
 	nodeList := DefaultNodeWatcher.List2Array()
-
 	resultCount, resultNodeUUID := MaxJobCount, ""
 	for _, nodeUUID := range nodeList {
 		count, err := DefaultNodeWatcher.GetJobCount(nodeUUID)
@@ -132,6 +131,7 @@ func (j *JobService) AutoAllocateNode() string {
 			resultCount, resultNodeUUID = count, nodeUUID
 		}
 	}
+
 	return resultNodeUUID
 }
 

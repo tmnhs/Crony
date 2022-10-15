@@ -22,7 +22,7 @@ import (
 type NodeWatcherService struct {
 	client *etcdclient.Client
 	//<uuid> <pid>
-	nodeList map[string]string
+	nodeList map[string]models.Node
 	lock     sync.Mutex
 }
 
@@ -31,7 +31,7 @@ var DefaultNodeWatcher *NodeWatcherService
 func NewNodeWatcherService() *NodeWatcherService {
 	return &NodeWatcherService{
 		client:   etcdclient.GetEtcdClient(),
-		nodeList: make(map[string]string),
+		nodeList: make(map[string]models.Node),
 	}
 }
 
@@ -52,10 +52,12 @@ func (n *NodeWatcherService) watcher() {
 		for _, ev := range wresp.Events {
 			switch ev.Type {
 			case mvccpb.PUT:
-				n.SetNodeList(n.GetUUID(string(ev.Kv.Key)), string(ev.Kv.Value))
+				n.setNodeList(n.GetUUID(string(ev.Kv.Key)), string(ev.Kv.Value))
 			case mvccpb.DELETE:
 				uuid := n.GetUUID(string(ev.Kv.Key))
+				n.delNodeList(uuid)
 				logger.GetLogger().Warn(fmt.Sprintf("crony node[%s] DELETE event detected", uuid))
+
 				node := &models.Node{UUID: uuid}
 				err := node.FindByUUID()
 				if err != nil {
@@ -63,7 +65,6 @@ func (n *NodeWatcherService) watcher() {
 					return
 				}
 				// 先删除再故障转移
-				n.DelNodeList(n.GetUUID(string(ev.Kv.Key)))
 				success, fail, err := n.FailOver(uuid)
 				if err != nil {
 					logger.GetLogger().Error(fmt.Sprintf("crony node[%s] fail over error:%s", uuid, err.Error()))
@@ -99,18 +100,26 @@ func (n *NodeWatcherService) extractNodes(resp *clientv3.GetResponse) []string {
 	}
 	for i := range resp.Kvs {
 		if v := resp.Kvs[i].Value; v != nil {
-			n.SetNodeList(n.GetUUID(string(resp.Kvs[i].Key)), string(resp.Kvs[i].Value))
+			n.setNodeList(n.GetUUID(string(resp.Kvs[i].Key)), string(resp.Kvs[i].Value))
 			nodes = append(nodes, string(v))
 		}
 	}
 	return nodes
 }
 
-func (n *NodeWatcherService) SetNodeList(key, val string) {
+func (n *NodeWatcherService) setNodeList(key, val string) {
+	var node models.Node
+	err := json.Unmarshal([]byte(val), &node)
+	if err != nil {
+		logger.GetLogger().Warn(fmt.Sprintf("discover node[%s] json error:%s", key, err.Error()))
+		return
+	}
 	n.lock.Lock()
-	defer n.lock.Unlock()
-	n.nodeList[key] = val
-	logger.GetLogger().Debug(fmt.Sprintf("discover node[%s],pid[%s]", key, val))
+	n.nodeList[key] = node
+	n.lock.Unlock()
+
+	logger.GetLogger().Debug(fmt.Sprintf("discover node node[%s] with pid[%s]", key, val))
+
 	//寻找为分配的job
 	jobs, err := DefaultJobService.GetNotAssignedJob()
 	if err != nil {
@@ -133,11 +142,10 @@ func (n *NodeWatcherService) SetNodeList(key, val string) {
 			logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d]  error:%s", job.ID, err.Error()))
 			continue
 		}
-
 	}
 }
 
-func (n *NodeWatcherService) DelNodeList(key string) {
+func (n *NodeWatcherService) delNodeList(key string) {
 	n.lock.Lock()
 	defer n.lock.Unlock()
 	delete(n.nodeList, key)
@@ -226,26 +234,25 @@ func (r Result) String() (str string) {
 }
 
 func (n *NodeWatcherService) assignJob(nodeUUID string, job models.Job) (err error) {
-	node := &models.Node{UUID: nodeUUID}
-	err = node.FindByUUID()
-	if err != nil {
-		logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d] json marshal job error:%s", job.ID, err.Error()))
-		return
+	if nodeUUID == "" {
+		return fmt.Errorf("node uuid can't be null")
 	}
-	b, err := json.Marshal(job)
-	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("assign unassigned job[%d] json marshal job error:%s", job.ID, err.Error()))
-		return
-	}
-	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdJob, job.RunOn, job.ID), string(b))
-	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("assign unassigned job[%d] put to etcd error:%s", job.ID, err.Error()))
-		return
+	node, ok := n.nodeList[nodeUUID]
+	if !ok {
+		return fmt.Errorf("assign unassigned job[%d] but  node[%s] not exist ", job.ID, nodeUUID)
 	}
 	job.InitNodeInfo(models.JobStatusAssigned, node.UUID, node.Hostname, node.IP)
+
+	b, err := json.Marshal(job)
+	if err != nil {
+		return
+	}
+	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdJob, nodeUUID, job.ID), string(b))
+	if err != nil {
+		return
+	}
 	err = job.Update()
 	if err != nil {
-		logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d] update job into db error:%s", job.ID, err.Error()))
 		return
 	}
 	return

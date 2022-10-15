@@ -25,7 +25,8 @@ func Get(url string, timeout int64) (result string, err error) {
 		return
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == 200 {
+	if resp.StatusCode != 200 {
+		err = fmt.Errorf("response status code is not 200")
 		return
 	}
 	data, err := ioutil.ReadAll(resp.Body)
@@ -53,7 +54,8 @@ func PostParams(url string, params string, timeout int64) (result string, err er
 		return
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == 200 {
+	if resp.StatusCode != 200 {
+		err = fmt.Errorf("response status code is not 200")
 		return
 	}
 	data, err := ioutil.ReadAll(resp.Body)
@@ -82,7 +84,8 @@ func PostJson(url string, body string, timeout int64) (result string, err error)
 		return
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == 200 {
+	if resp.StatusCode != 200 {
+		err = fmt.Errorf("response status code is not 200")
 		return
 	}
 	data, err := ioutil.ReadAll(resp.Body)

@@ -48,5 +48,5 @@ func (n *Node) Delete() error {
 }
 
 func (n *Node) FindByUUID() error {
-	return dbclient.GetMysqlDB().Table(CronyNodeTableName).Where("uuid = ? ", n.UUID).First(&n).Error
+	return dbclient.GetMysqlDB().Table(CronyNodeTableName).Where("uuid = ? ", n.UUID).First(n).Error
 }

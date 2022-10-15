@@ -38,14 +38,14 @@ func (h *HTTPHandler) Run(job *Job) (result string, err error) {
 	}
 	if job.HttpMethod == models.HTTPMethodGet {
 		result, err = httpclient.Get(job.Command, job.Timeout)
-	} else if job.HttpMethod == models.HTTPMethodPost {
+	} else {
 		urlFields := strings.Split(job.Command, "?")
 		job.Command = urlFields[0]
-		var params string
+		var body string
 		if len(urlFields) >= 2 {
-			params = urlFields[1]
+			body = urlFields[1]
 		}
-		result, err = httpclient.PostParams(job.Command, params, job.Timeout)
+		result, err = httpclient.PostJson(job.Command, body, job.Timeout)
 	}
 	return
 }

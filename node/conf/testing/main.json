@@ -21,7 +21,7 @@
   },
   "etcd": {
     "endpoints":[
-      "http://127.0.0.1:2379"
+      "http://114.55.178.217:2379"
     ],
     "username":"",
     "password":"",

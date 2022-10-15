@@ -22,6 +22,7 @@ func main() {
 		fmt.Println("init node server error:", err.Error())
 		os.Exit(1)
 	}
+
 	logger.GetLogger().Debug(fmt.Sprintf("nodeServer:%#v", *nodeServer))
 	logger.GetLogger().Debug(fmt.Sprintf("node:%#v", *nodeServer.Node))
 	if err = nodeServer.Register(); err != nil {

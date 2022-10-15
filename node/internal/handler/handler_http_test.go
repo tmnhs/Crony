@@ -11,8 +11,8 @@ func TestHttpCall(t *testing.T) {
 		{
 			Job: &models.Job{
 				Name:       "get",
-				Command:    "https://www.baidu.com",
-				HttpMethod: models.HTTPMethodGet,
+				Command:    "http://localhost:8088/ping?name=test_post",
+				HttpMethod: models.HTTPMethodPost,
 				Timeout:    3000,
 			},
 		},
