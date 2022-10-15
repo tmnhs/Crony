@@ -37,6 +37,10 @@
     "nickname": "crony定时任务平台",
     "to": ["mananhai@highlight.mobi"]
   },
+  "webhook": {
+    "url": "https://open.feishu.cn/open-apis/bot/v2/hook/4df45fb8-6458-4af9-a2d5-6c0396895743",
+    "kind": "feishu"
+  },
   "log": {
     "level": "debug",
     "format": "console",

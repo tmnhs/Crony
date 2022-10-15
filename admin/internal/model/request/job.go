@@ -33,9 +33,6 @@ type (
 )
 
 func (r *ReqJobUpdate) Valid() error {
-	/*	if r.Allocation == models.AutoAllocation && r.Type == models.JobTypeCmd {
-		return errors.New("cmd don't support auto allocation")
-	}*/
 	//默认自动分配
 	if r.Allocation == 0 {
 		r.Allocation = models.AutoAllocation

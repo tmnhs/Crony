@@ -91,15 +91,21 @@ func (j *Job) Check() error {
 		return errors.ErrEmptyJobName
 	}
 	j.CmdUser = strings.TrimSpace(j.CmdUser)
-
-	// 不修改 Command 的内容，简单判断是否为空
+	if j.RetryTimes == 0 {
+		j.RetryTimes = 3
+	}
+	if j.RetryInterval == 0 {
+		j.RetryTimes = 1
+	}
+	if j.Timeout == 0 {
+		j.RetryTimes = 5
+	}
 	if len(strings.TrimSpace(j.Command)) == 0 {
 		return errors.ErrEmptyJobCommand
 	}
-	if len(j.Cmd) == 0 {
+	if len(j.Cmd) == 0 && j.Type == JobTypeCmd {
 		j.SplitCmd()
 	}
-
 	return nil
 }
 
@@ -109,7 +115,6 @@ func (j *Job) SplitCmd() {
 		j.Cmd = ps
 		return
 	}
-
 	j.Cmd = make([]string, 0, 2)
 	j.Cmd = append(j.Cmd, ps[0])
 	j.Cmd = append(j.Cmd, utils.ParseCmdArguments(ps[1])...)

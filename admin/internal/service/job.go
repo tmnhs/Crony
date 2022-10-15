@@ -99,7 +99,6 @@ func (j *JobService) GetJobExcCount(start, end int64, success int) ([]resp.DateC
 }
 
 func (j *JobService) GetNotAssignedJob() (jobs []models.Job, err error) {
-	jobs = make([]models.Job, 2)
 	err = dbclient.GetMysqlDB().Table(models.CronyJobTableName).Where("status = ?", models.JobStatusNotAssigned).Find(&jobs).Error
 	return
 }
@@ -122,6 +121,17 @@ func (j *JobService) AutoAllocateNode() string {
 	nodeList := DefaultNodeWatcher.List2Array()
 	resultCount, resultNodeUUID := MaxJobCount, ""
 	for _, nodeUUID := range nodeList {
+		//在数据库中查看是否存活
+		node := &models.Node{UUID: nodeUUID}
+		err := node.FindByUUID()
+		if err != nil {
+			continue
+		}
+		if node.Status == models.NodeConnFail {
+			//节点已失效
+			delete(DefaultNodeWatcher.nodeList, nodeUUID)
+			continue
+		}
 		count, err := DefaultNodeWatcher.GetJobCount(nodeUUID)
 		if err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("node[%s] get job conut error:%s", nodeUUID, err.Error()))

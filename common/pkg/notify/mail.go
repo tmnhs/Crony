@@ -36,7 +36,7 @@ var mailTemplate = `
             margin: 25px 25px;
         ">
         <div class="hello" style="text-align: center; color: #FF3333;font-size: 18px;font-weight: bolder">
-            {{.Subject}}-crony定时任务平台
+            {{.Subject}}
         </div>
         <br>
         <div>

@@ -306,7 +306,6 @@ func (n *NodeWatcherService) GetJobs(nodeUUID string) (jobs []models.Job, err er
 	if err != nil {
 		return
 	}
-	jobs = make([]models.Job, 2)
 	count := len(resps.Kvs)
 	if count == 0 {
 		return

@@ -66,7 +66,7 @@ func (c *CMDHandler) Run(job *Job) (result string, err error) {
 
 	if err = cmd.Wait(); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("%s\n%s", b.String(), err.Error()))
-		return
+		return b.String(), err
 	}
 	return b.String(), nil
 }

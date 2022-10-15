@@ -158,6 +158,9 @@ func (j *JobRouter) FindById(c *gin.Context) {
 		resp.FailWithMessage(resp.ERROR, "[find_job] find job by id error", c)
 		return
 	}
+	if len(job.NotifyTo) != 0 {
+		_ = json.Unmarshal(job.NotifyTo, &job.NotifyToArray)
+	}
 	resp.OkWithDetailed(job, "find success", c)
 }
 
@@ -175,11 +178,13 @@ func (j *JobRouter) Search(c *gin.Context) {
 		resp.FailWithMessage(resp.ERROR, "[search_job] search job error", c)
 		return
 	}
+	var resultJobs []models.Job
 	for _, job := range jobs {
 		_ = json.Unmarshal(job.NotifyTo, &job.NotifyToArray)
+		resultJobs = append(resultJobs, job)
 	}
 	resp.OkWithDetailed(resp.PageResult{
-		List:     jobs,
+		List:     resultJobs,
 		Total:    total,
 		Page:     req.Page,
 		PageSize: req.PageSize,

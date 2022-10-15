@@ -69,7 +69,6 @@ func PostParams(url string, params string, timeout int64) (result string, err er
 
 func PostJson(url string, body string, timeout int64) (result string, err error) {
 	var client = &http.Client{}
-
 	buf := bytes.NewBufferString(body)
 	req, err := http.NewRequest("POST", url, buf)
 	if err != nil {
