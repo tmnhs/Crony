@@ -27,7 +27,6 @@ func (w *WebHook) SendMsg(msg *Message) {
 		for _, to := range msg.To {
 			userSlot += fmt.Sprintf("<at email='' >%s</at>", to)
 		}
-		fmt.Println(userSlot)
 		sendData = strings.Replace(sendData, "userSlot", userSlot, 1)
 		sendData = strings.Replace(sendData, "msgSlot", msg.Body, 1)
 		sendData = strings.Replace(sendData, "subjectSlot", msg.Subject, 1)

@@ -89,7 +89,6 @@ func (srv *NodeServer) exist(nodeUUID string) (pid int, err error) {
 		return -1, nil
 	}
 
-	// TODO: 暂时不考虑 linux/unix 以外的系统
 	if p != nil && p.Signal(syscall.Signal(0)) == nil {
 		return
 	}

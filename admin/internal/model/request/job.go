@@ -28,7 +28,10 @@ type (
 	ReqJobOnce struct {
 		JobId    int    `json:"job_id" form:"job_id"`
 		NodeUUID string `json:"node_uuid" form:"node_uuid"`
-		GroupId  int    `json:"group_id" form:"group_id"`
+	}
+	ReqJobKill struct {
+		JobId    int    `json:"job_id" form:"job_id"`
+		NodeUUID string `json:"node_uuid" form:"node_uuid"`
 	}
 )
 

@@ -10,6 +10,7 @@ import (
 	"github.com/tmnhs/crony/common/pkg/utils"
 	"github.com/tmnhs/crony/node/internal/handler"
 	"strings"
+	"syscall"
 )
 
 func (srv *NodeServer) watchJobs() {
@@ -63,11 +64,10 @@ func (srv *NodeServer) watchKilledProc() {
 				}
 				proc.JobProcVal = *procVal
 				if proc.Killed {
-					//fixme this is only used for linux/mac/unix system
-					/*if err := syscall.Kill(-proc.ID, syscall.SIGKILL); err != nil {
-						logger.Errorf("process:[%d] force kill failed, error:[%s]\n", proc.ID, err)
+					if err := syscall.Kill(-proc.ID, syscall.SIGKILL); err != nil {
+						logger.GetLogger().Error(fmt.Sprintf("process:[%d] force kill failed, error:[%s]", proc.ID, err))
 						return
-					}*/
+					}
 
 				}
 			}
@@ -99,7 +99,7 @@ func (srv *NodeServer) watchSystemInfo() {
 					continue
 				}
 				//修改值
-				_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdSystemGet, getUUID(key)), string(b))
+				_, err = etcdclient.PutWithTtl(fmt.Sprintf(etcdclient.KeyEtcdSystemGet, getUUID(key)), string(b), 5*60)
 				if err != nil {
 					logger.GetLogger().Error(fmt.Sprintf("get system info from node[%s] etcd put error: %s", srv.UUID, err.Error()))
 					continue
@@ -129,13 +129,10 @@ func (srv *NodeServer) watchOnce() {
 				if len(ev.Kv.Value) != 0 && string(ev.Kv.Value) != srv.UUID {
 					continue
 				}
-				//
 				j, ok := srv.jobs[handler.GetJobIDFromKey(string(ev.Kv.Key))]
 				if !ok {
 					continue
 				}
-				//todo 判断是否正在运行，如果正在运行，则continue
-
 				//立即执行
 				go j.RunWithRecovery()
 			}

@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/coreos/etcd/clientv3"
 	"github.com/gin-gonic/gin"
 	"github.com/tmnhs/crony/admin/internal/model/request"
 	"github.com/tmnhs/crony/admin/internal/model/resp"
@@ -236,4 +237,49 @@ func (j *JobRouter) Once(c *gin.Context) {
 		return
 	}
 	resp.OkWithMessage("job once success", c)
+}
+
+//手动执行
+func (j *JobRouter) Kill(c *gin.Context) {
+	var req request.ReqJobKill
+	var err error
+	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[job_once] request parameter error:%s", err.Error()))
+		resp.FailWithMessage(resp.ErrorRequestParameter, "[job_once] request parameter error", c)
+		return
+	}
+	resps, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdJobProcProfile, req.NodeUUID, req.JobId), clientv3.WithPrefix())
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("[job_kill]etcd get error:%s", err.Error()))
+		resp.FailWithMessage(resp.ERROR, "[job_kill] etcd get error", c)
+		return
+	}
+	if len(resps.Kvs) == 0 {
+		resp.FailWithMessage(resp.ERROR, "[job_kill] don't have such process", c)
+		return
+	}
+	for _, p := range resps.Kvs {
+		var proc models.JobProcVal
+		if err := json.Unmarshal(p.Value, &proc); err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("job_proc[%s] unmarshal error: %s", string(p.Key), err.Error()))
+			continue
+		}
+		//进程已经被杀死
+		if proc.Killed {
+			continue
+		}
+		proc.Killed = true
+		b, err := json.Marshal(&proc)
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("job_proc[%s] marshal error: %s", string(p.Key), err.Error()))
+			continue
+		}
+		//修改
+		_, err = etcdclient.Put(string(p.Key), string(b))
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("job_proc[%s] etcd put  error: %s", string(p.Key), err.Error()))
+			continue
+		}
+	}
+	resp.OkWithMessage("job kill success", c)
 }

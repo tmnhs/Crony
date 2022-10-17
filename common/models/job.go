@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/utils"
@@ -45,7 +46,8 @@ type Job struct {
 	HttpMethod int     `json:"http_method" gorm:"column:http_method"`
 	// 执行失败是否发送通知
 	NotifyType int `json:"notify_type" gorm:"column:notify_type"`
-	Status     int `json:"status" gorm:"column:status"`
+	//是否分配节点
+	Status int `json:"status" gorm:"column:status"`
 	// 发送通知地址
 	NotifyTo      []byte `json:"-" gorm:"column:notify_to"`
 	NotifyToArray []int  `json:"notify_to" gorm:"-"`
@@ -118,4 +120,12 @@ func (j *Job) SplitCmd() {
 	j.Cmd = make([]string, 0, 2)
 	j.Cmd = append(j.Cmd, ps[0])
 	j.Cmd = append(j.Cmd, utils.ParseCmdArguments(ps[1])...)
+}
+
+func (j *Job) Val() string {
+	data, err := json.Marshal(j)
+	if err != nil {
+		return err.Error()
+	}
+	return string(data)
 }

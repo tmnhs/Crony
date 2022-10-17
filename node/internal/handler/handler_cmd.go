@@ -20,13 +20,6 @@ func (c *CMDHandler) Run(job *Job) (result string, err error) {
 		proc        *JobProc
 		sysProcAttr *syscall.SysProcAttr
 	)
-
-	//todo 设置属性
-	//sysProcAttr, err = j.CreateCmdAttr()
-	//if err != nil {
-	//	j.Fail(t, err.Error())
-	//	return false
-	//}
 	// 超时控制
 	if job.Timeout > 0 {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(job.Timeout)*time.Second)
