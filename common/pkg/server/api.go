@@ -73,7 +73,7 @@ type ApiServer struct {
 	Services    []func(*ApiServer)
 }
 
-//获取关闭Chan
+//get close Chan
 func (srv *ApiServer) getDoneChan() <-chan struct{} {
 	srv.mu.Lock()
 	defer srv.mu.Unlock()
@@ -88,7 +88,7 @@ func (srv *ApiServer) getDoneChanLocked() chan struct{} {
 }
 
 func (srv *ApiServer) Shutdown(ctx context.Context) {
-	//优先执行业务关闭Hook
+	//Give priority to business shutdown Hook
 	if len(srv.Shutdowns) > 0 {
 		for _, shutdown := range srv.Shutdowns {
 			shutdown(srv)
@@ -98,7 +98,7 @@ func (srv *ApiServer) Shutdown(ctx context.Context) {
 	select {
 	case <-time.After(shutdownWait):
 	}
-	//关闭HttpServer
+	// close the HttpServer
 	srv.HttpServer.Shutdown(ctx)
 }
 
@@ -164,7 +164,6 @@ func (srv *ApiServer) setupSignal() {
 	}()
 }
 
-//NewApiServer 创建API服务
 func NewApiServer(serverName string, inits ...func()) (*ApiServer, error) {
 	var parser = flags.NewParser(&ApiOptions, flags.Default)
 	if _, err := parser.Parse(); err != nil {
@@ -214,9 +213,9 @@ func NewApiServer(serverName string, inits ...func()) (*ApiServer, error) {
 	logConfig := defaultConfig.Log
 	mysqlConfig := defaultConfig.Mysql
 	etcdConfig := defaultConfig.Etcd
-	//初始化日志
+	//log
 	logger.Init(serverName, logConfig.Level, logConfig.Format, logConfig.Prefix, logConfig.Director, logConfig.ShowLine, logConfig.EncodeLevel, logConfig.StacktraceKey, logConfig.LogInConsole)
-	//初始化通知
+	//notify
 	notify.Init(&notify.Mail{
 		Port:     defaultConfig.Email.Port,
 		From:     defaultConfig.Email.From,
@@ -227,13 +226,14 @@ func NewApiServer(serverName string, inits ...func()) (*ApiServer, error) {
 		Url:  defaultConfig.WebHook.Url,
 		Kind: defaultConfig.WebHook.Kind,
 	})
-	//初始化数据层服务
+	//db
 	_, err = dbclient.Init(mysqlConfig.Dsn(), mysqlConfig.LogMode, mysqlConfig.MaxIdleConns, mysqlConfig.MaxOpenConns)
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("api-server:init mysql failed , error:%s", err.Error()))
 	} else {
 		logger.GetLogger().Info("api-server:init mysql success")
 	}
+	//etcd
 	_, err = etcdclient.Init(etcdConfig.Endpoints, etcdConfig.DialTimeout, etcdConfig.ReqTimeout)
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("api-server:init etcd failed , error:%s", err.Error()))
@@ -286,32 +286,28 @@ func (srv *ApiServer) ListenAndServe() error {
 		WriteTimeout:   20 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	//ln, err := net.Listen("tcp", srv.Addr)
-	//if err != nil {
-	//	return err
-	//}
 	if err := srv.HttpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return err
 	}
 	return nil
 }
 
-// RegisterShutdown 注册Shutdown Handler
+// Register Shutdown Handler
 func (srv *ApiServer) RegisterShutdown(handlers ...func(*ApiServer)) {
 	srv.Shutdowns = append(srv.Shutdowns, handlers...)
 }
 
-// RegisterService 注册服务Handler
+// Register Service Handler
 func (srv *ApiServer) RegisterService(handlers ...func(*ApiServer)) {
 	srv.Services = append(srv.Services, handlers...)
 }
 
-// RegisterMiddleware 注册Middleware
+// Register Middleware Middleware
 func (srv *ApiServer) RegisterMiddleware(middlewares ...func(engine *gin.Engine)) {
 	srv.Middlewares = append(srv.Middlewares, middlewares...)
 }
 
-// RegisterRouters 注册路由器
+// RegisterRouters
 func (srv *ApiServer) RegisterRouters(routers ...func(engine *gin.Engine)) *ApiServer {
 	srv.Routers = append(srv.Routers, routers...)
 	return srv

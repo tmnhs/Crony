@@ -80,7 +80,6 @@ type Mail struct {
 func (mail *Mail) SendMsg(msg *Message) {
 	m := gomail.NewMessage()
 
-	//邮件
 	m.SetHeader("From", m.FormatAddress(_defaultMail.From, _defaultMail.Nickname)) //这种方式可以添加别名，即“XX官方”
 	m.SetHeader("To", msg.To...)
 	m.SetHeader("Subject", msg.Subject)

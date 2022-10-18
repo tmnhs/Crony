@@ -25,17 +25,11 @@ const (
 
 	ErrorRequestParameter = 1001
 	ErrorJobFormat        = 1002
-	ErrorAutoAllocateNode = 1003
-	ErrorJwtInvalid       = 1011
-	ErrorTokenGenerate    = 1014
-	ErrorLoginStatusSet   = 1015
-	ErrorRegisterFormat   = 1016
-	ErrorRegister         = 1017
-	ErrorUserNameExist    = 1018
+	ErrorTokenGenerate    = 1003
+	ErrorUserNameExist    = 1004
 )
 
 func Result(code int, data interface{}, msg string, c *gin.Context) {
-	// 开始时间
 	c.JSON(http.StatusOK, Response{
 		Code: code,
 		Data: data,

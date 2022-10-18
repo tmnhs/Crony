@@ -3,7 +3,6 @@ package etcdclient
 const (
 	keyEtcdProfile = "/crony/"
 
-	//node节点
 	//key /crony/node/<node_uuid>
 	KeyEtcdNodeProfile = keyEtcdProfile + "node/"
 	KeyEtcdNode        = KeyEtcdNodeProfile + "%s"

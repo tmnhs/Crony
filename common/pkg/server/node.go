@@ -66,7 +66,9 @@ func InitNodeServer(serverName string, inits ...func()) (*models.Config, error) 
 	logConfig := defaultConfig.Log
 	mysqlConfig := defaultConfig.Mysql
 	etcdConfig := defaultConfig.Etcd
+	//log
 	logger.Init(serverName, logConfig.Level, logConfig.Format, logConfig.Prefix, logConfig.Director, logConfig.ShowLine, logConfig.EncodeLevel, logConfig.StacktraceKey, logConfig.LogInConsole)
+	//notify
 	notify.Init(&notify.Mail{
 		Port:     defaultConfig.Email.Port,
 		From:     defaultConfig.Email.From,
@@ -77,14 +79,14 @@ func InitNodeServer(serverName string, inits ...func()) (*models.Config, error) 
 		Url:  defaultConfig.WebHook.Url,
 		Kind: defaultConfig.WebHook.Kind,
 	})
-	//初始化数据层服务
+	//db
 	_, err = dbclient.Init(mysqlConfig.Dsn(), mysqlConfig.LogMode, mysqlConfig.MaxIdleConns, mysqlConfig.MaxOpenConns)
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("node-server:init mysql failed , error:%s", err.Error()))
 	} else {
 		logger.GetLogger().Info("node-server:init mysql success")
 	}
-	//初始化etcd
+	//etcd
 	_, err = etcdclient.Init(etcdConfig.Endpoints, etcdConfig.DialTimeout, etcdConfig.ReqTimeout)
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("node-server:init etcd failed , error:%s", err.Error()))

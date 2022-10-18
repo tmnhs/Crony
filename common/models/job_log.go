@@ -5,7 +5,6 @@ import (
 	"github.com/tmnhs/crony/common/pkg/dbclient"
 )
 
-//日志输出
 type JobLog struct {
 	ID       int    `json:"id" gorm:"column:id"`
 	Name     string `json:"name" gorm:"column:name"`
@@ -19,16 +18,12 @@ type JobLog struct {
 	Output string `json:"output" gorm:"column:output"`
 	Spec   string `json:"spec" gorm:"column:spec"`
 
-	// 执行任务失败重试次数
-	// 默认为 0，不重试
 	RetryTimes int   `json:"retry_times" gorm:"column:retry_times"`
 	StartTime  int64 `json:"start_time" gorm:"column:start_time"`
 	EndTime    int64 `json:"end_time" gorm:"column:end_time"`
 }
 
-// 更新
 func (jb *JobLog) Update() error {
-	//只会更新非零字段
 	return dbclient.GetMysqlDB().Table(CronyJobLogTableName).Updates(jb).Error
 }
 

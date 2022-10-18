@@ -248,13 +248,12 @@ Authorization: {{token}}
 }
 
 ###
-GET {{url}}/job/once
+POST {{url}}/job/once
 Content-Type: application/json
 Authorization: {{token}}
 
 {
-  "job_id": 29,
-  "group_id": 0,
+  "job_id": 43,
   "node_uuid": ""
 }
 

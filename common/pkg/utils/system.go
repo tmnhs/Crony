@@ -73,7 +73,6 @@ func InitCPU() (c Cpu, err error) {
 	return c, nil
 }
 
-//ARM信息
 func InitRAM() (r Rrm, err error) {
 	if u, err := mem.VirtualMemory(); err != nil {
 		return r, err
@@ -85,7 +84,6 @@ func InitRAM() (r Rrm, err error) {
 	return r, nil
 }
 
-//硬盘信息
 func InitDisk() (d Disk, err error) {
 	if u, err := disk.Usage("/"); err != nil {
 		return d, err

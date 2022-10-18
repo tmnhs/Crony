@@ -22,7 +22,6 @@ type (
 	}
 	ReqJobUpdate struct {
 		*models.Job
-		//分配方式
 		Allocation int `json:"allocation" form:"allocation" binding:"required"`
 	}
 	ReqJobOnce struct {
@@ -36,7 +35,7 @@ type (
 )
 
 func (r *ReqJobUpdate) Valid() error {
-	//默认自动分配
+	// default automatic assignment
 	if r.Allocation == 0 {
 		r.Allocation = models.AutoAllocation
 	}

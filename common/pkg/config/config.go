@@ -10,18 +10,15 @@ import (
 )
 
 const (
-	//ExtensionJson json配置后缀
 	ExtensionJson = ".json"
-	//ExtensionYaml yaml配置后缀
 	ExtensionYaml = ".yaml"
-	//ExtensionInI ini配置后缀
-	ExtensionInI = ".ini"
+	ExtensionInI  = ".ini"
 
 	NameSpace = "conf"
 )
 
 var (
-	//本地Config自动载入顺序
+	//Automatic loading sequence of local Config
 	autoLoadLocalConfigs = []string{
 		ExtensionJson,
 		ExtensionYaml,
@@ -39,7 +36,6 @@ func LoadConfig(env, serverName, configFileName string) (*models.Config, error) 
 		confPath = path.Join(dir, configFileName+registerExt)
 		if utils.Exists(confPath) {
 			break
-			//return NewConfig(env, namespace, configFileName+registerExt)
 		}
 	}
 	fmt.Println("the path to the configuration file you are using is :", confPath)
@@ -62,7 +58,7 @@ func LoadConfig(env, serverName, configFileName string) (*models.Config, error) 
 	if err := v.Unmarshal(&c); err != nil {
 		fmt.Println(err)
 	}
-	fmt.Printf("config is :%#v\n", c)
+	fmt.Printf("load config is :%#v\n", c)
 	_defaultConfig = &c
 	return &c, nil
 }

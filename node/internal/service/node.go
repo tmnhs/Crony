@@ -18,16 +18,12 @@ import (
 	"time"
 )
 
-// Node 执行 cron 命令服务的结构体
 type NodeServer struct {
 	*etcdclient.ServerReg
 	*models.Node
 	*cron.Cron
 
-	jobs handler.Jobs // 和结点相关的任务
-
-	// 删除的 job id，用于 group 更新
-	delIDs map[string]bool
+	jobs handler.Jobs
 }
 
 func NewNodeServer() (*NodeServer, error) {
@@ -54,12 +50,8 @@ func NewNodeServer() (*NodeServer, error) {
 			Status:   models.NodeConnSuccess,
 			Version:  config.GetConfigModels().System.Version,
 		},
-		Cron: cron.New(),
-
-		jobs: make(handler.Jobs, 8),
-
-		delIDs: make(map[string]bool, 8),
-
+		Cron:      cron.New(),
+		jobs:      make(handler.Jobs, 8),
 		ServerReg: etcdclient.NewServerReg(config.GetConfigModels().System.NodeTtl),
 	}, nil
 
@@ -115,7 +107,6 @@ func (srv *NodeServer) Register() error {
 	return nil
 }
 
-// 停止服务
 func (srv *NodeServer) Stop(i interface{}) {
 	srv.Down()
 	_, err := etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdNode, srv.UUID))
@@ -131,7 +122,7 @@ func (srv *NodeServer) Stop(i interface{}) {
 	srv.Cron.Stop()
 }
 
-//结点实例停用后，在 mysql 中去掉存活信息
+// Remove the survival information from mysql after the node instance is deactivated
 func (srv *NodeServer) Down() {
 	srv.Status = models.NodeConnFail
 	srv.DownTime = time.Now().Unix()
@@ -177,12 +168,12 @@ func (srv *NodeServer) Run() (err error) {
 
 func (srv *NodeServer) loadJobs() (err error) {
 	defer func() {
-		// 发生宕机时，获取panic传递的上下文并打印
+		//When an outage occurs, get the context passed by panic and print it
 		if r := recover(); r != nil {
-			logger.GetLogger().Warn(fmt.Sprintf("load jobs panic:%v", r))
+			logger.GetLogger().Error(fmt.Sprintf("load jobs panic:%v", r))
 		}
 	}()
-	//再获取本机分配的定时任务
+	// Obtain the scheduled job assigned by the local server
 	jobs, err := handler.GetJobs(srv.UUID)
 	if err != nil {
 		return
@@ -206,6 +197,11 @@ func (srv *NodeServer) addJob(j *handler.Job) {
 		logger.GetLogger().Error(fmt.Sprintf("job check error :%s", err.Error()))
 		return
 	}
+	if err := json.Unmarshal(j.NotifyTo, &j.NotifyToArray); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("add job unmarshal error :%s", err.Error()))
+		return
+	}
+
 	taskFunc := handler.CreateJob(j)
 	if taskFunc == nil {
 		logger.GetLogger().Error(fmt.Sprintf("Failed to create a task to process the Job. The task protocol was not supported%s", j.Type))
@@ -215,7 +211,7 @@ func (srv *NodeServer) addJob(j *handler.Job) {
 		srv.Cron.AddFunc(j.Spec, taskFunc, srv.jobCronName(j.ID))
 	})
 	if err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("添加任务到调度器失败#%v", err.Error()))
+		logger.GetLogger().Error(fmt.Sprintf("Failed to add a task to the scheduler#%v", err.Error()))
 	}
 
 	return
@@ -226,21 +222,17 @@ func (srv *NodeServer) jobCronName(jobId int) string {
 
 func (srv *NodeServer) modifyJob(j *handler.Job) {
 	oldJob, ok := srv.jobs[j.ID]
-	// 之前此任务没有在当前结点执行，直接增加任务
 	if !ok {
 		srv.addJob(j)
 		return
 	}
-	//先删除
 	srv.deleteJob(oldJob.ID)
-	//再
 	srv.addJob(j)
 	return
 }
 
 func (srv *NodeServer) deleteJob(jobId int) {
 	if _, ok := srv.jobs[jobId]; ok {
-		//存在则删除并且移除任务
 		srv.Cron.RemoveJob(srv.jobCronName(jobId))
 		delete(srv.jobs, jobId)
 		return

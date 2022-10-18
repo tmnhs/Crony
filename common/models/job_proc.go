@@ -12,15 +12,12 @@ type JobProcVal struct {
 }
 
 type JobProc struct {
-	// parse from key path
 	ID       int    `json:"id"` // pid
 	JobID    int    `json:"job_id"`
 	NodeUUID string `json:"node_uuid"`
-	// parse from value
 	JobProcVal
 
 	Running int32
-	HasPut  int32
 	Wg      sync.WaitGroup
 }
 

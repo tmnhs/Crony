@@ -28,39 +28,36 @@ const (
 	AutoAllocation   = 2
 )
 
-// 注册到 /crony/job/<node_uuid>/<job_id>
+// register to  /crony/job/<node_uuid>/<job_id>
 type Job struct {
 	ID      int    `json:"id" gorm:"column:id"`
 	Name    string `json:"name" gorm:"column:name" binding:"required"`
 	Command string `json:"command" gorm:"column:command" binding:"required"`
 	CmdUser string `json:"user" gorm:"column:cmd_user"`
-	Timeout int64  `json:"timeout" gorm:"column:timeout"` // 任务执行时间超时设置，大于 0 时有效
-	// 执行任务失败重试次数
-	// 默认为 0，不重试
+	//Timeout setting of job execution time, which is effective when it is greater than 0.
+	Timeout int64 `json:"timeout" gorm:"column:timeout"`
+	// Retry times of task execution failures
+	// The default value is 0
 	RetryTimes int `json:"retry_times" gorm:"column:retry_times"`
-	// 执行任务失败重试时间间隔
-	// 单位秒，如果不大于 0 则马上重试
-	RetryInterval int64 `json:"retry_interval" gorm:"column:retry_interval"`
-	// 任务类型
-	Type       JobType `json:"job_type" gorm:"column:type" binding:"required"`
-	HttpMethod int     `json:"http_method" gorm:"column:http_method"`
-	// 执行失败是否发送通知
-	NotifyType int `json:"notify_type" gorm:"column:notify_type"`
-	//是否分配节点
-	Status int `json:"status" gorm:"column:status"`
-	// 发送通知地址
+	// Retry interval for task execution failure
+	// in seconds. If the value is less than 0, try again immediately
+	RetryInterval int64   `json:"retry_interval" gorm:"column:retry_interval"`
+	Type          JobType `json:"job_type" gorm:"column:type" binding:"required"`
+	HttpMethod    int     `json:"http_method" gorm:"column:http_method"`
+	NotifyType    int     `json:"notify_type" gorm:"column:notify_type"`
+	// Whether to allocate nodes
+	Status        int    `json:"status" gorm:"column:status"`
 	NotifyTo      []byte `json:"-" gorm:"column:notify_to"`
 	NotifyToArray []int  `json:"notify_to" gorm:"-"`
 	Spec          string `json:"spec" gorm:"column:spec"`
 	Note          string `json:"note" gorm:"column:note"`
 	Created       int64  `json:"created" gorm:"column:created"`
 	Updated       int64  `json:"updated" gorm:"column:updated"`
-	// 执行任务的结点，用于记录 job log
-	RunOn    string `json:"run_on" gorm:"column:run_on"`
-	Hostname string `json:"host_name" gorm:"-"`
-	Ip       string `json:"ip" gorm:"-"`
-	// 用于存储分隔后的任务
-	Cmd []string `json:"cmd" gorm:"-"`
+
+	RunOn    string   `json:"run_on" gorm:"column:run_on"`
+	Hostname string   `json:"host_name" gorm:"-"`
+	Ip       string   `json:"ip" gorm:"-"`
+	Cmd      []string `json:"cmd" gorm:"-"`
 }
 
 func (j *Job) InitNodeInfo(status int, nodeUUID, hostname, ip string) {
@@ -75,7 +72,6 @@ func (j *Job) Insert() (insertId int, err error) {
 	return
 }
 
-// 更新
 func (j *Job) Update() error {
 	return dbclient.GetMysqlDB().Table(CronyJobTableName).Updates(j).Error
 }
@@ -93,14 +89,8 @@ func (j *Job) Check() error {
 		return errors.ErrEmptyJobName
 	}
 	j.CmdUser = strings.TrimSpace(j.CmdUser)
-	if j.RetryTimes == 0 {
-		j.RetryTimes = 3
-	}
 	if j.RetryInterval == 0 {
 		j.RetryTimes = 1
-	}
-	if j.Timeout == 0 {
-		j.RetryTimes = 5
 	}
 	if len(strings.TrimSpace(j.Command)) == 0 {
 		return errors.ErrEmptyJobCommand

@@ -5,10 +5,10 @@ import (
 	"github.com/tmnhs/crony/common/pkg/etcdclient"
 )
 
-// 马上执行 job 任务
+// Execute the job immediately
 // value
-// 若执行单个结点，则值为 nodeUUID
-// 若 job 所在的结点都需执行，则值为空 ""
+// If a single node is executed, the value is nodeUUID
+// If the node where the job is located needs to be executed, the value is null ""
 func WatchOnce() clientv3.WatchChan {
 	return etcdclient.Watch(etcdclient.KeyEtcdOnceProfile, clientv3.WithPrefix())
 }

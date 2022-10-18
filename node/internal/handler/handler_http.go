@@ -10,7 +10,6 @@ import (
 type HTTPHandler struct {
 }
 
-// http任务执行时间不超过300秒
 const HttpExecTimeout = 300
 
 func (h *HTTPHandler) Run(job *Job) (result string, err error) {

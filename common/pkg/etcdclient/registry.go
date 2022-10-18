@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-//创建租约注册服务
 type ServerReg struct {
 	Client        *Client
 	stop          chan error
@@ -37,15 +36,12 @@ func (s *ServerReg) Register(key string, value string) error {
 	return nil
 }
 
-//设置租约
 func (s *ServerReg) setLease(ttl int64) error {
-	//设置租约时间
 	leaseResp, err := Grant(ttl)
 	if err != nil {
 		return err
 	}
 
-	//设置续租
 	ctx, cancelFunc := context.WithCancel(context.TODO())
 	leaseRespChan, err := s.Client.KeepAlive(ctx, leaseResp.ID)
 
@@ -61,7 +57,7 @@ func (s *ServerReg) Stop() {
 	s.stop <- nil
 }
 
-//监听 续租情况
+//Monitor the lease renewal
 func (s *ServerReg) keepAlive() {
 	for {
 		select {
@@ -71,21 +67,17 @@ func (s *ServerReg) keepAlive() {
 			if leaseKeepResp == nil {
 				logger.GetLogger().Info("the lease renewal function has been turned off\n")
 				return
-			} else {
-				//fmt.Printf("renew the lease successfully.\n")
 			}
 		}
 	}
 }
 
-//通过租约 注册服务
 func (s *ServerReg) putService(key, val string) error {
 	kv := clientv3.NewKV(s.Client.Client)
 	_, err := kv.Put(context.TODO(), key, val, clientv3.WithLease(s.leaseId))
 	return err
 }
 
-//撤销租约
 func (s *ServerReg) RevokeLease() error {
 	s.cancelFunc()
 	time.Sleep(2 * time.Second)

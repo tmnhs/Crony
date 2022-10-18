@@ -16,8 +16,7 @@ var (
 )
 
 const (
-	// Version ApiServer框架版本号
-	Version    = "v1.0.0"
+	Version    = "v1.1.0"
 	ApiModule  = "crony/api-server"
 	NodeModule = "crony/node-server"
 )

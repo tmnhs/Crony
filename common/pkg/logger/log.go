@@ -11,7 +11,6 @@ import (
 	"os"
 )
 
-//默认logger处理器
 var _defaultLogger *zap.Logger
 
 func Init(projectName string, level string, format, prefix, director string, showLine bool, encodeLevel string, stacktraceKey string, logInConsole bool) (logger *zap.Logger) {
@@ -19,19 +18,15 @@ func Init(projectName string, level string, format, prefix, director string, sho
 		fmt.Printf("create %v directory\n", director)
 		_ = os.Mkdir(fmt.Sprintf("%s/%s", projectName, director), os.ModePerm)
 	}
-	// 调试级别
 	debugPriority := zap.LevelEnablerFunc(func(lev zapcore.Level) bool {
 		return lev == zap.DebugLevel
 	})
-	// 日志级别
 	infoPriority := zap.LevelEnablerFunc(func(lev zapcore.Level) bool {
 		return lev == zap.InfoLevel
 	})
-	// 警告级别
 	warnPriority := zap.LevelEnablerFunc(func(lev zapcore.Level) bool {
 		return lev == zap.WarnLevel
 	})
-	// 错误级别
 	errorPriority := zap.LevelEnablerFunc(func(lev zapcore.Level) bool {
 		return lev >= zap.ErrorLevel
 	})
@@ -61,7 +56,6 @@ func Init(projectName string, level string, format, prefix, director string, sho
 	return logger
 }
 
-// getEncoderConfig 获取zapcore.EncoderConfig
 func getEncoderConfig(prefix, encodeLevel, stacktraceKey string) (config zapcore.EncoderConfig) {
 	config = zapcore.EncoderConfig{
 		MessageKey:    "message",
@@ -75,18 +69,17 @@ func getEncoderConfig(prefix, encodeLevel, stacktraceKey string) (config zapcore
 		EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 			enc.AppendString(t.Format(prefix + utils.TimeFormatDateV4))
 		},
-		//EncodeTime:     zapcore.ISO8601TimeEncoder,
 		EncodeDuration: zapcore.SecondsDurationEncoder,
 		EncodeCaller:   zapcore.FullCallerEncoder,
 	}
 	switch {
-	case encodeLevel == "LowercaseLevelEncoder": // 小写编码器(默认)
+	case encodeLevel == "LowercaseLevelEncoder":
 		config.EncodeLevel = zapcore.LowercaseLevelEncoder
-	case encodeLevel == "LowercaseColorLevelEncoder": // 小写编码器带颜色
+	case encodeLevel == "LowercaseColorLevelEncoder":
 		config.EncodeLevel = zapcore.LowercaseColorLevelEncoder
-	case encodeLevel == "CapitalLevelEncoder": // 大写编码器
+	case encodeLevel == "CapitalLevelEncoder":
 		config.EncodeLevel = zapcore.CapitalLevelEncoder
-	case encodeLevel == "CapitalColorLevelEncoder": // 大写编码器带颜色
+	case encodeLevel == "CapitalColorLevelEncoder":
 		config.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	default:
 		config.EncodeLevel = zapcore.LowercaseLevelEncoder
@@ -94,7 +87,6 @@ func getEncoderConfig(prefix, encodeLevel, stacktraceKey string) (config zapcore
 	return config
 }
 
-// getEncoder 获取zapcore.Encoder
 func getEncoder(prefix, format, encodeLevel, stacktraceKey string) zapcore.Encoder {
 	if format == "json" {
 		return zapcore.NewJSONEncoder(getEncoderConfig(prefix, encodeLevel, stacktraceKey))
@@ -102,7 +94,6 @@ func getEncoder(prefix, format, encodeLevel, stacktraceKey string) zapcore.Encod
 	return zapcore.NewConsoleEncoder(getEncoderConfig(prefix, encodeLevel, stacktraceKey))
 }
 
-// getEncoderCore 获取Encoder的zapcore.Core
 func getEncoderCore(logInConsole bool, prefix, format, encodeLevel, stacktraceKey string, fileName string, level zapcore.LevelEnabler) (core zapcore.Core) {
 	writer := getWriteSyncer(logInConsole, fileName) // 使用file-rotatelogs进行日志分割
 	return zapcore.NewCore(getEncoder(prefix, format, encodeLevel, stacktraceKey), writer, level)
@@ -110,11 +101,11 @@ func getEncoderCore(logInConsole bool, prefix, format, encodeLevel, stacktraceKe
 
 func getWriteSyncer(logInConsole bool, file string) zapcore.WriteSyncer {
 	lumberJackLogger := &lumberjack.Logger{
-		Filename:   file, // 日志文件的位置
-		MaxSize:    10,   // 在进行切割之前，日志文件的最大大小（以MB为单位）
-		MaxBackups: 200,  // 保留旧文件的最大个数
-		MaxAge:     30,   // 保留旧文件的最大天数
-		Compress:   true, // 是否压缩/归档旧文件
+		Filename:   file,
+		MaxSize:    10,
+		MaxBackups: 200,
+		MaxAge:     30,
+		Compress:   true,
 	}
 
 	if logInConsole {
@@ -122,66 +113,6 @@ func getWriteSyncer(logInConsole bool, file string) zapcore.WriteSyncer {
 	}
 	return zapcore.AddSync(lumberJackLogger)
 }
-
-/*func Infof(msg string, fields ...interface{}) {
-	if len(fields) == 0 {
-		_defaultLogger.Info(msg)
-		return
-	}
-	_defaultLogger.Info(fmt.Sprintf(msg, fields))
-}
-
-func Info(msg string, fields ...zap.Field) {
-	_defaultLogger.Info(msg, fields...)
-}
-
-func Debugf(msg string, fields ...interface{}) {
-	if len(fields) == 0 {
-		_defaultLogger.Debug(msg)
-		return
-	}
-	_defaultLogger.Debug(fmt.Sprintf(msg, fields))
-}
-
-func Debug(msg string, fields ...zap.Field) {
-	_defaultLogger.Debug(msg, fields...)
-}
-
-func Warnf(msg string, fields ...interface{}) {
-	if len(fields) == 0 {
-		_defaultLogger.Warn(msg)
-		return
-	}
-	_defaultLogger.Warn(fmt.Sprintf(msg, fields))
-}
-
-func Warn(msg string, fields ...zap.Field) {
-	_defaultLogger.Warn(msg, fields...)
-}
-
-func Errorf(msg string, fields ...interface{}) {
-	if len(fields) == 0 {
-		_defaultLogger.Error(msg)
-		return
-	}
-	_defaultLogger.Error(fmt.Sprintf(msg, fields))
-}
-
-func Error(msg string, fields ...zap.Field) {
-	_defaultLogger.Error(msg, fields...)
-}
-
-func Fatal(msg string, fields ...zap.Field) {
-	_defaultLogger.Fatal(msg, fields...)
-}
-
-func Fatalf(msg string, fields ...interface{}) {
-	if len(fields) == 0 {
-		_defaultLogger.Fatal(msg)
-		return
-	}
-	_defaultLogger.Fatal(fmt.Sprintf(msg, fields))
-}*/
 
 func Sync() error {
 	return _defaultLogger.Sync()

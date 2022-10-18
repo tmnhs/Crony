@@ -12,12 +12,11 @@ type writer struct {
 	logger.Writer
 }
 
-// newWriter writer 构造函数
 func newWriter(w logger.Writer) *writer {
 	return &writer{Writer: w}
 }
 
-// Config gorm 自定义配置
+// Config Custom Gorm
 func setConfig(logMode string) *gorm.Config {
 	config := &gorm.Config{DisableForeignKeyConstraintWhenMigrating: true}
 	_default := logger.New(newWriter(log.New(os.Stdout, "\r\n", log.LstdFlags)), logger.Config{

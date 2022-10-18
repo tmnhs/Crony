@@ -49,7 +49,6 @@ func (srv *NodeServer) watchKilledProc() {
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
 			switch {
-			//监控是否被修改
 			case ev.IsModify():
 				proc, err := handler.GetProcFromKey(string(ev.Kv.Key))
 				if err != nil {
@@ -64,12 +63,12 @@ func (srv *NodeServer) watchKilledProc() {
 				}
 				proc.JobProcVal = *procVal
 				if proc.Killed {
-					if err := syscall.Kill(-proc.ID, syscall.SIGKILL); err != nil {
+					if err := syscall.Kill(proc.ID, syscall.SIGKILL); err != nil {
 						logger.GetLogger().Error(fmt.Sprintf("process:[%d] force kill failed, error:[%s]", proc.ID, err))
 						return
 					}
-
 				}
+
 			}
 		}
 	}
@@ -80,7 +79,6 @@ func (srv *NodeServer) watchSystemInfo() {
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
 			switch {
-			//监控是否被创建
 			case ev.IsCreate() || ev.IsModify():
 				key := string(ev.Kv.Key)
 				if string(ev.Kv.Value) != models.NodeSystemInfoSwitch || srv.Node.UUID != getUUID(key) {
@@ -90,7 +88,6 @@ func (srv *NodeServer) watchSystemInfo() {
 				s, err := utils.GetServerInfo()
 				if err != nil {
 					logger.GetLogger().Error(fmt.Sprintf("get system info from node[%s] error: %s", srv.UUID, err.Error()))
-					//是否需要删除
 					continue
 				}
 				b, err := json.Marshal(s)
@@ -98,7 +95,6 @@ func (srv *NodeServer) watchSystemInfo() {
 					logger.GetLogger().Error(fmt.Sprintf("get system info from node[%s] json marshal error: %s", srv.UUID, err.Error()))
 					continue
 				}
-				//修改值
 				_, err = etcdclient.PutWithTtl(fmt.Sprintf(etcdclient.KeyEtcdSystemGet, getUUID(key)), string(b), 5*60)
 				if err != nil {
 					logger.GetLogger().Error(fmt.Sprintf("get system info from node[%s] etcd put error: %s", srv.UUID, err.Error()))
@@ -125,7 +121,7 @@ func (srv *NodeServer) watchOnce() {
 		for _, ev := range wresp.Events {
 			switch {
 			case ev.IsModify(), ev.IsCreate():
-				//不是在该node节点执行
+				// is not executed on this node
 				if len(ev.Kv.Value) != 0 && string(ev.Kv.Value) != srv.UUID {
 					continue
 				}
@@ -133,7 +129,6 @@ func (srv *NodeServer) watchOnce() {
 				if !ok {
 					continue
 				}
-				//立即执行
 				go j.RunWithRecovery()
 			}
 		}

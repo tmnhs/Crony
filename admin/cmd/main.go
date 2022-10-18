@@ -22,14 +22,14 @@ func main() {
 		logger.GetLogger().Error(fmt.Sprintf("new api server error:%s", err.Error()))
 		os.Exit(1)
 	}
-	//注册API路由业务
+	// Register the API routing service
 	srv.RegisterRouters(handler.RegisterRouters)
 	service.DefaultNodeWatcher = service.NewNodeWatcherService()
 	err = service.DefaultNodeWatcher.Watch()
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("resolver  error:%#v", err))
 	}
-	//初始化邮件配置
+	//// Notify operation
 	go notify.Serve()
 	var closeChan chan struct{}
 	period := config.GetConfigModels().System.LogCleanPeriod

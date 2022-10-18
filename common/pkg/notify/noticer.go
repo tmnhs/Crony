@@ -10,12 +10,11 @@ type Noticer interface {
 }
 
 type Message struct {
-	Type    int
-	IP      string
-	Subject string
-	Body    string
-	To      []string
-	//时间字符串
+	Type      int
+	IP        string
+	Subject   string
+	Body      string
+	To        []string
 	OccurTime string
 }
 
@@ -41,7 +40,6 @@ func Send(msg *Message) {
 }
 
 func Serve() {
-	//for msg := range _defaultMail.msgChan {
 	for {
 		select {
 		case msg := <-msgQueue:
@@ -50,7 +48,7 @@ func Serve() {
 			}
 			switch msg.Type {
 			case 1:
-				//发送邮件
+				//Mail
 				msg.Check()
 				_defaultMail.SendMsg(msg)
 			case 2:

@@ -22,9 +22,7 @@ type User struct {
 	Updated int64 `json:"updated" gorm:"column:updated"`
 }
 
-// 更新
 func (u *User) Update() error {
-	//只会更新非零字段
 	return dbclient.GetMysqlDB().Table(CronyUserTableName).Updates(u).Error
 }
 

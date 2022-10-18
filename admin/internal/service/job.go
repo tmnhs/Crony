@@ -76,7 +76,7 @@ func (j *JobService) SearchJobLog(s *request.ReqJobLogSearch) ([]models.JobLog, 
 	return jobLogs, total, nil
 }
 
-//获取今日任务执行总数 1表示成功 0表示失败
+//Get the total number of tasks executed today 1 indicates success 0 indicates failure
 func (j *JobService) GetTodayJobExcCount(success int) (int64, error) {
 	db := dbclient.GetMysqlDB().Table(models.CronyJobLogTableName).Where("start_time > ? and end_time!=0 and success = ?", utils.GetTodayUnix(), success)
 	var total int64
@@ -87,7 +87,7 @@ func (j *JobService) GetTodayJobExcCount(success int) (int64, error) {
 	return total, nil
 }
 
-//某个时间段内每天的任务数量
+//The number of tasks per day in a certain period of time
 func (j *JobService) GetJobExcCount(start, end int64, success int) ([]resp.DateCount, error) {
 	var dateCount []resp.DateCount
 	db := dbclient.GetMysqlDB().Table(models.CronyJobLogTableName).Select("FROM_UNIXTIME( start_time, '%Y-%m-%d' ) AS date", "COUNT( * ) AS count ").Group("date").Order("date ASC").Where("start_time > ? and start_time<?  and end_time!=0 and success = ?", start, end, success)
@@ -103,7 +103,6 @@ func (j *JobService) GetNotAssignedJob() (jobs []models.Job, err error) {
 	return
 }
 
-//
 func (j *JobService) GetRunningJobCount() (int64, error) {
 	wresp, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdProcProfile), clientv3.WithPrefix(), clientv3.WithCountOnly())
 	if err != nil {
@@ -115,20 +114,20 @@ func (j *JobService) GetRunningJobCount() (int64, error) {
 
 const MaxJobCount = 10000
 
-//优先分配工作任务最少的结点
+//Give priority to the node with the least number of tasks
 func (j *JobService) AutoAllocateNode() string {
-	//获取所有活着的节点
+	//Get all the living nodes
 	nodeList := DefaultNodeWatcher.List2Array()
 	resultCount, resultNodeUUID := MaxJobCount, ""
 	for _, nodeUUID := range nodeList {
-		//在数据库中查看是否存活
+		//Check the database to see if it is alive
 		node := &models.Node{UUID: nodeUUID}
 		err := node.FindByUUID()
 		if err != nil {
 			continue
 		}
 		if node.Status == models.NodeConnFail {
-			//节点已失效
+			//The node has failed
 			delete(DefaultNodeWatcher.nodeList, nodeUUID)
 			continue
 		}
@@ -141,13 +140,11 @@ func (j *JobService) AutoAllocateNode() string {
 			resultCount, resultNodeUUID = count, nodeUUID
 		}
 	}
-
 	return resultNodeUUID
 }
 
-//立即执行
 func (j *JobService) Once(once *request.ReqJobOnce) (err error) {
-	//默认存在时间60秒
+	//The default existence time is 60 seconds
 	_, err = etcdclient.PutWithTtl(fmt.Sprintf(etcdclient.KeyEtcdOnce, once.JobId), once.NodeUUID, 60)
 	return
 }

@@ -32,7 +32,7 @@ func (u *UserRouter) Login(c *gin.Context) {
 		return
 	}
 
-	j := middlerware.NewJWT() // 唯一签名
+	j := middlerware.NewJWT()
 	claims := j.CreateClaims(middlerware.BaseClaims{
 		ID:       user.ID,
 		UserName: user.UserName,
@@ -97,8 +97,6 @@ func (u *UserRouter) Update(c *gin.Context) {
 		return
 	}
 	resp.OkWithMessage("update success", c)
-	//}
-
 }
 
 func (u *UserRouter) Delete(c *gin.Context) {

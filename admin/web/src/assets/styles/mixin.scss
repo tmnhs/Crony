@@ -1,0 +1,60 @@
+// scss混合器
+
+// 清除浮动
+@mixin clearfix {
+	&::after {
+		content: '';
+		display: block;
+		visibility: hidden;
+		height: 0;
+		line-height: 0;
+		clear: both;
+	}
+}
+
+// 单行文本超出显示省略号
+@mixin text-ellipsis-single {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+//多行文本文字超过行数限制后显示省略号
+@mixin text-ellipsis-multiple($line-clamp) {
+	word-break: break-all;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	display: -moz-box;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	-webkit-box-orient: vertical;
+	-moz-box-orient: vertical;
+	-webkit-line-clamp: $line-clamp;
+}
+
+// 使用弹性布局居中子元素
+@mixin flex-center-wrap {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+// 定位居中
+@mixin abs-center {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+
+// 圆形
+@mixin round($size) {
+	width: $size;
+	height: $size;
+	border-radius: 50%;
+}
+
+// 边框阴影
+@mixin box-shadow {
+	box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.2);
+}

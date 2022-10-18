@@ -9,7 +9,6 @@ import (
 )
 
 type WebHook struct {
-	//飞书还是其他
 	Kind string
 	Url  string
 }

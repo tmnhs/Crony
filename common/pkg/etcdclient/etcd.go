@@ -24,7 +24,6 @@ func Init(endpoints []string, dialTimeout, reqTimeout int64) (*Client, error) {
 		DialTimeout: time.Duration(dialTimeout) * time.Second,
 	})
 	if err != nil {
-		// handle error!
 		fmt.Printf("connect to etcd failed, err:%v\n", err)
 		return nil, err
 	}

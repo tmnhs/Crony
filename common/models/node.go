@@ -12,18 +12,18 @@ const (
 	NodeSystemInfoSwitch = "alive"
 )
 
-// 注册到 /crony/node/<node_uuid>>/
+// register to /crony/node/<node_uuid>/
 type Node struct {
-	ID       int    `json:"id" gorm:"column:id"`   // machine id
-	PID      string `json:"pid" gorm:"column:pid"` // 进程 pid
-	IP       string `json:"ip" gorm:"column:ip"`   // node ip
+	ID       int    `json:"id" gorm:"column:id"`
+	PID      string `json:"pid" gorm:"column:pid"`
+	IP       string `json:"ip" gorm:"column:ip"`
 	Hostname string `json:"hostname" gorm:"column:hostname"`
 	UUID     string `json:"uuid" gorm:"column:uuid"`
 	Version  string `json:"version" gorm:"column:version"`
-	UpTime   int64  `json:"up" gorm:"column:up"`     // 启动时间
-	DownTime int64  `json:"down" gorm:"column:down"` // 上次关闭时间
+	UpTime   int64  `json:"up" gorm:"column:up"`
+	DownTime int64  `json:"down" gorm:"column:down"`
 
-	Status int `json:"status" gorm:"column:status"` // 是否可用
+	Status int `json:"status" gorm:"column:status"`
 }
 
 func (n *Node) String() string {
@@ -38,7 +38,6 @@ func (n *Node) Insert() (insertId int, err error) {
 	return
 }
 
-// 更新
 func (n *Node) Update() error {
 	return dbclient.GetMysqlDB().Table(CronyNodeTableName).Updates(n).Error
 }

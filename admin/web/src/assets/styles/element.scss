@@ -1,0 +1,31 @@
+// 借用element的类名全局覆盖element中对应的样式
+
+// 表单元素
+.el-form-item {
+	margin-bottom: 20px !important;
+}
+
+.el-select,
+.el-date-editor.el-input {
+	width: 100% !important;
+}
+
+// 按钮
+.el-button {
+	&:not(.el-button--text) {
+		min-width: 100px;
+	}
+}
+
+// 抽屉
+.el-drawer {
+	.el-drawer__header {
+		font-size: 18px;
+		color: #333;
+		margin-bottom: 0px;
+	}
+  
+	.el-drawer__body {
+		padding: 1em;
+	}
+}

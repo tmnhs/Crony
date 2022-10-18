@@ -7,7 +7,6 @@ import (
 	"github.com/tmnhs/crony/common/models"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"os/exec"
-	"syscall"
 	"time"
 )
 
@@ -16,20 +15,16 @@ type CMDHandler struct {
 
 func (c *CMDHandler) Run(job *Job) (result string, err error) {
 	var (
-		cmd         *exec.Cmd
-		proc        *JobProc
-		sysProcAttr *syscall.SysProcAttr
+		cmd  *exec.Cmd
+		proc *JobProc
 	)
-	// 超时控制
 	if job.Timeout > 0 {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(job.Timeout)*time.Second)
 		defer cancel()
-		//cmd = exec.CommandContext(ctx, job.Cmd[0])
 		cmd = exec.CommandContext(ctx, job.Cmd[0], job.Cmd[1:]...)
 	} else {
 		cmd = exec.Command(job.Cmd[0], job.Cmd[1:]...)
 	}
-	cmd.SysProcAttr = sysProcAttr
 	var b bytes.Buffer
 	cmd.Stdout = &b
 	cmd.Stderr = &b
@@ -46,20 +41,19 @@ func (c *CMDHandler) Run(job *Job) (result string, err error) {
 			JobID:    job.ID,
 			NodeUUID: job.RunOn,
 			JobProcVal: models.JobProcVal{
-				Time: time.Now(),
+				Time:   time.Now(),
+				Killed: false,
 			},
 		},
 	}
-
 	err = proc.Start()
 	if err != nil {
 		return
 	}
 	defer proc.Stop()
-
 	if err = cmd.Wait(); err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("%s\n%s", b.String(), err.Error()))
-		return b.String(), err
+		logger.GetLogger().Error(fmt.Sprintf("%s%s", b.String(), err.Error()))
+		return fmt.Sprintf("%s error:%s", b.String(), err.Error()), err
 	}
 	return b.String(), nil
 }

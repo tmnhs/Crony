@@ -22,9 +22,6 @@ func main() {
 		fmt.Println("init node server error:", err.Error())
 		os.Exit(1)
 	}
-
-	logger.GetLogger().Debug(fmt.Sprintf("nodeServer:%#v", *nodeServer))
-	logger.GetLogger().Debug(fmt.Sprintf("node:%#v", *nodeServer.Node))
 	if err = nodeServer.Register(); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("register node into etcd error:%s", err.Error()))
 		os.Exit(1)
@@ -33,14 +30,13 @@ func main() {
 		logger.GetLogger().Error(fmt.Sprintf("node run error: %s", err.Error()))
 		os.Exit(1)
 	}
-	//邮件相关操作
+	//notification operation
 	go notify.Serve()
 	logger.GetLogger().Info(fmt.Sprintf("crony node %s service started, Ctrl+C or send kill sign to exit", nodeServer.String()))
-	// 注册退出事件
-	event.OnEvent(event.EXIT, nodeServer.Stop /*,stopwatcher()*/)
-	// 监听退出信号
+	// Register the logout event
+	event.OnEvent(event.EXIT, nodeServer.Stop)
+	// Listen for exit signals
 	event.WaitEvent()
-	// 处理退出事件
 	event.EmitEvent(event.EXIT, nil)
 	logger.GetLogger().Info("exit success")
 }

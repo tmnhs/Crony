@@ -20,8 +20,7 @@ import (
 )
 
 type NodeWatcherService struct {
-	client *etcdclient.Client
-	//<uuid> <pid>
+	client   *etcdclient.Client
 	nodeList map[string]models.Node
 	lock     sync.Mutex
 }
@@ -64,20 +63,20 @@ func (n *NodeWatcherService) watcher() {
 					logger.GetLogger().Error(fmt.Sprintf("crony node[%s] find by uuid  error:%s", uuid, err.Error()))
 					return
 				}
-				// 先删除再故障转移
+
 				success, fail, err := n.FailOver(uuid)
 				if err != nil {
 					logger.GetLogger().Error(fmt.Sprintf("crony node[%s] fail over error:%s", uuid, err.Error()))
 					return
 				}
-				//如果故障转移全部成功则在数据库里删除节点
+				// if the failover is all successful, delete the node in the database
 				if fail.Count() == 0 {
 					err = node.Delete()
 					if err != nil {
 						logger.GetLogger().Error(fmt.Sprintf("crony node[%s] delete by uuid  error:%s", uuid, err.Error()))
 					}
 				}
-				//节点失活信息默认使用邮件
+				//Node inactivation information defaults to email.
 				msg := &notify.Message{
 					Type:      notify.NotifyTypeMail,
 					IP:        fmt.Sprintf("%s:%s", node.IP, node.PID),
@@ -117,16 +116,15 @@ func (n *NodeWatcherService) setNodeList(key, val string) {
 	n.lock.Lock()
 	n.nodeList[key] = node
 	n.lock.Unlock()
-
 	logger.GetLogger().Debug(fmt.Sprintf("discover node node[%s] with pid[%s]", key, val))
-
-	//寻找为分配的job
+	//Wait for the node to be fully started and assign the node
+	time.Sleep(5 * time.Second)
+	//find unassigned job
 	jobs, err := DefaultJobService.GetNotAssignedJob()
 	if err != nil {
 		logger.GetLogger().Warn(fmt.Sprintf("discover node[%s],pid[%s] and get not assigned job err:%s", key, val, err.Error()))
 		return
 	}
-	//将未分配的job分配给node
 	for _, job := range jobs {
 		if job.Type == models.JobTypeCmd && !config.GetConfigModels().System.CmdAutoAllocation {
 			logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d]  don't support cmd type", job.ID))
@@ -134,8 +132,8 @@ func (n *NodeWatcherService) setNodeList(key, val string) {
 		}
 		nodeUUID := DefaultJobService.AutoAllocateNode()
 		if nodeUUID == "" {
-			//自动分配失败，则直接分配给新增的节点
-			nodeUUID = n.GetUUID(key)
+			//If automatic allocation fails, it will be directly assigned to the new node.
+			nodeUUID = key
 		}
 		err = n.assignJob(nodeUUID, job)
 		if err != nil {
@@ -258,7 +256,6 @@ func (n *NodeWatcherService) assignJob(nodeUUID string, job models.Job) (err err
 	return
 }
 
-//故障转移
 func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Result, err error) {
 	jobs, err := n.GetJobs(nodeUUID)
 	if err != nil {
@@ -269,7 +266,7 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Res
 		return
 	}
 	for _, job := range jobs {
-		//不支持shell命令故障转移
+		//Determine whether shell command failover is supported
 		if job.Type == models.JobTypeCmd && !config.GetConfigModels().System.CmdAutoAllocation {
 			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over don't support cmd type", nodeUUID, job.ID))
 			fail = append(fail, job.ID)
@@ -288,7 +285,7 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Res
 			fail = append(fail, job.ID)
 			continue
 		}
-		//如果转移成功则删除key值
+		//Delete the key value if the transfer is successful
 		_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, oldUUID, job.ID))
 		if err != nil {
 			logger.GetLogger().Error(fmt.Sprintf("node[%s] job[%d] fail over etcd delete job error:%s", nodeUUID, job.ID, err.Error()))
@@ -300,7 +297,7 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Res
 	return
 }
 
-//获取某个node下的所有job
+//get all the job under a node
 func (n *NodeWatcherService) GetJobs(nodeUUID string) (jobs []models.Job, err error) {
 	resps, err := etcdclient.Get(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
 	if err != nil {
@@ -321,7 +318,6 @@ func (n *NodeWatcherService) GetJobs(nodeUUID string) (jobs []models.Job, err er
 	return
 }
 
-//获取某个node的数量
 func (n *NodeWatcherService) GetNodeCount(status int) (int64, error) {
 	db := dbclient.GetMysqlDB().Table(models.CronyNodeTableName)
 	if status > 0 {

@@ -13,11 +13,10 @@ import (
 	"sync/atomic"
 )
 
-//继承
-// 当前执行中的任务信息
-// key: /crony/proc/<node_uuid>/<job_id>/pid
-// value: 开始执行时间
-//key 会自动过期，防止进程意外退出后没有清除相关 key，过期时间可配置
+// Information about the current task in execution
+// key: /crony/proc/<node_uuid>/<job_id>/pid</job_id></node_uuid>
+// value: indicates the start execution time
+// The key expires automatically to prevent the key from being cleared after the process exits unexpectedly. The expiration time can be configured
 type JobProc struct {
 	*models.JobProc
 }
@@ -52,10 +51,6 @@ func (p *JobProc) Key() string {
 }
 
 func (p *JobProc) del() error {
-	if atomic.LoadInt32(&p.HasPut) != 1 {
-		return nil
-	}
-
 	_, err := etcdclient.Delete(p.Key())
 	return err
 }
@@ -79,20 +74,16 @@ func WatchProc(nodeUUID string) clientv3.WatchChan {
 }
 
 func (p *JobProc) Start() error {
-	if p == nil {
-		return nil
-	}
-
 	if !atomic.CompareAndSwapInt32(&p.Running, 0, 1) {
 		return nil
 	}
 
 	p.Wg.Add(1)
-	val, err := json.Marshal(p.JobProcVal)
+	b, err := json.Marshal(p.JobProcVal)
 	if err != nil {
 		return err
 	}
-	_, err = etcdclient.PutWithTtl(p.Key(), string(val), config.GetConfigModels().System.JobProcTtl)
+	_, err = etcdclient.PutWithTtl(p.Key(), string(b), config.GetConfigModels().System.JobProcTtl)
 	if err != nil {
 		return err
 	}

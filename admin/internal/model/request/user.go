@@ -13,8 +13,8 @@ type (
 	}
 	// Modify password structure
 	ReqChangePassword struct {
-		Password    string `json:"password" required,min=4,max=20,alphanum`     // 密码
-		NewPassword string `json:"new_password" required,min=4,max=20,alphanum` // 新密码
+		Password    string `json:"password" binding:"required,min=4,max=20,alphanum"`
+		NewPassword string `json:"new_password" binding:"required,min=4,max=20,alphanum"`
 	}
 	ReqUserSearch struct {
 		PageInfo

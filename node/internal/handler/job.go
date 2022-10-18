@@ -142,7 +142,6 @@ func CreateJob(j *Job) cron.FuncJob {
 	}
 	jobFunc := func() {
 		logger.GetLogger().Info(fmt.Sprintf("start the job#%s#command-%s", j.Name, j.Command))
-		// 默认只运行任务一次
 		var execTimes int = 1
 		if j.RetryTimes > 0 {
 			execTimes += j.RetryTimes
@@ -160,7 +159,6 @@ func CreateJob(j *Job) cron.FuncJob {
 		for i < execTimes {
 			output, runErr = h.Run(j)
 			if runErr == nil {
-				//执行成功
 				err = j.Success(jobLogId, t, output, i)
 				if err != nil {
 					logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
@@ -173,12 +171,11 @@ func CreateJob(j *Job) cron.FuncJob {
 				if j.RetryInterval > 0 {
 					time.Sleep(time.Duration(j.RetryInterval) * time.Second)
 				} else {
-					// 默认重试间隔时间，每次递增1分钟
+					// The default retry interval is increased by 1 minute
 					time.Sleep(time.Duration(i) * time.Minute)
 				}
 			}
 		}
-		//执行全部失败
 		err = j.Fail(jobLogId, t, output, execTimes-1)
 		if err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
@@ -218,7 +215,6 @@ func WatchJobs(nodeUUID string) clientv3.WatchChan {
 	return etcdclient.Watch(fmt.Sprintf(etcdclient.KeyEtcdJobProfile, nodeUUID), clientv3.WithPrefix())
 }
 
-// 从 etcd 的 key 中取 job_id
 func GetJobIDFromKey(key string) int {
 	index := strings.LastIndex(key, "/")
 	if index < 0 {
@@ -231,7 +227,6 @@ func GetJobIDFromKey(key string) int {
 	return jobId
 }
 
-//将每次执行任务的结果写入日志
 func (j *Job) CreateJobLog() (int, error) {
 	start := time.Now()
 	jobLog := &models.JobLog{

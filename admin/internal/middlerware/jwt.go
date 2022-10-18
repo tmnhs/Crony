@@ -37,31 +37,30 @@ var control = &singleflight.Group{}
 
 func NewJWT() *JWT {
 	return &JWT{
-		[]byte("tmnhs"),
+		[]byte("S0dEdN9tqG0AAAAHdElNRQfmCgwBDCSd2zTMAAAA"),
 	}
 }
 
-//创建一个token
 func (j *JWT) CreateClaims(baseClaims BaseClaims) CustomClaims {
 	claims := CustomClaims{
 		BaseClaims: baseClaims,
-		BufferTime: 86400, // 缓冲时间1天 缓冲时间内会获得新的token刷新令牌 此时一个用户会存在两个有效令牌 但是前端只留一个 另一个会丢失
+		BufferTime: 86400, // buffer time 1 day buffer time will get a new token refresh token. In this case, a user will have two valid tokens, but only one will be left at the front end and the other will be lost.
 		StandardClaims: jwt.StandardClaims{
-			NotBefore: time.Now().Unix() - 1000,   // 签名生效时间
-			ExpiresAt: time.Now().Unix() + 604800, // 过期时间 7天  配置文件
-			Issuer:    "tmnhs",                    // 签名的发行者
+			NotBefore: time.Now().Unix() - 1000,   // effective time of signature
+			ExpiresAt: time.Now().Unix() + 604800, // Expiration time 7 days profile
+			Issuer:    "tmnhs",                    // the publisher of the signature
 		},
 	}
 	return claims
 }
 
-//创建一个token
+// create a token
 func (j *JWT) CreateToken(claims CustomClaims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(j.SigningKey)
 }
 
-// CreateTokenByOldToken 旧token 换新token 使用归并回源避免并发问题
+// Replacing old token with new token using merging and origin-pull to avoid concurrency problems
 func (j *JWT) CreateTokenByOldToken(oldToken string, claims CustomClaims) (string, error) {
 	v, err, _ := control.Do("JWT:"+oldToken, func() (interface{}, error) {
 		return j.CreateToken(claims)
@@ -69,7 +68,6 @@ func (j *JWT) CreateTokenByOldToken(oldToken string, claims CustomClaims) (strin
 	return v.(string), err
 }
 
-//解析 token
 func (j *JWT) ParseToken(tokenString string) (*CustomClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return j.SigningKey, nil
@@ -103,12 +101,12 @@ func GetClaims(c *gin.Context) (*CustomClaims, error) {
 	j := NewJWT()
 	claims, err := j.ParseToken(token)
 	if err != nil {
-		logger.GetLogger().Error("从Gin的Context中获取从jwt解析信息失败, 请检查请求头是否存在Authorization且claims是否为规定结构")
+		logger.GetLogger().Error("Failed to obtain parsing information from jwt from Context of Gin. Please check whether Authorization exists in the request header and whether claims is the specified structure.")
 	}
 	return claims, err
 }
 
-// 从Gin的Context中获取从jwt解析出来的用户角色
+// Get the user roles parsed from jwt from the Context of Gin
 func GetUserInfo(c *gin.Context) *CustomClaims {
 	if claims, exists := c.Get("claims"); !exists {
 		if cl, err := GetClaims(c); err != nil {
@@ -124,7 +122,10 @@ func GetUserInfo(c *gin.Context) *CustomClaims {
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 我们这里jwt鉴权取头部信息 Authorization 登录时回返回token信息 这里前端需要把token存储到cookie或者本地localStorage中 不过需要跟后端协商过期时间 可以约定刷新令牌或者重新登录
+		// We have jwt authentication header information to return token information when Authorization logs in. Here,
+		//the front end needs to store the token in cookie or local localStorage,
+		//but you need to negotiate the expiration time with the back end.
+		//You can agree to refresh the token or log in again.
 		token := c.Request.Header.Get("Authorization")
 		if token == "" {
 			logger.GetLogger().Debug("get jwt  token error ,you have no right ")
@@ -133,7 +134,6 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 		j := NewJWT()
-		// parseToken 解析token包含的信息
 		claims, err := j.ParseToken(token)
 		if err != nil {
 			if err == TokenExpired {

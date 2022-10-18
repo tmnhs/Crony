@@ -13,9 +13,9 @@ var _defaultDB *gorm.DB
 func Init(dsn, logMode string, maxIdleConns, maxOpenConns int) (*gorm.DB, error) {
 
 	mysqlConfig := mysql.Config{
-		DSN:                       dsn,   // DSN data source name
-		DefaultStringSize:         256,   // string 类型字段的默认长度
-		SkipInitializeWithVersion: false, // 根据版本自动配置
+		DSN:                       dsn,
+		DefaultStringSize:         256,
+		SkipInitializeWithVersion: false,
 	}
 	if db, err := gorm.Open(mysql.New(mysqlConfig), setConfig(logMode)); err != nil {
 		return nil, err

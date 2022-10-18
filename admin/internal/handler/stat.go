@@ -74,7 +74,7 @@ func (s *StatRouter) GetSystemInfo(c *gin.Context) {
 	var server *utils.Server
 	var err error
 	if req.UUID == "" {
-		//获取admin的本机信息
+		//Get native information of admin
 		server, err = utils.GetServerInfo()
 		if err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("[get_system_info]  error:%s", err.Error()))
@@ -82,15 +82,15 @@ func (s *StatRouter) GetSystemInfo(c *gin.Context) {
 			return
 		}
 	} else {
-		//创建,设置存活时间为30秒
+		//Set the survival time to 30 seconds
 		_, err := etcdclient.PutWithTtl(fmt.Sprintf(etcdclient.KeyEtcdSystemSwitch, req.UUID), models.NodeSystemInfoSwitch, 30)
 		if err != nil {
 			logger.GetLogger().Error(fmt.Sprintf("get system info from node[%s] etcd put error: %s", req.UUID, err.Error()))
 			resp.FailWithMessage(resp.ERROR, "[get_system_info]  error", c)
 			return
 		}
-		//会有延迟，默认等待一秒
-		time.Sleep(1 * time.Second)
+		//There will be a delay. By default, wait 2s.
+		time.Sleep(2 * time.Second)
 		server, err = service.GetNodeSystemInfo(req.UUID)
 		if err != nil {
 			logger.GetLogger().Error(fmt.Sprintf("get system info from node[%s] watch key error: %s", req.UUID, err.Error()))

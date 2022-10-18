@@ -45,7 +45,7 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 			resp.FailWithMessage(resp.ERROR, "[create_job] The shell command is not supported to automatically assign nodes by default.", c)
 			return
 		}
-		//自动分配
+		// Automatic allocation
 		nodeUUID := service.DefaultJobService.AutoAllocateNode()
 		if nodeUUID == "" {
 			logger.GetLogger().Error(fmt.Sprintf("[create_job] auto allocate node error"))
@@ -54,7 +54,7 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		}
 		req.RunOn = nodeUUID
 	} else if req.Allocation == models.ManualAllocation {
-		//手动分配
+		// Manual assignment
 		if len(req.RunOn) == 0 {
 			resp.FailWithMessage(resp.ERROR, "[create_job] manually assigned node can't be null", c)
 			return
@@ -103,7 +103,6 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		resp.FailWithMessage(resp.ERROR, "[create_job] json marshal job error", c)
 		return
 	}
-	//添加至etcd
 	_, err = etcdclient.Put(fmt.Sprintf(etcdclient.KeyEtcdJob, req.RunOn, req.ID), string(b))
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[create_job] etcd put job error:%s", err.Error()))
@@ -122,7 +121,6 @@ func (j *JobRouter) Delete(c *gin.Context) {
 		return
 	}
 	for _, id := range req.IDS {
-		//先查找再删除etcd之后再删除数据库
 		job := models.Job{ID: id}
 		err := job.FindById()
 		if err != nil {
@@ -150,8 +148,6 @@ func (j *JobRouter) FindById(c *gin.Context) {
 		resp.FailWithMessage(resp.ErrorRequestParameter, "[find_job] request parameter error", c)
 		return
 	}
-
-	//先查找再删除etcd之后再删除数据库
 	job := models.Job{ID: req.ID}
 	err := job.FindById()
 	if err != nil {
@@ -214,7 +210,7 @@ func (j *JobRouter) SearchLog(c *gin.Context) {
 	}, "search success", c)
 }
 
-//手动执行
+// execute immediately
 func (j *JobRouter) Once(c *gin.Context) {
 	var req request.ReqJobOnce
 	var err error
@@ -233,13 +229,12 @@ func (j *JobRouter) Once(c *gin.Context) {
 	err = service.DefaultJobService.Once(&req)
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[job_once] etcd put job_id :%d error:%s", req.JobId, err.Error()))
-		resp.FailWithMessage(resp.ERROR, "[job_once] etcd put  error", c)
+		resp.FailWithMessage(resp.ERROR, "[job_once] put  error", c)
 		return
 	}
 	resp.OkWithMessage("job once success", c)
 }
 
-//手动执行
 func (j *JobRouter) Kill(c *gin.Context) {
 	var req request.ReqJobKill
 	var err error
@@ -261,7 +256,7 @@ func (j *JobRouter) Kill(c *gin.Context) {
 	for _, p := range resps.Kvs {
 		var proc models.JobProcVal
 		if err := json.Unmarshal(p.Value, &proc); err != nil {
-			logger.GetLogger().Warn(fmt.Sprintf("job_proc[%s] unmarshal error: %s", string(p.Key), err.Error()))
+			logger.GetLogger().Warn(fmt.Sprintf("job_kill[%s] unmarshal error: %s", string(p.Key), err.Error()))
 			continue
 		}
 		//进程已经被杀死
@@ -271,13 +266,13 @@ func (j *JobRouter) Kill(c *gin.Context) {
 		proc.Killed = true
 		b, err := json.Marshal(&proc)
 		if err != nil {
-			logger.GetLogger().Warn(fmt.Sprintf("job_proc[%s] marshal error: %s", string(p.Key), err.Error()))
+			logger.GetLogger().Warn(fmt.Sprintf("job_kill[%s] marshal error: %s", string(p.Key), err.Error()))
 			continue
 		}
 		//修改
 		_, err = etcdclient.Put(string(p.Key), string(b))
 		if err != nil {
-			logger.GetLogger().Warn(fmt.Sprintf("job_proc[%s] etcd put  error: %s", string(p.Key), err.Error()))
+			logger.GetLogger().Warn(fmt.Sprintf("job_kill[%s] etcd put  error: %s", string(p.Key), err.Error()))
 			continue
 		}
 	}

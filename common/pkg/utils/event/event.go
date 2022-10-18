@@ -83,14 +83,12 @@ func OffAllEvent(name string) error {
 	return nil
 }
 
-// 等待信号
-// 如果信号参数为空，则会等待常见的终止信号
-// SIGINT 2 A 键盘中断（如break键被按下）
-// SIGTERM 15 A 终止信号
+// Wait for the signal
+// If the signal parameter is empty, it waits for the common termination signal
 func WaitEvent(sig ...os.Signal) os.Signal {
 	c := make(chan os.Signal, 1)
 	if len(sig) == 0 {
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	} else {
 		signal.Notify(c, sig...)
 	}
