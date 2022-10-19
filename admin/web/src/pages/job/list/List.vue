@@ -140,7 +140,7 @@
 				<el-table-column prop="id" :label="$t('job.id')" width="80px"></el-table-column>
 				<el-table-column prop="name" :label="$t('job.name')" width="120px" :show-overflow-tooltip="true"></el-table-column>
 				<el-table-column prop="command" :label="$t('job.command')" :show-overflow-tooltip="true"></el-table-column>
-				<el-table-column prop="run_on" :label="$t('job.run_on')" width="300px"></el-table-column>
+				<el-table-column prop="run_on" :label="$t('job.run_on')" width="350px"></el-table-column>
 				<el-table-column prop="type" :label="$t('job.type')"  width="150px">
 					<template slot-scope="scope">
 						{{ tableMng.getNameById('job_type', scope.row.job_type) }}{{scope.row.job_type==2?tableMng.getNameById('http_method', scope.row.http_method):''}}

@@ -58,6 +58,7 @@ run-web:
 
 local-dev: clean install-web
 	@echo "install local dev version"
+	@go mod tidy
 	@if [ ! -d $(NodeConf)/logs ]; then \
         mkdir -p $(NodeConf)/logs; \
     fi

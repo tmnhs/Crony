@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"github.com/tmnhs/crony/common/pkg/notify"
 	"github.com/tmnhs/crony/common/pkg/server"
@@ -22,6 +23,7 @@ func main() {
 		fmt.Println("init node server error:", err.Error())
 		os.Exit(1)
 	}
+	service.RegisterTables(dbclient.GetMysqlDB())
 	if err = nodeServer.Register(); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("register node into etcd error:%s", err.Error()))
 		os.Exit(1)

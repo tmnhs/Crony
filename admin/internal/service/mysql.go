@@ -21,7 +21,7 @@ func RegisterTables(db *gorm.DB) error {
 		os.Exit(0)
 	}
 	entities := []models.User{
-		{UserName: "admin", Password: "e10adc3949ba59abbe56e057f20f883e", Role: models.RoleAdmin, Email: "333333333@qq.com"},
+		{UserName: "root", Password: "e10adc3949ba59abbe56e057f20f883e", Role: models.RoleAdmin, Email: "333333333@qq.com"},
 	}
 	if exist := checkDataExist(db); !exist {
 		if err := db.Table(models.CronyUserTableName).Create(&entities).Error; err != nil {

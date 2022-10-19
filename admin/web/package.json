@@ -1,7 +1,7 @@
 {
   "name": "vue-element-manage",
   "version": "1.0.3",
-  "description": "后台管理系统",
+  "description": "Crony定时任务管理平台",
   "main": "index.js",
   "scripts": {
     "serve": "cross-env NODE_ENV=development webpack-dev-server --config ./config/webpack.dev.conf.js",
