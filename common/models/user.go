@@ -11,15 +11,14 @@ const (
 )
 
 type User struct {
-	ID       int    `json:"id" gorm:"column:id"`
-	UserName string `json:"username" gorm:"column:username"`
-	Password string `json:"password" gorm:"column:password"`
-	Email    string `json:"email" gorm:"column:email"`
-	Role     int    `json:"role" gorm:"column:role"`
-	Status   int    `json:"status" gorm:"column:status"`
+	ID       int    `json:"id" gorm:"column:id;primary_key;auto_increment"`
+	UserName string `json:"username" gorm:"size:128;column:username;not null"`
+	Password string `json:"password" gorm:"size:128;column:password;not null"`
+	Email    string `json:"email" gorm:"size:64;column:email;default:''"`
+	Role     int    `json:"role" gorm:"size:1;column:role;default:1"`
 
-	Created int64 `json:"created" gorm:"column:created"`
-	Updated int64 `json:"updated" gorm:"column:updated"`
+	Created int64 `json:"created" gorm:"column:created;not null"`
+	Updated int64 `json:"updated" gorm:"column:updated;default:0"`
 }
 
 func (u *User) Update() error {
@@ -40,4 +39,8 @@ func (u *User) Insert() (insertId int, err error) {
 
 func (u *User) FindById() error {
 	return dbclient.GetMysqlDB().Table(CronyUserTableName).Select("id", "username", "email", "role", "created", "updated").Where("id = ? ", u.ID).First(u).Error
+}
+
+func (u *User) TableName() string {
+	return CronyUserTableName
 }

@@ -39,7 +39,6 @@ func (u *UserRouter) Login(c *gin.Context) {
 	})
 	token, err := j.CreateToken(claims)
 	if err != nil {
-		logger.GetLogger().Debug(fmt.Sprintf("获取token失败 :%s", err.Error()))
 		resp.FailWithMessage(resp.ErrorTokenGenerate, "获取token失败", c)
 		return
 	}

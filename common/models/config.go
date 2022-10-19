@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 const (
 	CronyNodeTableName   = "node"
 	CronyJobTableName    = "job"
@@ -30,7 +32,7 @@ type (
 		To       []string `mapstructure:"to" json:"to" yaml:"to" ini:"to"`                         // 默认邮件发送对象
 	}
 	WebHook struct {
-		Kind string `mapstructure:"kind" json:"kind" yaml:"kind" ini:"kind"`
+		Kind string `mapstructure:"kind" json:"kind" yaml:"kind" ini:"kind"` //webhook类型
 		Url  string `mapstructure:"url" json:"url" yaml:"url" ini:"kind"`
 	}
 	Etcd struct {
@@ -72,4 +74,14 @@ type (
 
 func (m *Mysql) Dsn() string {
 	return m.Username + ":" + m.Password + "@tcp(" + m.Path + ":" + m.Port + ")/" + m.Dbname + "?" + m.Config
+}
+
+func (m *Mysql) EmptyDsn() string {
+	if m.Path == "" {
+		m.Path = "127.0.0.1"
+	}
+	if m.Port == "" {
+		m.Port = "3306"
+	}
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/", m.Username, m.Password, m.Path, m.Port)
 }

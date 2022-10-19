@@ -30,31 +30,30 @@ const (
 
 // register to  /crony/job/<node_uuid>/<job_id>
 type Job struct {
-	ID      int    `json:"id" gorm:"column:id"`
-	Name    string `json:"name" gorm:"column:name" binding:"required"`
-	Command string `json:"command" gorm:"column:command" binding:"required"`
-	CmdUser string `json:"user" gorm:"column:cmd_user"`
+	ID      int    `json:"id" gorm:"column:id;primary_key;auto_increment"`
+	Name    string `json:"name" gorm:"size:64;column:name;not null;index:idx_job_name" binding:"required"`
+	Command string `json:"command" gorm:"size:512;column:command;not null" binding:"required"`
 	//Timeout setting of job execution time, which is effective when it is greater than 0.
-	Timeout int64 `json:"timeout" gorm:"column:timeout"`
+	Timeout int64 `json:"timeout" gorm:"size:13;column:timeout;default:0"`
 	// Retry times of task execution failures
 	// The default value is 0
-	RetryTimes int `json:"retry_times" gorm:"column:retry_times"`
+	RetryTimes int `json:"retry_times" gorm:"size:4,column:retry_times;default:0"`
 	// Retry interval for task execution failure
 	// in seconds. If the value is less than 0, try again immediately
-	RetryInterval int64   `json:"retry_interval" gorm:"column:retry_interval"`
-	Type          JobType `json:"job_type" gorm:"column:type" binding:"required"`
-	HttpMethod    int     `json:"http_method" gorm:"column:http_method"`
-	NotifyType    int     `json:"notify_type" gorm:"column:notify_type"`
+	RetryInterval int64   `json:"retry_interval" gorm:"size:10;column:retry_interval;default:0"`
+	Type          JobType `json:"job_type" gorm:"size:1;column:type;not null;" binding:"required"`
+	HttpMethod    int     `json:"http_method" gorm:"size:1;column:http_method"`
+	NotifyType    int     `json:"notify_type" gorm:"size:1;column:notify_type;not null"`
 	// Whether to allocate nodes
-	Status        int    `json:"status" gorm:"column:status"`
-	NotifyTo      []byte `json:"-" gorm:"column:notify_to"`
+	Status        int    `json:"status" gorm:"size:1;column:status;not null;default:0;index:idx_job_status"`
+	NotifyTo      []byte `json:"-" gorm:"size:256;column:notify_to;default:null"`
 	NotifyToArray []int  `json:"notify_to" gorm:"-"`
-	Spec          string `json:"spec" gorm:"column:spec"`
-	Note          string `json:"note" gorm:"column:note"`
-	Created       int64  `json:"created" gorm:"column:created"`
-	Updated       int64  `json:"updated" gorm:"column:updated"`
+	Spec          string `json:"spec" gorm:"size:64;column:spec;not null"`
+	RunOn         string `json:"run_on" gorm:"size:128;column:run_on;index:idx_job_run_on;"`
+	Note          string `json:"note" gorm:"size:512;column:note;default:''"`
+	Created       int64  `json:"created" gorm:"column:created;not null"`
+	Updated       int64  `json:"updated" gorm:"column:updated;default:0"`
 
-	RunOn    string   `json:"run_on" gorm:"column:run_on"`
 	Hostname string   `json:"host_name" gorm:"-"`
 	Ip       string   `json:"ip" gorm:"-"`
 	Cmd      []string `json:"cmd" gorm:"-"`
@@ -88,7 +87,6 @@ func (j *Job) Check() error {
 	if len(j.Name) == 0 {
 		return errors.ErrEmptyJobName
 	}
-	j.CmdUser = strings.TrimSpace(j.CmdUser)
 	if j.RetryInterval == 0 {
 		j.RetryTimes = 1
 	}
@@ -118,4 +116,8 @@ func (j *Job) Val() string {
 		return err.Error()
 	}
 	return string(data)
+}
+
+func (j *Job) TableName() string {
+	return CronyJobTableName
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/tmnhs/crony/admin/internal/handler"
 	"github.com/tmnhs/crony/admin/internal/service"
 	"github.com/tmnhs/crony/common/pkg/config"
+	"github.com/tmnhs/crony/common/pkg/dbclient"
 	"github.com/tmnhs/crony/common/pkg/logger"
 	"github.com/tmnhs/crony/common/pkg/notify"
 	"github.com/tmnhs/crony/common/pkg/server"
@@ -28,6 +29,11 @@ func main() {
 	err = service.DefaultNodeWatcher.Watch()
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("resolver  error:%#v", err))
+	}
+	//init db table
+	err = service.RegisterTables(dbclient.GetMysqlDB())
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("init db table error:%#v", err))
 	}
 	// Notify operation
 	go notify.Serve()

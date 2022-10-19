@@ -13,14 +13,15 @@
   },
   "system": {
     "env": "testing",
-    "addr": 8088,
-    "#node-timeout": "节点超时时间，单位秒",
+    "addr": 8089,
+    "#node-timeout": "Node registration timeout, in seconds",
     "node-ttl": 5,
+    "#job-proc-ttl": "The unit is second",
     "job-proc-ttl": 300,
-    "#log-clean-period":"分钟",
-    "log-clean-period":1440,
+    "#log-clean-period":"The unit is minute. By default, it is cleared twice a day",
+    "log-clean-period":720,
     "log-clean-expiration":604800,
-    "#cmd-auto-allocation": "是否支持cmd即shell命令自动分配节点，默认不支持,如果需要支持，必须确保每个节点都有响应的配置",
+    "#cmd-auto-allocation": "Whether the cmd command is used to automatically allocate nodes. By default, the command is not supported. If the command is used, ensure that each node has the corresponding configuration",
     "cmd-auto-allocation":true
   },
   "etcd": {
@@ -39,7 +40,7 @@
     "is-ssl": true,
     "secret": "wqkncnzhdvbpdabj",
     "nickname": "crony定时任务平台",
-    "#to": "邮件默认通知对象",
+    "#to": "Email default notification object",
     "to": ["mananhai@highlight.mobi"]
   },
   "webhook": {
@@ -49,7 +50,7 @@
   "log": {
     "level": "debug",
     "format": "console",
-    "prefix": "[crony-admin]",
+    "prefix": "[crony-node]",
     "director": "logs",
     "showLine": false,
     "encode-level": "LowercaseLevelEncoder",

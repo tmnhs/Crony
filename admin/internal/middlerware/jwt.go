@@ -128,7 +128,6 @@ func JWTAuth() gin.HandlerFunc {
 		//You can agree to refresh the token or log in again.
 		token := c.Request.Header.Get("Authorization")
 		if token == "" {
-			logger.GetLogger().Debug("get jwt  token error ,you have no right ")
 			resp.FailWithDetailed(resp.ERROR, gin.H{"reload": true}, "未登录或非法访问", c)
 			c.Abort()
 			return

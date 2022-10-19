@@ -219,13 +219,22 @@ func (j *JobRouter) Once(c *gin.Context) {
 		resp.FailWithMessage(resp.ErrorRequestParameter, "[job_once] request parameter error", c)
 		return
 	}
-	jobModel := &models.Job{ID: req.JobId}
-	err = jobModel.FindById()
+	//find node
+	node := &models.Node{UUID: req.NodeUUID}
+	err = node.FindByUUID()
+	if err != nil || node.Status == models.NodeConnFail {
+		logger.GetLogger().Error(fmt.Sprintf("[job_once] node[%s] conn fail:%v", req.NodeUUID, err))
+		resp.FailWithMessage(resp.ERROR, "[job_once] node conn fail ", c)
+		return
+	}
+	job := &models.Job{ID: req.JobId}
+	err = job.FindById()
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[job_once] job_id[%d] not exist db:%s", req.JobId, err.Error()))
 		resp.FailWithMessage(resp.ERROR, "[job_once] job not exist ", c)
 		return
 	}
+
 	err = service.DefaultJobService.Once(&req)
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("[job_once] etcd put job_id :%d error:%s", req.JobId, err.Error()))
