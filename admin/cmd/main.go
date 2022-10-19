@@ -29,8 +29,9 @@ func main() {
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("resolver  error:%#v", err))
 	}
-	//// Notify operation
+	// Notify operation
 	go notify.Serve()
+	// log cleaner
 	var closeChan chan struct{}
 	period := config.GetConfigModels().System.LogCleanPeriod
 	if period > 0 {

@@ -12,8 +12,9 @@ NodeConf := "$(PROJECTBIN)/node"
 TIMESTAMP   := $(shell /bin/date "+%F %T")
 
 #change to deploy environment
-AdminFile := "./admin/cmd/main.go"
-NodeFile := "./node/cmd/main.go"
+AdminFile := ./admin/cmd/main.go
+NodeFile := ./node/cmd/main.go
+WebFile := ./admin/web
 
 #compile ldflags
 LDFLAGS		:= -s -w \
@@ -23,8 +24,7 @@ LDFLAGS		:= -s -w \
 			   -X 'main.BuildDate=$(shell /bin/date "+%F %T")'
 
 
-#linux amd64开发调试版本
-linux-dev: clean
+linux-dev: clean build-web
 	@echo "install linux amd64 dev version"
 	@if [ ! -d $(AdminConf)/logs ]; then \
         mkdir -p $(AdminConf)/logs; \
@@ -40,11 +40,23 @@ linux-dev: clean
 	@CGO_ENABLED=0 GOOS=linux   GOARCH=amd64 go build -v -o $(PROJECTBIN)/$(ProjectNode) $(NodeFile)
 	@chmod +x $(PROJECTBIN)/$(ProjectAdmin)
 	@chmod +x $(PROJECTBIN)/$(ProjectNode)
+
+	@mv $(WebFile)/dist bin/
 	@echo "build success."
 
+install-web:
+	@echo "install web node_modules..."
+	cd $(WebFile)&&yarn
 
-#本地开发调试版本，取决于系统
-local-dev: clean
+build-web:
+	@echo "building web..."
+	cd $(WebFile) &&yarn build
+
+run-web:
+	@echo "running web..."
+	cd $(WebFile) &&yarn serve
+
+local-dev: clean install-web
 	@echo "install local dev version"
 	@if [ ! -d $(NodeConf)/logs ]; then \
         mkdir -p $(NodeConf)/logs; \

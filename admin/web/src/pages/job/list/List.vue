@@ -146,7 +146,7 @@
 						{{ tableMng.getNameById('job_type', scope.row.job_type) }}{{scope.row.job_type==2?tableMng.getNameById('http_method', scope.row.http_method):''}}
 					</template>
 				</el-table-column>
-				<el-table-column label="操作" width="300px">
+				<el-table-column label="操作" width="350px">
 					<template slot-scope="scope">
 						<router-link  :to="`/job/log/${scope.row.id}`">
 							<el-button type="text"> {{$t('job.log')}} </el-button>

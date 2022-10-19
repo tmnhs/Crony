@@ -11,6 +11,7 @@ ProjectBin=$PROJECTBASE/bin
 
 AdminConf="$ProjectBin/admin"
 NodeConf="$ProjectBin/node"
+WebFile="admin/web"
 echo "start build file to $ProjectBin"
 
 check() {
@@ -28,15 +29,20 @@ cp -r admin/conf $AdminConf
 mkdir -p $NodeConf/logs
 cp -r node/conf $NodeConf
 
+#admin
 echo "building project cronyadmin..."
 go build -o $ProjectBin/$PROJECTADMIN ./admin/cmd/main.go
 check
 
+#node
 echo "building project cronynode..."
 go build -o $ProjectBin/$PROJECTNODE ./node/cmd/main.go
 check
 
-
+#web
+echo "building web..."
+cd $WebFile &&yarn build
+mv ./dist ../../bin/
 
 echo "build success."
 
