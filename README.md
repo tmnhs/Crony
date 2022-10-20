@@ -107,6 +107,14 @@ make
 
 ![用户管理](./doc/user.png)
 
-日志列表
+**日志列表**
 
-![日志管理](./doc/log.png)![节点管理](./doc/node.png)![**服务**器状态](./doc/state.png)
+![日志管理](./doc/log.png)
+
+**节点管理**
+
+![节点管理](./doc/node.png)
+
+**服务器状态**
+
+![**服务**器状态](./doc/state.png)
