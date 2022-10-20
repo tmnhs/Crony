@@ -10,7 +10,6 @@ import (
 	"github.com/tmnhs/crony/common/pkg/utils"
 	"github.com/tmnhs/crony/node/internal/handler"
 	"strings"
-	"syscall"
 )
 
 func (srv *NodeServer) watchJobs() {
@@ -44,6 +43,8 @@ func (srv *NodeServer) watchJobs() {
 	}
 }
 
+//fixme kill executing job
+/*
 func (srv *NodeServer) watchKilledProc() {
 	rch := handler.WatchProc(srv.UUID)
 	for wresp := range rch {
@@ -72,7 +73,7 @@ func (srv *NodeServer) watchKilledProc() {
 			}
 		}
 	}
-}
+}*/
 
 func (srv *NodeServer) watchSystemInfo() {
 	rch := handler.WatchSystem(srv.UUID)

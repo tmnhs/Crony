@@ -59,7 +59,7 @@ func configRoute(r *gin.Engine) {
 		job.POST("search", defaultJobRouter.Search)
 		job.POST("log", defaultJobRouter.SearchLog)
 		job.POST("once", defaultJobRouter.Once)
-		job.POST("kill", defaultJobRouter.Kill)
+		//job.POST("kill", defaultJobRouter.Kill)
 	}
 
 	user := r.Group("/user")
