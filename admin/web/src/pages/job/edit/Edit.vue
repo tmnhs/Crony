@@ -237,13 +237,6 @@ export default {
 					trigger: 'blur',
 				},
 			],
-				notify_to: [
-						{
-							required: true,
-							message: 'Please select notify user',
-							trigger: 'blur',
-						},
-					],
 				notify_type: [
 					{
 						required: true,

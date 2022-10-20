@@ -95,7 +95,7 @@ func (j *Job) RunWithRecovery() {
 	}
 	result, runErr := h.Run(j)
 	if runErr != nil {
-		err = j.Fail(jobLogId, t, result, 0)
+		err = j.Fail(jobLogId, t, runErr.Error(), 0)
 		if err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
 		}
@@ -121,7 +121,7 @@ func (j *Job) RunWithRecovery() {
 			Type:      j.NotifyType,
 			IP:        fmt.Sprintf("%s:%s", node.IP, node.PID),
 			Subject:   fmt.Sprintf("任务[%s]立即执行失败", j.Name),
-			Body:      strings.Replace(fmt.Sprintf("job[%d] run on node[%s] once execute failed ,output :%s", j.ID, j.RunOn, result), "\n", "", -1),
+			Body:      strings.Replace(fmt.Sprintf("job[%d] run on node[%s] once execute failed ,output:%s,error:%s", j.ID, j.RunOn, result, runErr.Error()), "\n", "", -1),
 			To:        to,
 			OccurTime: time.Now().Format(utils.TimeFormatSecond),
 		}
@@ -176,7 +176,7 @@ func CreateJob(j *Job) cron.FuncJob {
 				}
 			}
 		}
-		err = j.Fail(jobLogId, t, output, execTimes-1)
+		err = j.Fail(jobLogId, t, runErr.Error(), execTimes-1)
 		if err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("Failed to write to job log with jobID:%d nodeUUID: %s error:%s", j.ID, j.RunOn, err.Error()))
 		}
@@ -202,7 +202,7 @@ func CreateJob(j *Job) cron.FuncJob {
 			Type:      j.NotifyType,
 			IP:        fmt.Sprintf("%s:%s", node.IP, node.PID),
 			Subject:   fmt.Sprintf("任务[%s]执行失败", j.Name),
-			Body:      strings.Replace(fmt.Sprintf("job[%d] run on node[%s] execute failed ,retry %d times ,output :%s", j.ID, j.RunOn, j.RetryTimes, output), "\n", "", -1),
+			Body:      strings.Replace(fmt.Sprintf("job[%d] run on node[%s] execute failed ,retry %d times ,output :%s, error:%v", j.ID, j.RunOn, j.RetryTimes, output, runErr), "\n", "", -1),
 			To:        to,
 			OccurTime: time.Now().Format(utils.TimeFormatSecond),
 		}

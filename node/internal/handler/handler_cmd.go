@@ -53,7 +53,7 @@ func (c *CMDHandler) Run(job *Job) (result string, err error) {
 	defer proc.Stop()
 	if err = cmd.Wait(); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("%s%s", b.String(), err.Error()))
-		return fmt.Sprintf("%s error:%s", b.String(), err.Error()), err
+		return b.String(), err
 	}
 	return b.String(), nil
 }

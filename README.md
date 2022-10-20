@@ -85,8 +85,8 @@ make
 - 后端： [Gin](https://gin-gonic.com/) + [Gorm](http://gorm.cn)+ [Viper](https://github.com/spf13/viper)+ [Zap](https://github.com/uber-go/zap)
 
 
+## 5. 截图
 
+![首页](./doc/dashboard.png)
 
-
-
-
+![任务管理](./doc/job.png)![新增任务](./doc/edit_job.png)![cron表达式生成](./doc/cron.png)![用户管理](./doc/user.png)![日志管理](./doc/job.png)![节点管理](./doc/node.png)![服务器状态](./doc/state.png)
