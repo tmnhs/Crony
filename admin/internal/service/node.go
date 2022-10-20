@@ -130,14 +130,21 @@ func (n *NodeWatcherService) setNodeList(key, val string) {
 			logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d]  don't support cmd type", job.ID))
 			continue
 		}
+		oldUUID := job.RunOn
 		nodeUUID := DefaultJobService.AutoAllocateNode()
 		if nodeUUID == "" {
 			//If automatic allocation fails, it will be directly assigned to the new node.
 			nodeUUID = key
 		}
-		err = n.assignJob(nodeUUID, job)
+		err = n.assignJob(nodeUUID, &job)
 		if err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d]  error:%s", job.ID, err.Error()))
+			continue
+		}
+		//Delete the key value if the transfer is successful
+		_, err = etcdclient.Delete(fmt.Sprintf(etcdclient.KeyEtcdJob, oldUUID, job.ID))
+		if err != nil {
+			logger.GetLogger().Error(fmt.Sprintf("node[%s] job[%d] fail over etcd delete job error:%s", nodeUUID, job.ID, err.Error()))
 			continue
 		}
 	}
@@ -231,7 +238,7 @@ func (r Result) String() (str string) {
 	return
 }
 
-func (n *NodeWatcherService) assignJob(nodeUUID string, job models.Job) (err error) {
+func (n *NodeWatcherService) assignJob(nodeUUID string, job *models.Job) (err error) {
 	if nodeUUID == "" {
 		return fmt.Errorf("node uuid can't be null")
 	}
@@ -279,7 +286,7 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Res
 			fail = append(fail, job.ID)
 			continue
 		}
-		err = n.assignJob(autoUUID, job)
+		err = n.assignJob(autoUUID, &job)
 		if err != nil {
 			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over assign job error", nodeUUID, job.ID))
 			fail = append(fail, job.ID)

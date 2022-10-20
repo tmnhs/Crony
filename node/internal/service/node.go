@@ -130,9 +130,8 @@ func (srv *NodeServer) Down() {
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("failed to update  node[%s] down  error:%s", srv.UUID, err.Error()))
 	}
-	err = dbclient.GetMysqlDB().Table(models.CronyJobTableName).Select("status", "run_on").Where("run_on = ? ", srv.UUID).Updates(models.Job{
+	err = dbclient.GetMysqlDB().Table(models.CronyJobTableName).Select("status").Where("run_on = ? ", srv.UUID).Updates(models.Job{
 		Status: models.JobStatusNotAssigned,
-		RunOn:  "",
 	}).Error
 
 	if err != nil {
@@ -195,10 +194,6 @@ func (srv *NodeServer) loadJobs() (err error) {
 func (srv *NodeServer) addJob(j *handler.Job) {
 	if err := j.Check(); err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("job check error :%s", err.Error()))
-		return
-	}
-	if err := json.Unmarshal(j.NotifyTo, &j.NotifyToArray); err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("add job unmarshal error :%s", err.Error()))
 		return
 	}
 
