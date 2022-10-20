@@ -33,7 +33,7 @@ func RegisterTables(db *gorm.DB) error {
 }
 
 func checkDataExist(db *gorm.DB) bool {
-	if errors.Is(db.Table(models.CronyUserTableName).Where("username = ?", "admin").First(&models.User{}).Error, gorm.ErrRecordNotFound) { // 判断是否存在数据
+	if errors.Is(db.Table(models.CronyUserTableName).Where("username = ?", "root").First(&models.User{}).Error, gorm.ErrRecordNotFound) { // 判断是否存在数据
 		return false
 	}
 	return true

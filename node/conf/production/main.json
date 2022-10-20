@@ -23,7 +23,7 @@
     "log-clean-expiration":604800,
     "#cmd-auto-allocation": "Whether the cmd command is used to automatically allocate nodes. By default, the command is not supported. If the command is used, ensure that each node has the corresponding configuration",
     "cmd-auto-allocation":true,
-    "version": "v1.1.o"
+    "version": "v1.1.0"
   },
   "etcd": {
     "endpoints":[

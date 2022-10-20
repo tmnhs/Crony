@@ -49,11 +49,12 @@
 - 安装 [etcd3](https://github.com/coreos/etcd)和[mysql](https://www.mysql.com/)
 - golang版本 >= v1.16
 - node版本 >= v16.13.0
+- yarn
 
 ### 3.2 安装部署
 
-- 直接下载二进制可执行文件：？？
-- 或者可以直接源码编译:
+- 直接下载二进制可执行文件[release](https://github.com/tmnhs/crony/releases)
+- 或者可以源码编译:
 
 ```bash
 #克隆项目
