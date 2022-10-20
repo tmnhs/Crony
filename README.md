@@ -87,6 +87,26 @@ make
 
 ## 5. 截图
 
+**首页**
+
 ![首页](./doc/dashboard.png)
 
-![任务管理](./doc/job.png)![新增任务](./doc/edit_job.png)![cron表达式生成](./doc/cron.png)![用户管理](./doc/user.png)![日志管理](./doc/job.png)![节点管理](./doc/node.png)![服务器状态](./doc/state.png)
+**任务列表**
+
+![任务管理](./doc/job.png)
+
+**编辑任务**
+
+![新增任务](./doc/edit_job.png)
+
+**cron表达式生成**
+
+![cron表达式生成](./doc/cron.png)
+
+**用户管理**
+
+![用户管理](./doc/user.png)
+
+日志列表
+
+![日志管理](./doc/log.png)![节点管理](./doc/node.png)![**服务**器状态](./doc/state.png)
