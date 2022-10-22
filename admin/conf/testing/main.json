@@ -1,14 +1,14 @@
 {
   "mysql": {
-    "path": "114.55.178.217",
-    "port": "3307",
+    "path": "127.0.0.1",
+    "port": "3306",
     "config": "charset=utf8mb4&parseTime=True&loc=Local",
     "db-name": "crony",
     "username": "root",
     "password": "root",
     "max-idle-conns": 100,
     "max-open-conns": 100,
-    "log-mode": "info",
+    "log-mode": "warn",
     "log-zap": false
   },
   "system": {
@@ -22,11 +22,11 @@
     "log-clean-period":720,
     "log-clean-expiration":604800,
     "#cmd-auto-allocation": "Whether the cmd command is used to automatically allocate nodes. By default, the command is not supported. If the command is used, ensure that each node has the corresponding configuration",
-    "cmd-auto-allocation":true
+    "cmd-auto-allocation":false
   },
   "etcd": {
     "endpoints":[
-      "http://114.55.178.217:2379"
+      "http://127.0.0.1:2379"
     ],
     "username":"",
     "password":"",
@@ -35,17 +35,17 @@
   },
   "email": {
     "port": 465,
-    "from": "1685290935@qq.com",
+    "from": "from",
     "host": "smtp.qq.com",
     "is-ssl": true,
-    "secret": "wqkncnzhdvbpdabj",
+    "secret": "secret",
     "nickname": "crony定时任务平台",
     "#to": "Email default notification object",
-    "to": ["mananhai@highlight.mobi"]
+    "to": ["test@qq.com"]
   },
   "webhook": {
-    "url": "https://open.feishu.cn/open-apis/bot/v2/hook/4df45fb8-6458-4af9-a2d5-6c0396895743",
-    "kind": "feishu"
+    "url": "url",
+    "kind": ""
   },
   "log": {
     "level": "debug",
@@ -55,6 +55,6 @@
     "showLine": false,
     "encode-level": "LowercaseLevelEncoder",
     "stacktrace-key": "stacktrace",
-    "log-in-console": true
+    "log-in-console": false
   }
 }

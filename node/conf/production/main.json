@@ -1,7 +1,7 @@
 {
   "mysql": {
-    "path": "114.55.178.217",
-    "port": "3307",
+    "path": "127.0.0.1",
+    "port": "3306",
     "config": "charset=utf8mb4&parseTime=True&loc=Local",
     "db-name": "crony",
     "username": "root",
@@ -27,7 +27,7 @@
   },
   "etcd": {
     "endpoints":[
-      "http://114.55.178.217:2379"
+      "http://127.0.0.1:2379"
     ],
     "username":"",
     "password":"",
@@ -36,20 +36,20 @@
   },
   "email": {
     "port": 465,
-    "from": "1685290935@qq.com",
+    "from": "from",
     "host": "smtp.qq.com",
     "is-ssl": true,
-    "secret": "wqkncnzhdvbpdabj",
+    "secret": "secret",
     "nickname": "crony定时任务平台",
     "#to": "Email default notification object",
-    "to": ["mananhai@highlight.mobi"]
+    "to": ["test@qq.com"]
   },
   "webhook": {
-    "url": "https://open.feishu.cn/open-apis/bot/v2/hook/4df45fb8-6458-4af9-a2d5-6c0396895743",
-    "kind": "feishu"
+    "url": "url",
+    "kind": ""
   },
   "log": {
-    "level": "debug",
+    "level": "warn",
     "format": "console",
     "prefix": "[crony-node]",
     "director": "logs",
