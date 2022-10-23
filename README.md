@@ -119,10 +119,9 @@ make
 
 ![**服务**器状态](./doc/state.png)
 
-**飞书告警模板**
+**邮件和飞书告警模板**
+<div>
+    <img src="http://qny.tmnhs.top/email2022.jpg" width="40%" style="float: left;margin-right: 20px" />
+    <img src="http://qny.tmnhs.top/feishu.png" width="50%" style="float: right" />
 
-![**服务**器状态](./doc/feishu.png)
-
-**邮件告警模板**
-
-![**服务**器状态](./doc/email.jpg)
+</div>
