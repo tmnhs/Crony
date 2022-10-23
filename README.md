@@ -120,8 +120,11 @@ make
 ![**服务**器状态](./doc/state.png)
 
 **邮件和飞书告警模板**
-<div>
-    <img src="http://qny.tmnhs.top/email2022.jpg" width="40%" style="float: left;margin-right: 20px" />
-    <img src="http://qny.tmnhs.top/feishu.png" width="50%" style="float: right" />
 
+<div style="height: 250px">
+    <img src="http://qny.tmnhs.top/email2022.jpg" width="40%" style="margin-right: 20px" />
+    <img src="http://qny.tmnhs.top/feishu.png" width="50%" style="line-height: 250px" />
 </div>
+
+## 6. 问题
+如有问题欢迎加qq:1685290935一起交流讨论
