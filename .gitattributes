@@ -17,8 +17,10 @@
 # Enable syntax highlighting for files with `.gitattributes` extensions.
 #
 *.gitattributes linguist-language=gitattributes
-*.js linguist-language=go
-*.css linguist-language=go
-*.html linguist-language=go
+*.js linguist-language=golang
+*.css linguist-language=golang
+*.html linguist-language=golang
+*.vue linguist-language=golang
+
 *.sh linguist-language=shell
 *.go -text diff=golang
