@@ -39,12 +39,12 @@ func (h *HTTPHandler) Run(job *Job) (result string, err error) {
 		result, err = httpclient.Get(job.Command, job.Timeout)
 	} else {
 		urlFields := strings.Split(job.Command, "?")
-		job.Command = urlFields[0]
+		url := urlFields[0]
 		var body string
 		if len(urlFields) >= 2 {
 			body = urlFields[1]
 		}
-		result, err = httpclient.PostJson(job.Command, body, job.Timeout)
+		result, err = httpclient.PostJson(url, body, job.Timeout)
 	}
 	return
 }
