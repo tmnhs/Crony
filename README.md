@@ -53,7 +53,7 @@
 
 ### 3.2 安装部署
 
-- 直接下载二进制可执行文件[release](https://github.com/tmnhs/crony/releases)
+- 直接下载二进制可执行文件:[release](https://github.com/tmnhs/crony/releases)
 - 或者可以源码编译:
 
 ```bash
@@ -121,10 +121,15 @@ make
 
 **邮件和飞书告警模板**
 
-<div style="height: 250px">
+<div style="height: 250px" align=center>
     <img src="http://qny.tmnhs.top/email2022.jpg" width="40%" style="margin-right: 20px" />
     <img src="http://qny.tmnhs.top/feishu.png" width="50%" style="line-height: 250px" />
 </div>
 
-## 6. 问题
+## 6. TODOLIST
+- 解决shell任务自动分配和故障转移的问题，通过预设环境脚本的方法
+- 目前任务只支持单机运行，不支持多机运行
+
+
+## 7. 问题
 如有问题欢迎加qq:1685290935一起交流讨论
