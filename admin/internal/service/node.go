@@ -56,7 +56,6 @@ func (n *NodeWatcherService) watcher() {
 				uuid := n.GetUUID(string(ev.Kv.Key))
 				n.delNodeList(uuid)
 				logger.GetLogger().Warn(fmt.Sprintf("crony node[%s] DELETE event detected", uuid))
-				//todo 可能node的状态还是alive 需要更新
 				node := &models.Node{UUID: uuid}
 				err := node.FindByUUID()
 				if err != nil {
