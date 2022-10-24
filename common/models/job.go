@@ -32,7 +32,7 @@ const (
 type Job struct {
 	ID      int    `json:"id" gorm:"column:id;primary_key;auto_increment"`
 	Name    string `json:"name" gorm:"size:64;column:name;not null;index:idx_job_name" binding:"required"`
-	Command string `json:"command" gorm:"size:512;column:command;not null" binding:"required"`
+	Command string `json:"command" gorm:"type:text;column:command;not null" binding:"required"`
 	//Timeout setting of job execution time, which is effective when it is greater than 0.
 	Timeout int64 `json:"timeout" gorm:"size:13;column:timeout;default:0"`
 	// Retry times of task execution failures
