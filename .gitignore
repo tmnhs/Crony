@@ -9,7 +9,11 @@ bin/*/*server
 
 admin/logs
 
+
 node/logs
+#only for github
+admin/conf
+node/conf
 
 
 bin
