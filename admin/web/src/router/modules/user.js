@@ -16,7 +16,7 @@ const route = {
 			path: '/user/index',
 			component: User,
 			meta: {
-				title: i18n.t('menu.job'),
+				title: i18n.t('menu.user'),
 				activePath: '/user',
 			},
 		},
