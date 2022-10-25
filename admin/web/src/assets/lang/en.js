@@ -81,7 +81,7 @@ job:{
     uuid_form:"Please enter node uuid",
     type:"JobType",
     command:"Command",
-    command_form:'Please enter the job execution command, such as [shell command]:./ helo. sh,[http callback post method]:http://api? {"name":"test"}',
+    command_form:'Please enter the job execution command, such as [shell command]:echo "hello world",[http callback post method]:http://api? {"name":"test"}',
     run_on:"RunOn",
     run_on_form:"Please select a running node",
     allocation:"Allocation",
@@ -101,7 +101,7 @@ job:{
     
     log:"View Log",
     once:"Execute Once",
-    type_tip:"Shell command support a range of script execution, but only for linux; http callbacks support both get and post requests, while post can take parameters such as? Space",
+    type_tip:"Shell job support a range of linux command execution; http callbacks support both get and post requests, while post can take parameters such as? Space",
     cron_conf:"Scheduled Setting",
     cron_produce:"Auto generate",
     allocation_conf:"Node Allocation",
