@@ -121,7 +121,7 @@ func (j *Job) RunWithRecovery() {
 			Type:      j.NotifyType,
 			IP:        fmt.Sprintf("%s:%s", node.IP, node.PID),
 			Subject:   fmt.Sprintf("任务[%s]立即执行失败", j.Name),
-			Body:      strings.Replace(fmt.Sprintf("job[%d] run on node[%s] once execute failed ,output:%s,error:%s", j.ID, j.RunOn, result, runErr.Error()), "\n", "", -1),
+			Body:      fmt.Sprintf("job[%d] run on node[%s] once execute failed ,output:%s,error:%s", j.ID, j.RunOn, result, runErr.Error()),
 			To:        to,
 			OccurTime: time.Now().Format(utils.TimeFormatSecond),
 		}
@@ -167,7 +167,7 @@ func CreateJob(j *Job) cron.FuncJob {
 			}
 			i++
 			if i < execTimes {
-				logger.GetLogger().Warn(fmt.Sprintf("job execution failure#jobId-%d#retry%d次#output-%s#error-%v", j.ID, i, output, runErr))
+				logger.GetLogger().Warn(fmt.Sprintf("job execution failure#jobId-%d#retry %d times #output-%s#error-%v", j.ID, i, output, runErr))
 				if j.RetryInterval > 0 {
 					time.Sleep(time.Duration(j.RetryInterval) * time.Second)
 				} else {
@@ -202,7 +202,7 @@ func CreateJob(j *Job) cron.FuncJob {
 			Type:      j.NotifyType,
 			IP:        fmt.Sprintf("%s:%s", node.IP, node.PID),
 			Subject:   fmt.Sprintf("任务[%s]执行失败", j.Name),
-			Body:      strings.Replace(fmt.Sprintf("job[%d] run on node[%s] execute failed ,retry %d times ,output :%s, error:%v", j.ID, j.RunOn, j.RetryTimes, output, runErr), "\n", "", -1),
+			Body:      fmt.Sprintf("job[%d] run on node[%s] execute failed ,retry %d times ,output :%s, error:%v", j.ID, j.RunOn, j.RetryTimes, output, runErr),
 			To:        to,
 			OccurTime: time.Now().Format(utils.TimeFormatSecond),
 		}
