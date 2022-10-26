@@ -125,10 +125,10 @@ func (n *NodeWatcherService) setNodeList(key, val string) {
 		return
 	}
 	for _, job := range jobs {
-		if job.Type == models.JobTypeCmd && !config.GetConfigModels().System.CmdAutoAllocation {
+		/*if job.Type == models.JobTypeCmd && !config.GetConfigModels().System.CmdAutoAllocation {
 			logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d]  don't support cmd type", job.ID))
 			continue
-		}
+		}*/
 		oldUUID := job.RunOn
 		nodeUUID := DefaultJobService.AutoAllocateNode()
 		if nodeUUID == "" {
@@ -272,12 +272,12 @@ func (n *NodeWatcherService) FailOver(nodeUUID string) (success Result, fail Res
 		return
 	}
 	for _, job := range jobs {
-		//Determine whether shell command failover is supported
+		/*//Determine whether shell command failover is supported
 		if job.Type == models.JobTypeCmd && !config.GetConfigModels().System.CmdAutoAllocation {
 			logger.GetLogger().Warn(fmt.Sprintf("node[%s] job[%d] fail over don't support cmd type", nodeUUID, job.ID))
 			fail = append(fail, job.ID)
 			continue
-		}
+		}*/
 		oldUUID := job.RunOn
 		autoUUID := DefaultJobService.AutoAllocateNode()
 		if autoUUID == "" {
