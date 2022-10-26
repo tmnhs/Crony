@@ -57,3 +57,23 @@ func (c *CMDHandler) Run(job *Job) (result string, err error) {
 	}
 	return b.String(), nil
 }
+
+func RunPresetScript(script *models.Script) (result string, err error) {
+	var cmd *exec.Cmd
+	cmd = exec.Command(script.Cmd[0], script.Cmd[1:]...)
+	var b bytes.Buffer
+	cmd.Stdout = &b
+	cmd.Stderr = &b
+
+	err = cmd.Start()
+	result = b.String()
+	if err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("run preset script:%s\n%s", b.String(), err.Error()))
+		return
+	}
+	if err = cmd.Wait(); err != nil {
+		logger.GetLogger().Error(fmt.Sprintf("run preset script:%s%s", b.String(), err.Error()))
+		return b.String(), err
+	}
+	return b.String(), nil
+}

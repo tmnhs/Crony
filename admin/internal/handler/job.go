@@ -39,7 +39,10 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		notifyTo, _ := json.Marshal(req.NotifyToArray)
 		req.NotifyTo = notifyTo
 	}
-
+	if len(req.ScriptIDArray) > 0 {
+		scriptID, _ := json.Marshal(req.ScriptIDArray)
+		req.ScriptID = scriptID
+	}
 	if req.Allocation == models.AutoAllocation {
 		if !config.GetConfigModels().System.CmdAutoAllocation && req.Type == models.JobTypeCmd {
 			resp.FailWithMessage(resp.ERROR, "[create_job] The shell command is not supported to automatically assign nodes by default.", c)
@@ -157,6 +160,7 @@ func (j *JobRouter) FindById(c *gin.Context) {
 	}
 	if len(job.NotifyTo) != 0 {
 		_ = json.Unmarshal(job.NotifyTo, &job.NotifyToArray)
+		_ = json.Unmarshal(job.ScriptID, &job.ScriptIDArray)
 	}
 	resp.OkWithDetailed(job, "find success", c)
 }
@@ -178,6 +182,7 @@ func (j *JobRouter) Search(c *gin.Context) {
 	var resultJobs []models.Job
 	for _, job := range jobs {
 		_ = json.Unmarshal(job.NotifyTo, &job.NotifyToArray)
+		_ = json.Unmarshal(job.ScriptID, &job.ScriptIDArray)
 		resultJobs = append(resultJobs, job)
 	}
 	resp.OkWithDetailed(resp.PageResult{

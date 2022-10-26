@@ -7,7 +7,7 @@
 
 			<div class="operation">
 				<el-button type="primary" icon="el-icon-plus" @click="handleAdd">{{$t('common.add')}}</el-button>
-				<el-button type="danger" icon="el-icon-minus" @click="handleDelete(null)">{{$t('common.deletes')}}</el-button>
+				<el-button type="danger" icon="el-icon-minus" @click="handleDelete(null)" disabled>{{$t('common.deletes')}}</el-button>
 				<el-button icon="el-icon-download" :loading="exportLoading" @click="handleExport">{{$t('common.export')}}</el-button>
 
 			</div>
@@ -115,11 +115,16 @@
 								</el-col> -->
 						</el-row>
 						<el-row :gutter="20">
-								<el-col :xs="24" :md="24">
+								<el-col :xs="24" :md="12">
 									<el-form-item :label="$t('job.notify_to')">
 										<span>{{ scope.row.notify_to!=null ? scope.row.notify_to:"NULL" }}</span>
 									</el-form-item>
 								</el-col>
+              <el-col :xs="24" :md="12">
+                <el-form-item :label="$t('job.script')">
+                  <span>{{ scope.row.script_id!=null ? scope.row.script_id:"NULL" }}</span>
+                </el-form-item>
+              </el-col>
 						</el-row>
 							<el-row :gutter="20">
 								<el-col :xs="24" :md="12">
@@ -160,7 +165,7 @@
 						</router-link>
 					
 						<el-divider direction="vertical"></el-divider>
-						<el-button type="text" @click="handleDelete(scope.row)"> {{$t('common.delete')}} </el-button>
+						<el-button type="text" @click="handleDelete(scope.row)" disabled> {{$t('common.delete')}} </el-button>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -223,6 +228,9 @@ export default {
 			if(this.uuid){
 				this.query.run_on=this.uuid
 			}
+      if(this.query.id==''){
+        this.query.id=null
+      }
 			this.jobTableLoading = true
 			const data = await this.$api.job.getJobList(this.query)
 			this.jobList = data.list

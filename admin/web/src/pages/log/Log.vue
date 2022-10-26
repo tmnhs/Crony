@@ -167,6 +167,9 @@ export default {
 			if(this.jid){
 				this.query.job_id=Number(this.jid);
 			}
+      if(this.query.job_id==''){
+        this.query.job_id=null
+      }
 			const data = await this.$api.job.getLogList(this.query)
 			this.logList = data.list
 			this.total = data.total

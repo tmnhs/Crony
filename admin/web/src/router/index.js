@@ -11,9 +11,9 @@ import mineRoute from './modules/mine'
 import reloadRoute from './modules/reload'
 import userRoute from './modules/user'
 import jobRoute from './modules/job'
+import settingRoute from './modules/setting'
 import nodeRoute from './modules/node'
 import logRoute from './modules/log'
-import systemRoute from './modules/system'
 
 Vue.use(Router)
 
@@ -37,7 +37,7 @@ const dynamicRouteMap = [
 	nodeRoute,
 	jobRoute,
 	logRoute,
-	systemRoute,
+	settingRoute,
 
 	// 必须写在最后。前边的路由都未匹配的时候，才匹配到404
 	{
@@ -55,7 +55,7 @@ const routeAdminNames = [
 	"Log",
 	'Mine',
 	'Node',
-	'System',
+	'Setting',
 	'Job',
 	'404',
 	'Error',
@@ -65,7 +65,6 @@ const routeNames = [
 	'Mine',
 	"Log",
 	'Node',
-	'System',
 	'Job',
 	'404',
 	'Error',

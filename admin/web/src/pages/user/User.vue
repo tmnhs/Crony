@@ -6,7 +6,7 @@
 			</div>
 			<div class="operation">
 				<el-button type="primary" icon="el-icon-plus" @click="handleEdit({})"> {{$t('common.add')}} </el-button>
-				<el-button type="danger" icon="el-icon-minus" @click="handleDelete({})"> {{$t('common.deletes')}} </el-button>
+				<el-button type="danger" icon="el-icon-minus" @click="handleDelete({})" disabled> {{$t('common.deletes')}} </el-button>
 			</div>
 		</div>
 
@@ -57,9 +57,9 @@
 				</el-table-column>
 				<el-table-column :label="$t('common.operation')" width="120px">
 					<template slot-scope="scope">
-						<el-button type="text" @click="handleEdit(scope.row)">{{$t('common.edit')}}</el-button>
+						<el-button type="text" @click="handleEdit(scope.row)" disabled>{{$t('common.edit')}}</el-button>
 						<el-divider direction="vertical"></el-divider>
-						<el-button type="text" @click="handleDelete(scope.row)">{{$t('common.delete')}}</el-button>
+						<el-button type="text" @click="handleDelete(scope.row)" disabled>{{$t('common.delete')}}</el-button>
 					</template>
 				</el-table-column>
 			</el-table>
@@ -117,6 +117,9 @@ export default {
 		//获取用户列表
 		async getTableData() {
 			// this.tableLoading = true
+      if(this.query.id==''){
+        this.query.id=null
+      }
 			const data = await this.$api.user.getList(this.query)
 			this.userList = data.list
 			this.total = data.total

@@ -7,6 +7,7 @@ const (
 	CronyJobTableName    = "job"
 	CronyJobLogTableName = "job_log"
 	CronyUserTableName   = "user"
+	CronyScriptTableName = "script"
 )
 
 type (

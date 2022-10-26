@@ -193,10 +193,30 @@ func (srv *NodeServer) loadJobs() (err error) {
 
 func (srv *NodeServer) addJob(j *handler.Job) {
 	if err := j.Check(); err != nil {
-		logger.GetLogger().Error(fmt.Sprintf("job check error :%s", err.Error()))
+		logger.GetLogger().Error(fmt.Sprintf("job[%d] check error :%s", j.ID, err.Error()))
 		return
 	}
-
+	//run script
+	if j.Type == models.JobTypeCmd {
+		for _, id := range j.ScriptIDArray {
+			script := &models.Script{ID: id}
+			err := script.FindById()
+			if err != nil {
+				logger.GetLogger().Warn(fmt.Sprintf("job[%d] find script[%d] error :%s", j.ID, id, err.Error()))
+				continue
+			}
+			err = script.Check()
+			if err != nil {
+				logger.GetLogger().Warn(fmt.Sprintf("script[%d] check error :%s", id, err.Error()))
+				continue
+			}
+			result, err := handler.RunPresetScript(script)
+			if err != nil {
+				logger.GetLogger().Warn(fmt.Sprintf("job[%d] run script[%d] error :%s", j.ID, id, err.Error()))
+			}
+			logger.GetLogger().Info(fmt.Sprintf("job[%d] run script[%d] result :%s", j.ID, id, result))
+		}
+	}
 	taskFunc := handler.CreateJob(j)
 	if taskFunc == nil {
 		logger.GetLogger().Error(fmt.Sprintf("Failed to create a task to process the Job. The task protocol was not supported%s", j.Type))

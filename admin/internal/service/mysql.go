@@ -15,6 +15,7 @@ func RegisterTables(db *gorm.DB) error {
 		models.Node{},
 		models.Job{},
 		models.JobLog{},
+		models.Script{},
 	)
 	if err != nil {
 		logger.GetLogger().Error(fmt.Sprintf("register table failed, error:%s", err.Error()))

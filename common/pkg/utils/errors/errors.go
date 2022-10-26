@@ -15,6 +15,8 @@ var (
 	ErrIllegalJobId        = errors.New("Invalid id that includes illegal characters such as '/' '\\'.")
 	ErrIllegalJobGroupName = errors.New("Invalid job group name that includes illegal characters such as '/' '\\'.")
 
+	ErrEmptyScriptName    = errors.New("Name of script is empty.")
+	ErrEmptyScriptCommand = errors.New("Command of script is empty.")
 	ErrEmptyNodeGroupName = errors.New("Name of node group is empty.")
 	ErrIllegalNodeGroupId = errors.New("Invalid node group id that includes illegal characters such as '/'.")
 )

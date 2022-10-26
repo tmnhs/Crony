@@ -31,8 +31,18 @@
 						</el-form-item>
 				</el-col>
 			</el-row>
-			
-		
+      <el-row :gutter="20" >
+        <el-form-item :label="$t('job.script')"  prop="script" v-if="jobDetail.job_type==1">
+          <el-select v-model="jobDetail.script_id" :placeholder="$t('job.script_form')"  multiple clearable>
+            <el-option
+                v-for="item in scriptList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+      </el-row>
 				<el-form-item :label="$t('job.command')" prop="command">
 				<el-input
 					v-model="jobDetail.command"
@@ -165,7 +175,7 @@
 		</el-form>
 
 		<div style="text-align: center">
-			<el-button type="primary" @click="handleSubmit" :loading="submitLoading">{{$t('common.submit')}}</el-button>
+			<el-button type="primary" @click="handleSubmit" :loading="submitLoading" >{{$t('common.submit')}}</el-button>
 			<el-button type="info" @click="handleCancel">{{$t('common.cancel')}}</el-button>
 		</div>
 	</div>
@@ -184,7 +194,8 @@ const defaultDetail = {
 	retry_times:3,
 	retry_interval:1,
 	notify_type:1,
-	notify_to:[],
+  notify_to:[],
+  script_id:[],
 	spec:'',
 	allocation:1,
 	note:'',
@@ -199,7 +210,8 @@ export default {
 		return {
 			tableMng,
 			jobDetail: { ...defaultDetail },
-			userList:[],
+      userList:[],
+      scriptList:[],
 			nodeList:[],
 			cronTable:false,
 			formRules: {
@@ -260,14 +272,19 @@ export default {
 	},
 	created() {
 		this.getDetail()
-		this.getuserList()
+		this.getUserList()
 		this.getNodeList()
+    this.getScriptList()
 	},
 	methods: {
-		async getuserList() {
+		async getUserList() {
 			const data = await this.$api.user.getList({page:1,page_size:1000})
 			this.userList = data.list
 		},
+    async getScriptList() {
+      const data = await this.$api.script.getScriptList({page:1,page_size:1000})
+      this.scriptList = data.list
+    },
 		//获取节点列表
 		async getNodeList() {
 			const data = await this.$api.node.getNodeList({status:1})
@@ -291,6 +308,7 @@ export default {
 					spec:data.spec,
 					allocation:1,
 					note:data.note,
+          script_id: data.script_id,
 				}
 			} else {
 				this.jobDetail = { ...defaultDetail }

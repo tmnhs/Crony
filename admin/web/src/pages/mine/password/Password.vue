@@ -9,7 +9,7 @@
 				<el-input v-model="formData.new_password" :placeholder="$t('user.password_form')" ></el-input>
 			</el-form-item>
 		</el-form>
-		<el-button type="primary" style="margin-top:50px;" round :loading="submitLoading" @click="handleSubmit"> {{$t('common.submit')}} </el-button>
+		<el-button type="primary" style="margin-top:50px;" round :loading="submitLoading" @click="handleSubmit" disabled> {{$t('common.submit')}} </el-button>
 	</div>
 </template>
 
