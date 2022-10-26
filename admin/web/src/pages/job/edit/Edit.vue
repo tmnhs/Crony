@@ -170,12 +170,10 @@
 						</el-select>
 			</el-form-item>
 			</el-row>
-
-
 		</el-form>
 
 		<div style="text-align: center">
-			<el-button type="primary" @click="handleSubmit" :loading="submitLoading" >{{$t('common.submit')}}</el-button>
+			<el-button type="primary" @click="handleSubmit" :loading="submitLoading">{{$t('common.submit')}}</el-button>
 			<el-button type="info" @click="handleCancel">{{$t('common.cancel')}}</el-button>
 		</div>
 	</div>

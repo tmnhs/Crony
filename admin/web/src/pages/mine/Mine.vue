@@ -29,7 +29,7 @@
 			</el-row>
 		</el-form>
 
-		<el-button type="primary" round :loading="submitLoading" @click="handleSubmit" disabled> {{$t('common.submit')}} </el-button>
+		<el-button type="primary" round :loading="submitLoading" @click="handleSubmit" > {{$t('common.submit')}} </el-button>
 	</div>
 </template>
 

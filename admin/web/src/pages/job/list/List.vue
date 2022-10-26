@@ -7,7 +7,7 @@
 
 			<div class="operation">
 				<el-button type="primary" icon="el-icon-plus" @click="handleAdd">{{$t('common.add')}}</el-button>
-				<el-button type="danger" icon="el-icon-minus" @click="handleDelete(null)" disabled>{{$t('common.deletes')}}</el-button>
+				<el-button type="danger" icon="el-icon-minus" @click="handleDelete(null)" >{{$t('common.deletes')}}</el-button>
 				<el-button icon="el-icon-download" :loading="exportLoading" @click="handleExport">{{$t('common.export')}}</el-button>
 
 			</div>
@@ -165,7 +165,7 @@
 						</router-link>
 					
 						<el-divider direction="vertical"></el-divider>
-						<el-button type="text" @click="handleDelete(scope.row)" disabled> {{$t('common.delete')}} </el-button>
+						<el-button type="text" @click="handleDelete(scope.row)" > {{$t('common.delete')}} </el-button>
 					</template>
 				</el-table-column>
 			</el-table>

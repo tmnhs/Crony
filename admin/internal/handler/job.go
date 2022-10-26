@@ -32,17 +32,11 @@ func (j *JobRouter) CreateOrUpdate(c *gin.Context) {
 		resp.FailWithMessage(resp.ErrorJobFormat, "[create_job] check error", c)
 		return
 	}
+
 	var err error
 	var insertId int
 	t := time.Now()
-	if len(req.NotifyToArray) > 0 {
-		notifyTo, _ := json.Marshal(req.NotifyToArray)
-		req.NotifyTo = notifyTo
-	}
-	if len(req.ScriptIDArray) > 0 {
-		scriptID, _ := json.Marshal(req.ScriptIDArray)
-		req.ScriptID = scriptID
-	}
+
 	if req.Allocation == models.AutoAllocation {
 		if !config.GetConfigModels().System.CmdAutoAllocation && req.Type == models.JobTypeCmd {
 			resp.FailWithMessage(resp.ERROR, "[create_job] The shell command is not supported to automatically assign nodes by default.", c)
