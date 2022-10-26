@@ -59,7 +59,7 @@
 
 ### 3.2 安装部署
 
-- 直接下载二进制可执行文件:[release](https://github.com/tmnhs/crony/releases)
+- 直接下载二进制可执行文件:[release](https://github.com/tmnhs/crony/releases/tag/v1.2.0)
 - 或者可以源码编译:
 
 ```bash
