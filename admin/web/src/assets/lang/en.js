@@ -110,7 +110,7 @@ export default {
         cron_conf: "Scheduled Setting",
         cron_produce: "Auto generate",
         allocation_conf: "Node Allocation",
-        allocation_tip: "In principle only automatic allocation of http callbacks is supported, but you can also support automatic allocation if you can ensure that each machine has the configuration to perform shell command ",
+        allocation_tip: "Automatic allocation of http callbacks is supported, and shell tasks can be automatically assigned by configuring the server's environment through the corresponding preset script.",
 
         job_conf: "Task Setting ",
         job_tip: "The unit is second. If the timeout is 0, it is not set. The default timeout is 0., the number of failed retries is 3, the retry interval is 1s,",

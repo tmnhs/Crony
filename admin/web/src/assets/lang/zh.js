@@ -112,7 +112,7 @@ export default {
         cron_conf: "定时配置",
         cron_produce: "自动生成cron表达式",
         allocation_conf: "节点分配",
-        allocation_tip: "原则上来说只支持http回调自动分配,但如果你能确保每台机器都有可以执行shell任务的配置,也可以支持自动分配",
+        allocation_tip: "支持http回调自动分配,shell任务可通过相应的预设脚本来配置服务器的环境，从而实现自动分配",
         job_conf: "任务配置",
         job_tip: "单位秒,超时时间为0表示不设置，默认超时时间为0,失败重试次数为3次,重试时间间隔为1s,日志清除时间间隔为7天",
         notify_conf: "通知设置",
