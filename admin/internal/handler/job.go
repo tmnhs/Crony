@@ -153,8 +153,7 @@ func (j *JobRouter) FindById(c *gin.Context) {
 		return
 	}
 	if len(job.NotifyTo) != 0 {
-		_ = json.Unmarshal(job.NotifyTo, &job.NotifyToArray)
-		_ = json.Unmarshal(job.ScriptID, &job.ScriptIDArray)
+		_ = job.Unmarshal()
 	}
 	resp.OkWithDetailed(job, "find success", c)
 }
@@ -175,8 +174,7 @@ func (j *JobRouter) Search(c *gin.Context) {
 	}
 	var resultJobs []models.Job
 	for _, job := range jobs {
-		_ = json.Unmarshal(job.NotifyTo, &job.NotifyToArray)
-		_ = json.Unmarshal(job.ScriptID, &job.ScriptIDArray)
+		_ = job.Unmarshal()
 		resultJobs = append(resultJobs, job)
 	}
 	resp.OkWithDetailed(resp.PageResult{

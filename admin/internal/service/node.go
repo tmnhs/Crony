@@ -129,6 +129,11 @@ func (n *NodeWatcherService) setNodeList(key, val string) {
 			logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d]  don't support cmd type", job.ID))
 			continue
 		}*/
+		err = job.Unmarshal()
+		if err != nil {
+			logger.GetLogger().Warn(fmt.Sprintf("assign unassigned job[%d] json unmarshal error:%s", job.ID, err.Error()))
+			continue
+		}
 		oldUUID := job.RunOn
 		nodeUUID := DefaultJobService.AutoAllocateNode()
 		if nodeUUID == "" {

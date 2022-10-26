@@ -30,10 +30,11 @@ const (
 
 // register to  /crony/job/<node_uuid>/<job_id>
 type Job struct {
-	ID            int    `json:"id" gorm:"column:id;primary_key;auto_increment"`
-	Name          string `json:"name" gorm:"size:64;column:name;not null;index:idx_job_name" binding:"required"`
-	Command       string `json:"command" gorm:"type:text;column:command;not null" binding:"required"`
-	ScriptID      []byte `json:"-" gorm:"size:256;column:script_id;default:null"`
+	ID      int    `json:"id" gorm:"column:id;primary_key;auto_increment"`
+	Name    string `json:"name" gorm:"size:64;column:name;not null;index:idx_job_name" binding:"required"`
+	Command string `json:"command" gorm:"type:text;column:command;not null" binding:"required"`
+	//preset script ID
+	ScriptID      []byte `json:"-"  gorm:"size:256;column:script_id;default:null"`
 	ScriptIDArray []int  `json:"script_id" gorm:"-"`
 	//Timeout setting of job execution time, which is effective when it is greater than 0.
 	Timeout int64 `json:"timeout" gorm:"size:13;column:timeout;default:0"`
@@ -122,4 +123,10 @@ func (j *Job) Val() string {
 
 func (j *Job) TableName() string {
 	return CronyJobTableName
+}
+
+func (j *Job) Unmarshal() (err error) {
+	err = json.Unmarshal(j.NotifyTo, &j.NotifyToArray)
+	err = json.Unmarshal(j.ScriptID, &j.ScriptIDArray)
+	return
 }
