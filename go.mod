@@ -18,7 +18,7 @@ require (
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/ouqiang/goutil v1.4.1
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/spf13/viper v1.13.0
