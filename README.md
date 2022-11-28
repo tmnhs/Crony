@@ -89,7 +89,7 @@ make
 
 - 前端： [Vue](https://vuejs.org) + [Element](https://github.com/ElemeFE/element)
 - 后端： [Gin](https://gin-gonic.com/) + [Gorm](http://gorm.cn)+ [Viper](https://github.com/spf13/viper)+ [Zap](https://github.com/uber-go/zap)
-
+- 定时任务使用：[robfig/cron](https://github.com/robfig/cron)
 
 ## 5. 截图
 
