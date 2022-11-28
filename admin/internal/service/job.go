@@ -161,6 +161,7 @@ func RunLogCleaner(cleanPeriod time.Duration, expiration int64) (close chan stru
 					logger.GetLogger().Error(fmt.Sprintf("clean up logs at time:%v error:%s", time.Now(), err.Error()))
 				}
 			case <-close:
+				t.Stop()
 				return
 			}
 		}
