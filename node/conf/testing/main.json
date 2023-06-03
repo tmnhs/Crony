@@ -1,14 +1,14 @@
 {
   "mysql": {
-    "path": "127.0.0.1",
-    "port": "3306",
+    "path": "192.168.79.131",
+    "port": "3307",
     "config": "charset=utf8mb4&parseTime=True&loc=Local",
     "db-name": "crony",
     "username": "root",
     "password": "root",
     "max-idle-conns": 100,
     "max-open-conns": 100,
-    "log-mode": "info",
+    "log-mode": "warn",
     "log-zap": false
   },
   "system": {
