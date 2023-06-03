@@ -24,7 +24,7 @@ LDFLAGS		:= -s -w \
 			   -X 'main.BuildDate=$(shell /bin/date "+%F %T")'
 
 
-linux-dev: clean build-web
+linux-dev: clean install-web build-web
 	@echo "install linux amd64 dev version"
 	@if [ ! -d $(AdminConf)/logs ]; then \
         mkdir -p $(AdminConf)/logs; \
@@ -46,11 +46,11 @@ linux-dev: clean build-web
 
 install-web:
 	@echo "install web node_modules..."
-	cd $(WebFile)&&yarn
+	cd $(WebFile)&&npm install
 
 build-web:
 	@echo "building web..."
-	cd $(WebFile) &&yarn build
+	cd $(WebFile)&&yarn build
 
 run-web:
 	@echo "running web..."

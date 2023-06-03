@@ -36,6 +36,7 @@ func (h *HTTPHandler) Run(job *Job) (result string, err error) {
 		job.Timeout = HttpExecTimeout
 	}
 	if job.HttpMethod == models.HTTPMethodGet {
+		//logger.GetLogger().Debug(fmt.Sprintf("Job Command:%s   Timeout:%d",job.Command, job.Timeout))
 		result, err = httpclient.Get(job.Command, job.Timeout)
 	} else {
 		urlFields := strings.Split(job.Command, "?")

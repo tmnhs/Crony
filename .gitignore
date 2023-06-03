@@ -15,5 +15,6 @@ node/logs
 admin/conf
 node/conf
 
+package-lock.json
 
 bin

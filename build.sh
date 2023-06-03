@@ -41,7 +41,9 @@ check
 
 #web
 echo "building web..."
-cd $WebFile &&yarn build
+cd $WebFile
+npm install
+yarn build
 mv ./dist ../../bin/
 
 echo "build success."
